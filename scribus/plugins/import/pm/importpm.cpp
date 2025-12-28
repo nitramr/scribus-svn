@@ -54,7 +54,7 @@ QImage PmPlug::readThumbnail(const QString& fName)
 	docHeight = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	progressDialog = nullptr;
 	m_Doc = new ScribusDoc();
-	m_Doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
+	m_Doc->setup(0, 1, 1, 1, 1, QSizeF(), "Custom");
 	m_Doc->setPage(docWidth, docHeight, 0, 0, 0, 0, 0, 0, false, false);
 	m_Doc->addPage(0);
 	m_Doc->setGUI(false, ScCore->primaryMainWindow(), nullptr);
@@ -161,7 +161,7 @@ bool PmPlug::importFile(const QString& fNameIn, const TransactionSettings& trSet
 	{
 		if (!m_Doc || (flags & LoadSavePlugin::lfCreateDoc))
 		{
-			m_Doc = ScCore->primaryMainWindow()->doFileNew(docWidth, docHeight, 0, 0, 0, 0, 0, 0, false, false, 0, false, 0, 1, "Custom", true);
+			m_Doc = ScCore->primaryMainWindow()->doFileNew(docWidth, docHeight, 0, 0, 0, 0, 0, 0, false, false, 0, false, 0, 1, QSizeF(), true);
 			ScCore->primaryMainWindow()->HaveNewDoc();
 			ret = true;
 			baseX = 0;

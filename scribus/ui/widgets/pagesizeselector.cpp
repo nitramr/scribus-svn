@@ -49,7 +49,7 @@ void PageSizeSelector::setHasCustom(bool hasCustom)
 	m_hasCustom = hasCustom;
 
 	if (!m_sizeName.isEmpty())
-		setPageSize(m_sizeName);
+		setPageSize(m_size.width(), m_size.height());
 }
 
 void PageSizeSelector::setCurrentCategory(PageSizeInfo::Category category)
@@ -59,10 +59,8 @@ void PageSizeSelector::setCurrentCategory(PageSizeInfo::Category category)
 		comboCategory->setCurrentIndex(index);
 }
 
-void PageSizeSelector::setPageSize(QString name)
+void PageSizeSelector::setup(PageSize ps)
 {
-	PageSize ps(name);
-
 	m_sizeName = ps.name();
 	m_sizeCategory = ps.category();
 	m_trSizeName = ps.nameTR();
@@ -89,7 +87,7 @@ void PageSizeSelector::setPageSize(QString name)
 	{
 		comboCategory->addItem(it.value(), it.key());
 		if (it.key() == m_sizeCategory)
-			index = comboCategory->count() - 1;			
+			index = comboCategory->count() - 1;
 	}
 
 	comboCategory->setCurrentIndex(index);
@@ -100,6 +98,13 @@ void PageSizeSelector::setPageSize(QString name)
 
 	// Load size format list
 	setFormat(m_sizeCategory, m_sizeName);
+}
+
+void PageSizeSelector::setPageSize(double width, double height)
+{
+	m_size = QSizeF(width, height);
+	PageSize ps(width, height);
+	setup(ps);
 }
 
 void PageSizeSelector::setFormat(PageSizeInfo::Category category, QString name)

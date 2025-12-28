@@ -71,7 +71,7 @@ PyObject *scribus_newdocument(PyObject* /* self */, PyObject* args)
 								// columnDistance, numberCols, autoframes,
 								0, 1, false,
 								pagesType, unit, firstPageOrder,
-								orientation, firstPageNr, "Custom", true, numPages);
+								orientation, firstPageNr, QSizeF(), true, numPages);
 	ScCore->primaryMainWindow()->doc->setPageSetFirstPage(pagesType, firstPageOrder);
 
 	return PyLong_FromLong(static_cast<long>(ret));
@@ -107,7 +107,7 @@ PyObject *scribus_newdoc(PyObject* /* self */, PyObject* args)
 	lr  = value2pts(lr, unit);
 	rr  = value2pts(rr, unit);
 	btr = value2pts(btr, unit);
-	bool ret = ScCore->primaryMainWindow()->doFileNew(b, h, tpr, lr, rr, btr, 0, 1, false, ds, unit, fsl, ori, fNr, "Custom", true);
+	bool ret = ScCore->primaryMainWindow()->doFileNew(b, h, tpr, lr, rr, btr, 0, 1, false, ds, unit, fsl, ori, fNr, QSizeF(), true);
 	//	qApp->processEvents();
 	return PyLong_FromLong(static_cast<long>(ret));
 }

@@ -29,7 +29,7 @@ class PageSizeSelector : public QWidget
 public:
 	explicit PageSizeSelector(QWidget *parent = nullptr);
 
-	void setPageSize(QString name);
+	void setPageSize(double width, double height);
 	void setHasFormatSelector(bool isVisble );
 	void setHasCustom(bool hasCustom);
 	bool hasCustom() const { return m_hasCustom; };
@@ -46,10 +46,12 @@ private:
 
 	QString m_sizeName;
 	QString m_trSizeName;
+	QSizeF m_size;
 	PageSizeInfo::Category m_sizeCategory;
 	bool m_hasFormatSelector {true};
 	bool m_hasCustom {true};
 
+	void setup(PageSize ps);
 	void setFormat(PageSizeInfo::Category category, QString name);
 
 signals:

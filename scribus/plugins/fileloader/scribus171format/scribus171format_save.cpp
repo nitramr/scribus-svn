@@ -333,7 +333,7 @@ bool Scribus171Format::saveFile(const QString & fileName, const FileFormat & /* 
 	docu.writeAttribute("BleedRight", m_Doc->bleeds()->right());
 	docu.writeAttribute("BleedBottom", m_Doc->bleeds()->bottom());
 	docu.writeAttribute("PageOrientation", m_Doc->pageOrientation());
-	docu.writeAttribute("PageSize", m_Doc->pageSize());
+	// docu.writeAttribute("PageSize", m_Doc->pageSize());
 	docu.writeAttribute("FirstPageNumber", m_Doc->FirstPnum);
 	docu.writeAttribute("PagePositioning", m_Doc->pagePositioning());
 	if (m_Doc->usesAutomaticTextFrames())
@@ -1797,7 +1797,7 @@ void Scribus171Format::WritePages(ScribusDoc *doc, ScXmlStreamWriter& docu, QPro
 		docu.writeAttribute("PageNumber",page->pageNr());
 		docu.writeAttribute("PageName",page->pageName());
 		docu.writeAttribute("MasterPageName",page->masterPageName());
-		docu.writeAttribute("Size", page->size());
+		// docu.writeAttribute("Size", page->size());
 		docu.writeAttribute("Orientation", page->orientation());
 		docu.writeAttribute("LeftPage", page->LeftPg);
 		docu.writeAttribute("Preset", page->marginPreset);

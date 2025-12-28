@@ -184,12 +184,10 @@ void Prefs_DocumentSetup::restoreDefaults(struct ApplicationPrefs *prefsData)
 	marginsWidget->setup(prefsData->docSetupPrefs.margins, prefsData->docSetupPrefs.pagePositioning, prefsData->docSetupPrefs.docUnitIndex, NewMarginWidget::MarginWidgetFlags);
 	marginsWidget->setPageWidth(prefsData->docSetupPrefs.pageWidth);
 	marginsWidget->setPageHeight(prefsData->docSetupPrefs.pageHeight);
-//	marginsWidget->setPageSize(prefsPageSizeName);
 	marginsWidget->setMarginPreset(prefsData->docSetupPrefs.marginPreset);
 	bleedsWidget->setup(prefsData->docSetupPrefs.bleeds, prefsData->docSetupPrefs.pagePositioning, prefsData->docSetupPrefs.docUnitIndex, NewMarginWidget::BleedWidgetFlags);
 	bleedsWidget->setPageWidth(prefsData->docSetupPrefs.pageWidth);
 	bleedsWidget->setPageHeight(prefsData->docSetupPrefs.pageHeight);
-//	bleedsWidget->setPageSize(prefsPageSizeName);
 	bleedsWidget->setMarginPreset(prefsData->docSetupPrefs.marginPreset);
 	saveCompressedCheckBox->setChecked(prefsData->docSetupPrefs.saveCompressed);
 	emergencyCheckBox->setChecked(prefsData->miscPrefs.saveEmergencyFile);
@@ -271,21 +269,12 @@ void Prefs_DocumentSetup::setupPageSets()
 
 void Prefs_DocumentSetup::setupPageSizes(struct ApplicationPrefs *prefsData)
 {
-	prefsPageSizeName = prefsData->docSetupPrefs.pageSize;
+	double width = prefsData->docSetupPrefs.pageWidth;
+	double height = prefsData->docSetupPrefs.pageHeight;
 
-	PageSize ps(prefsPageSizeName);
+	pageSizeSelector->setPageSize(width, height);
+	prefsPageSizeName = pageSizeSelector->pageSize();
 
-	// try to find coresponding page size by dimensions
-	if (ps.name() == CommonStrings::customPageSize)
-	{
-		PageSizeInfoMap pages = ps.sizesByDimensions(QSize(prefsData->docSetupPrefs.pageWidth, prefsData->docSetupPrefs.pageHeight));
-		if (pages.count() > 0)
-			prefsPageSizeName = pages.firstKey();
-	}
-
-	pageSizeSelector->setPageSize(prefsPageSizeName);
-	marginsWidget->setPageSize(prefsPageSizeName);
-	bleedsWidget->setPageSize(prefsPageSizeName);
 }
 
 void Prefs_DocumentSetup::pageLayoutChanged(int i)
@@ -299,9 +288,9 @@ void Prefs_DocumentSetup::setPageWidth(double w)
 {
 	pageW = pageWidthSpinBox->value() / unitRatio;
 	marginsWidget->setPageWidth(pageW);
-	QString psText = pageSizeSelector->pageSizeTR();
-	if (psText != CommonStrings::trCustomPageSize && psText != CommonStrings::customPageSize)
-		pageSizeSelector->setPageSize(CommonStrings::customPageSize);
+
+	pageSizeSelector->setPageSize(pageW, pageH);
+
 	int newOrientation = (pageWidthSpinBox->value() > pageHeightSpinBox->value()) ? landscapePage : portraitPage;
 	if (newOrientation != pageOrientationComboBox->currentIndex())
 	{
@@ -315,9 +304,9 @@ void Prefs_DocumentSetup::setPageHeight(double h)
 {
 	pageH = pageHeightSpinBox->value() / unitRatio;
 	marginsWidget->setPageHeight(pageH);
-	QString psText = pageSizeSelector->pageSizeTR();
-	if (psText != CommonStrings::trCustomPageSize && psText != CommonStrings::customPageSize)
-		pageSizeSelector->setPageSize(CommonStrings::customPageSize);
+
+	pageSizeSelector->setPageSize(pageW, pageH);
+
 	int newOrientation = (pageWidthSpinBox->value() > pageHeightSpinBox->value()) ? landscapePage : portraitPage;
 	if (newOrientation != pageOrientationComboBox->currentIndex())
 	{
@@ -370,7 +359,6 @@ void Prefs_DocumentSetup::setSize(const QString &newSize)
 	pageHeightSpinBox->setValue(pageH * unitRatio);
 	marginsWidget->setPageHeight(pageH);
 	marginsWidget->setPageWidth(pageW);
-	marginsWidget->setPageSize(newSize);
 	pageWidthSpinBox->blockSignals(false);
 	pageHeightSpinBox->blockSignals(false);
 }

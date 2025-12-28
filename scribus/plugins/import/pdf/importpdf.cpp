@@ -164,7 +164,7 @@ bool PdfPlug::importFile(const QString& fNameIn, const TransactionSettings& trSe
 	{
 		if (!m_Doc || (flags & LoadSavePlugin::lfCreateDoc))
 		{
-			m_Doc = ScCore->primaryMainWindow()->doFileNew(docWidth, docHeight, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0, 1, "Custom", true);
+			m_Doc = ScCore->primaryMainWindow()->doFileNew(docWidth, docHeight, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0, 1, QSizeF(), true);
 			ScCore->primaryMainWindow()->HaveNewDoc();
 			ret = true;
 		}

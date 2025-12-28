@@ -39,23 +39,23 @@ PageSizeList::PageSizeList(QWidget* parent) :
 	setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 }
 
-void PageSizeList::setFormat(QString format)
+void PageSizeList::setDimensions(double width, double height)
 {
-	loadPageSizes(format, m_orientation, m_category);
-	m_name = format;
+	loadPageSizes(QSizeF(width, height), m_orientation, m_category);
+	m_dimensions = QSizeF(width, height);
 	setSortMode(m_sortMode);
 }
 
 void PageSizeList::setOrientation(int orientation)
 {
-	loadPageSizes(m_name, orientation, m_category);
+	loadPageSizes(m_dimensions, orientation, m_category);
 	m_orientation = orientation;
 	setSortMode(m_sortMode);
 }
 
 void PageSizeList::setCategory(PageSizeInfo::Category category)
 {
-	loadPageSizes(m_name, m_orientation, category);
+	loadPageSizes(m_dimensions, m_orientation, category);
 	m_category = category;
 	setSortMode(m_sortMode);
 }
@@ -87,21 +87,21 @@ void PageSizeList::setSortMode(SortMode sortMode)
 	}
 }
 
-void PageSizeList::setValues(QString format, int orientation, PageSizeInfo::Category category, SortMode sortMode)
+void PageSizeList::setValues(QSizeF dimensions, int orientation, PageSizeInfo::Category category, SortMode sortMode)
 {
-	loadPageSizes(format, orientation, category);
-	m_name = format;
+	loadPageSizes(dimensions, orientation, category);
+	m_dimensions = dimensions;
 	m_orientation = orientation;
 	m_category = category;
 	setSortMode(sortMode);
 }
 
-void PageSizeList::loadPageSizes(QString name, int orientation, PageSizeInfo::Category category)
+void PageSizeList::loadPageSizes(QSizeF dimensions, int orientation, PageSizeInfo::Category category)
 {
 	QSignalBlocker sig(this);
 
-	PageSize ps(name);
-	PageSize pref(PrefsManager::instance().appPrefs.docSetupPrefs.pageSize);
+	PageSize pref(PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth, PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight);
+	PageSize ps(dimensions.width(), dimensions.height());
 
 	int sel = -1;
 
@@ -109,8 +109,9 @@ void PageSizeList::loadPageSizes(QString name, int orientation, PageSizeInfo::Ca
 	m_model->setSortRole(ItemData::Name);
 	m_model->sort(0, Qt::AscendingOrder);
 
-	if (m_category == category && this->selectionModel()->currentIndex().isValid())
-		sel = this->selectionModel()->currentIndex().row();
+	// enable if list selection should be remembered
+	// if (m_category == category && this->selectionModel()->currentIndex().isValid())
+	// 	sel = this->selectionModel()->currentIndex().row();
 
 	m_model->clear();
 
@@ -134,10 +135,14 @@ void PageSizeList::loadPageSizes(QString name, int orientation, PageSizeInfo::Ca
 			itemA->setData(QVariant(item.category), ItemData::Category);
 			itemA->setData(QVariant(item.sizeName), ItemData::Name);
 			itemA->setData(QVariant(item.width * item.height), ItemData::Dimension);
+			itemA->setData(QVariant(item.width), ItemData::Width);
+			itemA->setData(QVariant(item.height), ItemData::Height);
 			m_model->appendRow(itemA);
 
-			if (sel == -1 && item.sizeName == ps.name())
+			// select item with name match OR equal size
+			if (sel == -1 && (item.sizeName == ps.name() || (item.width == ps.width() && item.height == ps.height())))
 				sel = itemA->row();
+
 		}
 	}
 

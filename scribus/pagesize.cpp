@@ -27,24 +27,49 @@ for which a new license (GPL+exception) is in place.
 
 PageSize::PageSize(const QString& sizeName)
 {
-	init(sizeName);
+	initByName(sizeName);
 }
 
 PageSize::PageSize(double w, double h)
-        : m_width(w),
-          m_height(h)
 {
-	m_pageSizeName = CommonStrings::customPageSize;
-	m_trPageSizeName = CommonStrings::trCustomPageSize;
+	initByDimensions(QSizeF(w, h));
 }
 
 PageSize& PageSize::operator=(const PageSize& other)
 {
-	init(other.name());
+	initByDimensions(QSizeF(other.width(), other.height()));
 	return *this;
 }
 
-void PageSize::init(const QString& sizeName)
+void PageSize::initByDimensions(QSizeF sizePt)
+{
+	generateSizeList();
+
+	PageSizeInfo page = pageInfoByDimensions(sizePt);
+	if (page.sizeName.isEmpty())
+	{
+		// qDebug() << Q_FUNC_INFO << "Don't found page" << sizePt;
+		m_width = sizePt.width();
+		m_height = sizePt.height();
+		m_pageUnitIndex = -1;
+		m_pageSizeName = CommonStrings::customPageSize;
+		m_trPageSizeName = CommonStrings::trCustomPageSize;
+		m_category = PageSizeInfo::Custom;
+		return;
+	}
+
+	// qDebug() << Q_FUNC_INFO << "Found page" << page.sizeName << sizePt;
+
+	m_width = page.width;
+	m_height = page.height;
+	m_pageUnitIndex = page.pageUnitIndex;
+	m_pageSizeName = page.sizeName;
+	m_trPageSizeName = page.trSizeName;
+	m_category = page.category;
+
+}
+
+void PageSize::initByName(const QString& sizeName)
 {
 	m_width = 0.0;
 	m_height = 0.0;
@@ -124,18 +149,26 @@ PageSizeInfoMap PageSize::sizesByCategory(PageSizeInfo::Category category) const
 	return map;
 }
 
-PageSizeInfoMap PageSize::sizesByDimensions(QSize sizePt) const
+PageSizeInfoMap PageSize::sizesByDimensions(QSizeF sizePt) const
 {
 	PageSizeInfoMap map;
 
 	for (auto it = m_pageSizeList.begin(); it != m_pageSizeList.end(); ++it)
 	{
-		if (it.value().width == sizePt.width() && it.value().height == sizePt.height())
+		if ((qFuzzyCompare(it.value().width, sizePt.width()) && qFuzzyCompare(it.value().height, sizePt.height())) // portrait
+			|| (qFuzzyCompare(it.value().width, sizePt.height()) && qFuzzyCompare(it.value().height, sizePt.width()))) // landscape
 			map.insert(it.value().sizeName, it.value());
 	}
 
 	return map;
 }
+
+PageSizeInfo PageSize::pageInfoByDimensions(QSizeF sizePt) const
+{
+	PageSizeInfoMap list = sizesByDimensions(sizePt);
+	return (list.empty()) ? PageSizeInfo() : list.first();
+}
+
 
 PageSizeInfoMap PageSize::activePageSizes() const
 {

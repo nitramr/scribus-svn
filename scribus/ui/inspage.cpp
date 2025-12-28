@@ -248,7 +248,7 @@ InsPage::InsPage( QWidget* parent, ScribusDoc* currentDoc, int currentPage, int 
 	textLabel1 = new QLabel( tr( "&Size:" ), dsGroupBox7);
 	dsGroupBox7Layout->addWidget(textLabel1, 0, 0, Qt::AlignTop | Qt::AlignRight);
 	pageSizeSelector = new PageSizeSelector(dsGroupBox7);
-	pageSizeSelector->setPageSize(m_doc->pageSize());
+	pageSizeSelector->setPageSize(m_doc->pageWidth(), m_doc->pageHeight());
 	textLabel1->setBuddy(pageSizeSelector);
 	dsGroupBox7Layout->addWidget(pageSizeSelector, 0, 1);
 	textLabel2 = new QLabel( tr( "Orie&ntation:" ), dsGroupBox7);

@@ -36,8 +36,6 @@ class SCRIBUS_API NewMarginWidget : public QWidget, Ui::NewMarginWidget
 		void setPageWidth(double);
 		/*! \brief Setup the spinboxes properties (min/max value etc.) by height */
 		void setPageHeight(double);
-		/*! \brief Set the page size for margin getting from cups */
-		void setPageSize(const QString&);
 		void setNewUnit(int unitIndex);
 		void setNewValues(const MarginStruct& margs);
 		/*! \brief Setup the presetCombo without changing the margin values, only used by tabdocument */
@@ -64,7 +62,6 @@ class SCRIBUS_API NewMarginWidget : public QWidget, Ui::NewMarginWidget
 
 		MarginStruct m_marginData;
 		MarginStruct m_savedMarginData;
-		QString m_pageSize;
 		bool   m_facingPages {false};
 		double m_pageHeight {0.0};
 		double m_pageWidth {0.0};

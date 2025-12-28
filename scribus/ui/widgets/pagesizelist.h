@@ -33,13 +33,14 @@ public:
 		Category = Qt::UserRole + 2,
 		Name = Qt::UserRole + 3,
 		Dimension = Qt::UserRole + 4,
+		Width = Qt::UserRole + 5,
+		Height = Qt::UserRole + 6
 	};
 
 	PageSizeList(QWidget* parent);
 	~PageSizeList() = default;
 
-	void setFormat(QString format);
-	const QString& format() const { return m_name; };
+	void setDimensions(double width, double height);
 
 	void setOrientation(int orientation);
 	int orientation() const { return m_orientation; };
@@ -50,19 +51,19 @@ public:
 	void setSortMode(SortMode sortMode);
 	SortMode sortMode() const { return m_sortMode; };
 
-	void setValues(QString format, int orientation, PageSizeInfo::Category category, SortMode sortMode);
+	void setValues(QSizeF dimensions, int orientation, PageSizeInfo::Category category, SortMode sortMode);
 
 	void updateGeometries() override;
 
 private:
-	QString m_name {PageSize::defaultSizesList().at(1)};
+	QSizeF m_dimensions;
 	int m_orientation {0};
 	PageSizeInfo::Category m_category {PageSizeInfo::Preferred};
 	SortMode m_sortMode {SortMode::NameAsc};
 	QStandardItemModel* m_model { nullptr };
 
 	QIcon sizePreview(QSize iconSize, QSize pageSize) const;
-	void loadPageSizes(QString name, int orientation, PageSizeInfo::Category category);
+	void loadPageSizes(QSizeF dimensions, int orientation, PageSizeInfo::Category category);
 };
 
 

@@ -2529,7 +2529,7 @@ void Scribus171Format::readDocAttributes(ScribusDoc* doc, const ScXmlStreamAttri
 	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("PAGESIZE"))
 	{
-		m_Doc->setPageSize(attrs.valueAsString("PAGESIZE"));
+		// m_Doc->setPageSize(attrs.valueAsString("PAGESIZE"));
 		m_Doc->setPageOrientation(attrs.valueAsInt("ORIENTATION", 0));
 		m_Doc->FirstPnum = attrs.valueAsInt("FIRSTNUM", 1);
 		m_Doc->setPagePositioning(attrs.valueAsInt("BOOK", 0));
@@ -2569,6 +2569,9 @@ void Scribus171Format::readDocAttributes(ScribusDoc* doc, const ScXmlStreamAttri
 		m_Doc->setHyphAutoCheck(attrs.valueAsBool("AUTOCHECK", false));
 		m_Doc->GuideLock = attrs.valueAsBool("GUIDELOCK", false);
 
+		PageSize ps = PageSize(m_Doc->pageWidth(), m_Doc->pageHeight());
+		m_Doc->setPageSize(ps.name());
+
 		m_Doc->rulerXoffset = attrs.valueAsDouble("rulerXoffset", 0.0);
 		m_Doc->rulerYoffset = attrs.valueAsDouble("rulerYoffset", 0.0);
 		m_Doc->SnapGuides = attrs.valueAsBool("SnapToGuides", false);
@@ -2595,7 +2598,7 @@ void Scribus171Format::readDocAttributes(ScribusDoc* doc, const ScXmlStreamAttri
 	}
 	else
 	{
-		m_Doc->setPageSize(attrs.valueAsString("PageSize"));
+		// m_Doc->setPageSize(attrs.valueAsString("PageSize"));
 		m_Doc->setPageOrientation(attrs.valueAsInt("PageOrientation", 0));
 		m_Doc->FirstPnum = attrs.valueAsInt("FirstPageNumber", 1);
 		m_Doc->setPagePositioning(attrs.valueAsInt("PagePositioning", 0));
@@ -4771,8 +4774,6 @@ bool Scribus171Format::readPage(ScribusDoc* doc, ScXmlStreamReader& reader)
 	else
 		mpName = attrs.valueAsString("MasterPageName", "Normal");
 	newPage->setMasterPageName(m_Doc->masterPageMode() ? QString() : mpName);
-	if (attrs.hasAttribute("Size"))
-		newPage->setSize(attrs.valueAsString("Size"));
 	if (attrs.hasAttribute("Orientation"))
 		newPage->setOrientation(attrs.valueAsInt("Orientation"));
 
@@ -4800,16 +4801,8 @@ bool Scribus171Format::readPage(ScribusDoc* doc, ScXmlStreamReader& reader)
 	else
 		newPage->setHeight(attrs.valueAsDouble("PageHeight"));
 
-	//14704: Double check the page size should not be Custom in case the size doesn't match a standard size
-	if (attrs.hasAttribute("Size"))
-	{
-		QString pageSize(attrs.valueAsString("Size"));
-		PageSize ps(pageSize);
-		if (!compareDouble(ps.width(), newPage->width()) || !compareDouble(ps.height(), newPage->height()))
-			newPage->setSize(CommonStrings::customPageSize);
-		else
-			newPage->setSize(pageSize);
-	}
+	PageSize ps(newPage->width(), newPage->height());
+	newPage->setSize(ps.name());
 
 	newPage->setInitialHeight(newPage->height());
 	newPage->setInitialWidth(newPage->width());

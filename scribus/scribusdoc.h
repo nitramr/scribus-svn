@@ -107,7 +107,7 @@ public:
 	bool inASpecialEditMode() const;
 	QList<PageItem*> getAllItems(const QList<PageItem*> &items) const;
 	QList<PageItem*> *parentGroup(PageItem* item, QList<PageItem*> *list);
-	void setup(int, int, int, int, int, const QString&, const QString&);
+	void setup(int, int, int, int, int, QSizeF pageSize, const QString&);
 	void setLoading(bool);
 	bool isLoading() const;
 	void setModified(bool);
@@ -222,10 +222,10 @@ public:
 
 	double pageHeight() const { return m_docPrefsData.docSetupPrefs.pageHeight; }
 	double pageWidth() const { return m_docPrefsData.docSetupPrefs.pageWidth; }
-	const QString& pageSize() const { return m_docPrefsData.docSetupPrefs.pageSize; }
+	const QString& pageSize() const { return m_docPrefsData.docSetupPrefs.pageSize; } // legacy support for < 1.7.1
 	void setPageHeight(double h) { m_docPrefsData.docSetupPrefs.pageHeight = h; }
 	void setPageWidth(double w) { m_docPrefsData.docSetupPrefs.pageWidth = w; }
-	void setPageSize(const QString& s) { m_docPrefsData.docSetupPrefs.pageSize = s; }
+	void setPageSize(const QString& s) { m_docPrefsData.docSetupPrefs.pageSize = s; } // legacy support for < 1.7.1
 
 	int marginPreset() const { return m_docPrefsData.docSetupPrefs.marginPreset; }
 	void setMarginPreset(int mp) { m_docPrefsData.docSetupPrefs.marginPreset = mp; }

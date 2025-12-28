@@ -338,7 +338,7 @@ int ScribusMainWindow::initScMW(bool primaryMainWindow)
 	internalCopy = false;
 	internalCopyBuffer.clear();
 	m_doc = new ScribusDoc();
-	m_doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
+	m_doc->setup(0, 1, 1, 1, 1, QSizeF(), "Custom");
 	m_doc->setPage(100, 100, 0, 0, 0, 0, 0, 0, false, false);
 	m_doc->addPage(0);
 	m_doc->setGUI(false, this, nullptr);
@@ -2039,7 +2039,7 @@ void ScribusMainWindow::startUpDialog()
 			bool autoframes = dia->autoTextFrame->isChecked();
 			int orientation = dia->orientation();
 			int pageCount = dia->pageCountSpinBox->value();
-			QString pagesize = dia->pageSizeName();
+			QSizeF pagesize(dia->pageWidth(), dia->pageHeight());
 			doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->marginPreset());
 			doc->setPageSetFirstPage(facingPages, firstPage);
 			doc->bleeds()->set(dia->bleedTop(), dia->bleedLeft(), dia->bleedBottom(), dia->bleedRight());
@@ -2115,7 +2115,7 @@ bool ScribusMainWindow::slotFileNew()
 	bool autoframes = dia->autoTextFrame->isChecked();
 	int orientation = dia->orientation();
 	int pageCount = dia->pageCountSpinBox->value();
-	QString pagesize = dia->pageSizeName();
+	QSizeF pagesize(dia->pageWidth(), dia->pageHeight());
 
 	if (doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->marginPreset()))
 	{
@@ -2137,12 +2137,12 @@ bool ScribusMainWindow::slotFileNew()
 }
 
 //TODO move to core, assign doc to doc list, optionally create gui for it
-ScribusDoc *ScribusMainWindow::newDoc(double width, double height, double topMargin, double leftMargin, double rightMargin, double bottomMargin, double columnDistance, double columnCount, bool autoTextFrames, int pageArrangement, int unitIndex, int firstPageLocation, int orientation, int firstPageNumber, const QString& defaultPageSize, bool requiresGUI, int pageCount, bool showView, int marginPreset)
+ScribusDoc *ScribusMainWindow::newDoc(double width, double height, double topMargin, double leftMargin, double rightMargin, double bottomMargin, double columnDistance, double columnCount, bool autoTextFrames, int pageArrangement, int unitIndex, int firstPageLocation, int orientation, int firstPageNumber, QSizeF defaultPageSize, bool requiresGUI, int pageCount, bool showView, int marginPreset)
 {
 	return doFileNew(width, height, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, columnCount, autoTextFrames, pageArrangement, unitIndex, firstPageLocation, orientation, firstPageNumber, defaultPageSize, requiresGUI, pageCount, showView, marginPreset);
 }
 
-ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double topMargin, double leftMargin, double rightMargin, double bottomMargin, double columnDistance, double columnCount, bool autoTextFrames, int pageArrangement, int unitIndex, int firstPageLocation, int orientation, int firstPageNumber, const QString& defaultPageSize, bool requiresGUI, int pageCount, bool showView, int marginPreset)
+ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double topMargin, double leftMargin, double rightMargin, double bottomMargin, double columnDistance, double columnCount, bool autoTextFrames, int pageArrangement, int unitIndex, int firstPageLocation, int orientation, int firstPageNumber, QSizeF defaultPageSize, bool requiresGUI, int pageCount, bool showView, int marginPreset)
 {
 	if (HaveDoc)
 		outlinePalette->buildReopenVals();
@@ -8652,7 +8652,7 @@ void ScribusMainWindow::dropEvent ( QDropEvent * e)
 					ScriXmlDoc ss;
 					if (ss.readElemHeader(data, false, &gx, &gy, &gw, &gh))
 					{
-						doFileNew(gw, gh, 0, 0, 0, 0, 0, 0, false, false, 0, false, 0, 1, "Custom", true);
+						doFileNew(gw, gh, 0, 0, 0, 0, 0, 0, false, false, 0, false, 0, 1, QSizeF(), true);
 						HaveNewDoc();
 						doc->reformPages(true);
 						slotElemRead(data, doc->currentPage()->xOffset(), doc->currentPage()->yOffset(), false, false, doc, view);
@@ -8690,7 +8690,7 @@ void ScribusMainWindow::dropEvent ( QDropEvent * e)
 				ScriXmlDoc ss;
 				if (ss.readElemHeader(text, false, &gx, &gy, &gw, &gh))
 				{
-					doFileNew(gw, gh, 0, 0, 0, 0, 0, 0, false, false, 0, false, 0, 1, "Custom", true);
+					doFileNew(gw, gh, 0, 0, 0, 0, 0, 0, false, false, 0, false, 0, 1, QSizeF(), true);
 					HaveNewDoc();
 					doc->reformPages(true);
 					slotElemRead(text, doc->currentPage()->xOffset(), doc->currentPage()->yOffset(), false, false, doc, view);
@@ -9204,7 +9204,7 @@ void ScribusMainWindow::manageColorsAndFills()
 			if (fmt)
 			{
 				ScribusDoc *s_doc = new ScribusDoc();
-				s_doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
+				s_doc->setup(0, 1, 1, 1, 1, QSizeF(), "Custom");
 				s_doc->setPage(100, 100, 0, 0, 0, 0, 0, 0, false, false);
 				s_doc->addPage(0);
 				s_doc->setGUI(false, this, nullptr);

@@ -133,7 +133,6 @@ void NewDocDialog::createNewDocPage()
 {
 	int orientation = prefsManager.appPrefs.docSetupPrefs.pageOrientation;
 	int pagePositioning = prefsManager.appPrefs.docSetupPrefs.pagePositioning;
-	QString pageSize = prefsManager.appPrefs.docSetupPrefs.pageSize;
 	double pageHeight = prefsManager.appPrefs.docSetupPrefs.pageHeight;
 	double pageWidth = prefsManager.appPrefs.docSetupPrefs.pageWidth;
 
@@ -165,11 +164,11 @@ void NewDocDialog::createNewDocPage()
 		pageLayoutButtons->button(2)->setChecked(true);
 	}
 
-	listPageFormats->setValues(pageSize, orientation, PageSizeInfo::Preferred, PageSizeList::NameAsc);
+	listPageFormats->setValues(QSizeF(pageWidth, pageHeight), orientation, PageSizeInfo::Preferred, PageSizeList::NameAsc);
 
 	pageSizeSelector->setHasFormatSelector(false);
 	pageSizeSelector->setHasCustom(false);
-	pageSizeSelector->setPageSize(pageSize);
+	pageSizeSelector->setPageSize(pageWidth, pageHeight);
 	pageSizeSelector->setCurrentCategory(PageSizeInfo::Preferred);
 
 	widthSpinBox->setMinimum(pts2value(1.0, m_unitIndex));
@@ -194,7 +193,6 @@ void NewDocDialog::createNewDocPage()
 	marginGroup->setPageHeight(pageHeight);
 	marginGroup->setPageWidth(pageWidth);
 	marginGroup->setFacingPages(!(pagePositioning == singlePage));
-	marginGroup->setPageSize(pageSize);
 	marginGroup->setMarginPreset(prefsManager.appPrefs.docSetupPrefs.marginPreset);
 
 	MarginStruct bleed;
@@ -204,7 +202,6 @@ void NewDocDialog::createNewDocPage()
 	bleedGroup->setPageHeight(pageHeight);
 	bleedGroup->setPageWidth(pageWidth);
 	bleedGroup->setFacingPages(!(pagePositioning == singlePage));
-	bleedGroup->setPageSize(pageSize);
 	bleedGroup->setMarginPreset(prefsManager.appPrefs.docSetupPrefs.marginPreset);
 
 	pageCountSpinBox->setMaximum( 10000 );
@@ -214,7 +211,7 @@ void NewDocDialog::createNewDocPage()
 	pageCountLabel->setPixmap(iconManager.loadPixmap("panel-page"));
 
 	setDocLayout(pagePositioning);
-	setSize(pageSize);
+	setSize(QSizeF(pageWidth, pageHeight));
 	setOrientation(orientation);
 
 	numberOfCols->setButtonSymbols( QSpinBox::UpDownArrows );
@@ -341,8 +338,8 @@ void NewDocDialog::setWidth(double)
 	marginGroup->setPageWidth(m_pageWidth);
 	bleedGroup->setPageWidth(m_pageWidth);
 	listPageFormats->clearSelection();
-	m_pageSize = CommonStrings::customPageSize;
-	pagePreview->setPage(m_pageHeight, m_pageWidth, marginGroup->margins(), bleedGroup->margins(), m_pageSize, m_choosenLayout, m_layoutFirstPage);
+	listPageFormats->setDimensions(m_pageWidth, m_pageHeight);
+	pagePreview->setPage(m_pageHeight, m_pageWidth, marginGroup->margins(), bleedGroup->margins(), m_choosenLayout, m_layoutFirstPage);
 
 	int newOrientation = (widthSpinBox->value() > heightSpinBox->value()) ? landscapePage : portraitPage;
 	if (newOrientation != m_orientation)
@@ -363,8 +360,8 @@ void NewDocDialog::setHeight(double)
 	marginGroup->setPageHeight(m_pageHeight);
 	bleedGroup->setPageHeight(m_pageHeight);	
 	listPageFormats->clearSelection();
-	m_pageSize = CommonStrings::customPageSize;
-	pagePreview->setPage(m_pageHeight, m_pageWidth, marginGroup->margins(), bleedGroup->margins(), m_pageSize, m_choosenLayout, m_layoutFirstPage);
+	listPageFormats->setDimensions(m_pageWidth, m_pageHeight);
+	pagePreview->setPage(m_pageHeight, m_pageWidth, marginGroup->margins(), bleedGroup->margins(), m_choosenLayout, m_layoutFirstPage);
 
 	int newOrientation = (widthSpinBox->value() > heightSpinBox->value()) ? landscapePage : portraitPage;
 	if (newOrientation != m_orientation)
@@ -381,10 +378,11 @@ void NewDocDialog::setHeight(double)
 void NewDocDialog::changePageSize(const QModelIndex &ic)
 {
 	int unit = ic.data(PageSizeList::Unit).toInt();
-	QString sizeName = ic.data(PageSizeList::Name).toString();
+	double width = ic.data(PageSizeList::Width).toDouble();
+	double height = ic.data(PageSizeList::Height).toDouble();
 
 	setUnit(unit);
-	setPageSize(sizeName);
+	setPageSize(QSizeF(width, height));
 
 	QSignalBlocker sig(unitOfMeasureComboBox);
 	unitOfMeasureComboBox->setCurrentIndex(unit);
@@ -504,7 +502,9 @@ void NewDocDialog::setOrientation(int ori)
 		heightSpinBox->setValue((ori == portraitPage) ? qMax(w, h) : qMin(w, h));
 		m_pageWidth  = (ori == portraitPage) ? qMin(pw, ph) : qMax(pw, ph);
 		m_pageHeight = (ori == portraitPage) ? qMax(pw, ph) : qMin(pw, ph);
-		listPageFormats->setOrientation(ori);
+		// listPageFormats->setDimensions(pw, ph);
+		// listPageFormats->setOrientation(ori);
+		listPageFormats->setValues(QSizeF(pw, ph), ori, listPageFormats->category(), listPageFormats->sortMode());
 	}
 	// #869 pv - defined constants added + code repeat (check w/h)
 	(ori == portraitPage) ? m_orientation = portraitPage : m_orientation = landscapePage;
@@ -513,7 +513,7 @@ void NewDocDialog::setOrientation(int ori)
 	marginGroup->setPageWidth(m_pageWidth);
 	bleedGroup->setPageHeight(m_pageHeight);
 	bleedGroup->setPageWidth(m_pageWidth);
-	pagePreview->setPage(m_pageHeight, m_pageWidth, marginGroup->margins(), bleedGroup->margins(), m_pageSize, m_choosenLayout, m_layoutFirstPage);
+	pagePreview->setPage(m_pageHeight, m_pageWidth, marginGroup->margins(), bleedGroup->margins(), m_choosenLayout, m_layoutFirstPage);
 
 	connect(widthSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setWidth(double)));
 	connect(heightSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setHeight(double)));
@@ -539,43 +539,37 @@ void NewDocDialog::setLayout(int layoutId)
 	}
 }
 
-void NewDocDialog::setPageSize(const QString &size)
+void NewDocDialog::setPageSize(QSizeF size)
 {
 	setSize(size);
-
-	if (size != CommonStrings::customPageSize)
-		setOrientation(pageOrientationButtons->checkedId());
-
-	marginGroup->setPageSize(size);
-	bleedGroup->setPageSize(size);
-
+	setOrientation(pageOrientationButtons->checkedId());
 }
 
-void NewDocDialog::setSize(const QString& gr)
+void NewDocDialog::setSize(QSizeF size)
 {
 	m_pageWidth = widthSpinBox->value() / m_unitRatio;
 	m_pageHeight = heightSpinBox->value() / m_unitRatio;
-	m_pageSize = gr;
+
+	PageSize ps(size.width(), size.height());
 
 	disconnect(widthSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setWidth(double)));
 	disconnect(heightSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setHeight(double)));
-	if (m_pageSize == CommonStrings::trCustomPageSize || m_pageSize == CommonStrings::customPageSize)
+	if (ps.name() == CommonStrings::customPageSize)
 	{
 		widthSpinBox->setEnabled(true);
 		heightSpinBox->setEnabled(true);
 	}
 	else
 	{
-		PageSize ps2(m_pageSize);
 		if (pageOrientationButtons->checkedId() == portraitPage)
 		{
-			m_pageWidth = ps2.width();
-			m_pageHeight = ps2.height();
+			m_pageWidth = ps.width();
+			m_pageHeight = ps.height();
 		}
 		else
 		{
-			m_pageWidth = ps2.height();
-			m_pageHeight = ps2.width();
+			m_pageWidth = ps.height();
+			m_pageHeight = ps.width();
 		}
 	}
 	widthSpinBox->setValue(m_pageWidth * m_unitRatio);
@@ -584,7 +578,7 @@ void NewDocDialog::setSize(const QString& gr)
 	marginGroup->setPageWidth(m_pageWidth);
 	bleedGroup->setPageHeight(m_pageHeight);
 	bleedGroup->setPageWidth(m_pageWidth);
-	pagePreview->setPage(m_pageHeight, m_pageWidth, marginGroup->margins(), bleedGroup->margins(), m_pageSize, m_choosenLayout, m_layoutFirstPage);
+	pagePreview->setPage(m_pageHeight, m_pageWidth, marginGroup->margins(), bleedGroup->margins(), m_choosenLayout, m_layoutFirstPage);
 
 	connect(widthSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setWidth(double)));
 	connect(heightSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setHeight(double)));
@@ -597,7 +591,7 @@ void NewDocDialog::setDocLayout(int layout)
 	bleedGroup->setFacingPages(layout != singlePage);
 	m_choosenLayout = layout;
 	m_layoutFirstPage = prefsManager.appPrefs.pageSets[m_choosenLayout].FirstPage;
-	pagePreview->setPage(m_pageHeight, m_pageWidth, marginGroup->margins(), bleedGroup->margins(), m_pageSize, m_choosenLayout, m_layoutFirstPage);
+	pagePreview->setPage(m_pageHeight, m_pageWidth, marginGroup->margins(), bleedGroup->margins(), m_choosenLayout, m_layoutFirstPage);
 }
 
 void NewDocDialog::setDocFirstPage(int firstPage)
@@ -694,6 +688,5 @@ void NewDocDialog::changeCategory(PageSizeInfo::Category category)
 	if (listPageFormats->category() == category)
 		return;
 
-	listPageFormats->setFormat(m_pageSize);
-	listPageFormats->setCategory(category);
+	listPageFormats->setValues(QSizeF(m_pageWidth, m_pageHeight), listPageFormats->orientation(), category, listPageFormats->sortMode());
 }

@@ -61,8 +61,7 @@ public:
 	void createNewDocPage();
 	void createOpenDocPage();
 	void createRecentDocPage();
-	void setSize(const QString& gr);
-	QString pageSizeName() const { return m_pageSize; };
+	void setSize(QSizeF size);
 
 	QFileDialog *fileDialog {nullptr};
 
@@ -94,7 +93,7 @@ public slots:
 	void ExitOK();
 	void setOrientation(int ori);
 	void setLayout(int layoutId);
-	void setPageSize(const QString &);
+	void setPageSize(QSizeF size);
 	void setDocLayout(int layout);
 	void setDocFirstPage(int firstPage);
 	/*! Opens document on doubleclick
@@ -132,7 +131,6 @@ protected:
 	double m_distance { 11.0 };
 	QString m_unitSuffix;
 	QString m_selectedFile;
-	QString m_pageSize;
 	int m_unitIndex { 0 };
 	int m_tabSelected { 0 };
 	bool m_onStartup { false };

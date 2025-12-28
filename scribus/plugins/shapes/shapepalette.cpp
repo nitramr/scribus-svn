@@ -217,7 +217,7 @@ void ShapeView::startDrag(Qt::DropActions supportedActions)
 		int w = shapes[key].width;
 		int h = shapes[key].height;
 		ScribusDoc *m_Doc = new ScribusDoc();
-		m_Doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
+		m_Doc->setup(0, 1, 1, 1, 1, QSizeF(), "Custom");
 		m_Doc->setPage(w, h, 0, 0, 0, 0, 0, 0, false, false);
 		m_Doc->addPage(0);
 		m_Doc->setGUI(false, scMW, nullptr);

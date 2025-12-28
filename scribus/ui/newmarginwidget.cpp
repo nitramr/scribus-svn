@@ -7,11 +7,12 @@ for which a new license (GPL+exception) is in place.
 
 #include "newmarginwidget.h"
 #include "iconmanager.h"
+#include "pagesize.h"
+#include "scribusapp.h"
 #include "scrspinbox.h"
-#include "units.h"
 #include "ui/marginpresetlayout.h"
 #include "ui/useprintermarginsdialog.h"
-#include "scribusapp.h"
+#include "units.h"
 
 NewMarginWidget::NewMarginWidget(QWidget* parent)
 	: QWidget(parent)
@@ -300,12 +301,6 @@ void NewMarginWidget::setPreset()
 	emit marginChanged(m_marginData);
 }
 
-void NewMarginWidget::setPageSize(const QString& pageSize)
-{
-	m_pageSize = pageSize;
-}
-
-
 void NewMarginWidget::updateMarginSpinValues()
 {
 	bool leftBlocked = leftMarginSpinBox->blockSignals(true);
@@ -401,7 +396,9 @@ void NewMarginWidget::setFacingPages(bool facing, int pageType)
 void NewMarginWidget::setMarginsToPrinterMargins()
 {
 	QSizeF pageDimensions(m_pageWidth, m_pageHeight);
-	UsePrinterMarginsDialog upm(parentWidget(), pageDimensions, m_pageSize, unitGetRatioFromIndex(m_unitIndex), unitGetSuffixFromIndex(m_unitIndex));
+	PageSize ps(m_pageWidth, m_pageHeight);
+
+	UsePrinterMarginsDialog upm(parentWidget(), pageDimensions, ps.nameTR(), unitGetRatioFromIndex(m_unitIndex), unitGetSuffixFromIndex(m_unitIndex));
 	if (upm.exec() != QDialog::Accepted)
 		return;
 

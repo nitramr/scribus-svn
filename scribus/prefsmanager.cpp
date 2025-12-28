@@ -1378,8 +1378,8 @@ bool PrefsManager::writePref(const QString& filePath)
 	deDocumentSetup.setAttribute("UnitIndex", appPrefs.docSetupPrefs.docUnitIndex);
 	deDocumentSetup.setAttribute("PageSize", appPrefs.docSetupPrefs.pageSize);
 	deDocumentSetup.setAttribute("PageOrientation", appPrefs.docSetupPrefs.pageOrientation);
-	deDocumentSetup.setAttribute("PageWidth", ScCLocale::toQStringC(appPrefs.docSetupPrefs.pageWidth));
-	deDocumentSetup.setAttribute("PageHeight", ScCLocale::toQStringC(appPrefs.docSetupPrefs.pageHeight));
+	deDocumentSetup.setAttribute("PageWidth", appPrefs.docSetupPrefs.pageWidth);
+	deDocumentSetup.setAttribute("PageHeight", appPrefs.docSetupPrefs.pageHeight);
 	deDocumentSetup.setAttribute("MarginTop", ScCLocale::toQStringC(appPrefs.docSetupPrefs.margins.top()));
 	deDocumentSetup.setAttribute("MarginBottom", ScCLocale::toQStringC(appPrefs.docSetupPrefs.margins.bottom()));
 	deDocumentSetup.setAttribute("MarginLeft", ScCLocale::toQStringC(appPrefs.docSetupPrefs.margins.left()));
@@ -2073,8 +2073,8 @@ bool PrefsManager::readPref(const QString& filePath)
 			PageSize ps( dc.attribute("PageSize", PageSize::defaultSizesList().at(1)) );
 			appPrefs.docSetupPrefs.pageSize = (ps.name() == CommonStrings::customPageSize ) ? PageSize::defaultSizesList().at(1) : ps.name();
 			appPrefs.docSetupPrefs.pageOrientation = dc.attribute("PageOrientation", "0").toInt();
-			appPrefs.docSetupPrefs.pageWidth   = ScCLocale::toDoubleC(dc.attribute("PageWidth"), 595.0);
-			appPrefs.docSetupPrefs.pageHeight  = ScCLocale::toDoubleC(dc.attribute("PageHeight"), 842.0);
+			appPrefs.docSetupPrefs.pageWidth   = ScCLocale::toDoubleC(dc.attribute("PageWidth"), mm2pts(210));
+			appPrefs.docSetupPrefs.pageHeight  = ScCLocale::toDoubleC(dc.attribute("PageHeight"), mm2pts(297));
 			appPrefs.docSetupPrefs.margins.setTop(ScCLocale::toDoubleC(dc.attribute("MarginTop"), 9.0));
 			appPrefs.docSetupPrefs.margins.setBottom(ScCLocale::toDoubleC(dc.attribute("MarginBottom"), 40.0));
 			appPrefs.docSetupPrefs.margins.setLeft(ScCLocale::toDoubleC(dc.attribute("MarginLeft"), 9.0));

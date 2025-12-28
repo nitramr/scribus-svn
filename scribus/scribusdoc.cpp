@@ -680,12 +680,13 @@ QList<PageItem*> *ScribusDoc::parentGroup(PageItem* item, QList<PageItem*> *list
 	return retList;
 }
 
-void ScribusDoc::setup(int unitIndex, int fp, int firstLeft, int orientation, int firstPageNumber, const QString& defaultPageSize, const QString& documentName)
+void ScribusDoc::setup(int unitIndex, int fp, int firstLeft, int orientation, int firstPageNumber, QSizeF pageSize, const QString& documentName)
 {
 	m_docPrefsData.docSetupPrefs.docUnitIndex = unitIndex;
 	setPageSetFirstPage(fp, firstLeft);
 	m_docPrefsData.docSetupPrefs.pageOrientation = orientation;
-	m_docPrefsData.docSetupPrefs.pageSize = defaultPageSize;
+	PageSize ps(pageSize.width(), pageSize.height());
+	m_docPrefsData.docSetupPrefs.pageSize = ps.name();
 	FirstPnum = firstPageNumber;
 	m_docPrefsData.docSetupPrefs.pagePositioning = fp;
 	setDocumentFileName(documentName);

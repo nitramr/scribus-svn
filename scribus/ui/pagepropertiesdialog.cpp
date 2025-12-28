@@ -59,7 +59,7 @@ PagePropertiesDialog::PagePropertiesDialog( QWidget* parent, ScribusDoc* doc )
 	TextLabel1 = new QLabel( tr( "&Size:" ), dsGroupBox7 );
 	dsGroupBox7Layout->addWidget( TextLabel1, 0, 0, Qt::AlignTop | Qt::AlignRight);
 	pageSizeSelector = new PageSizeSelector(dsGroupBox7);
-	pageSizeSelector->setPageSize(doc->currentPage()->size());
+	pageSizeSelector->setPageSize(doc->currentPage()->width(), doc->currentPage()->height());
 	TextLabel1->setBuddy(pageSizeSelector);
 	dsGroupBox7Layout->addWidget(pageSizeSelector, 0, 1);
 	TextLabel2 = new QLabel( tr( "Orie&ntation:" ), dsGroupBox7 );
@@ -249,7 +249,6 @@ void PagePropertiesDialog::setSize(const QString & gr)
 	heightSpinBox->setValue(m_pageHeight * m_unitRatio);
 	marginWidget->setPageHeight(m_pageHeight);
 	marginWidget->setPageWidth(m_pageWidth);
-	marginWidget->setPageSize(gr);
 	connect(widthSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setPageWidth(double)));
 	connect(heightSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setPageHeight(double)));
 }

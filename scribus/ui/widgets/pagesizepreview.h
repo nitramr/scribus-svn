@@ -13,20 +13,26 @@ class PageSizePreview : public QWidget
 public:
 	explicit PageSizePreview(QWidget *parent = nullptr);
 
-	void setPageHeight(double height) { m_height = height; update(); };
-	void setPageWidth(double width) { m_width = width; update(); };
-	void setMargins(const MarginStruct& margins) { m_margins = margins; update(); };
-	void setBleeds(const MarginStruct& bleeds) { m_bleeds = bleeds; update(); };
-	void setPageName(const QString& name) {
-		PageSize ps(name);
+	void setPageHeight(double height)
+	{
+		PageSize ps(m_width, height);
 		m_name = ps.nameTR();
+		m_height = height;
 		update();
 	};
+	void setPageWidth(double width)
+	{
+		PageSize ps(width, m_height);
+		m_width = width;
+		update();
+	};
+	void setMargins(const MarginStruct& margins) { m_margins = margins; update(); };
+	void setBleeds(const MarginStruct& bleeds) { m_bleeds = bleeds; update(); };
 	void setLayout(int layout) { m_layout = layout; update(); };
 	void setFirstPage(int firstPage) { m_firstPage = firstPage; update(); };
-	void setPage(double height, double width, const MarginStruct& margins, const MarginStruct& bleeds, QString name, int layout, int firstPage)
+	void setPage(double height, double width, const MarginStruct& margins, const MarginStruct& bleeds, int layout, int firstPage)
 	{
-		PageSize ps(name);
+		PageSize ps(width, height);
 
 		m_height = height;
 		m_width = width;

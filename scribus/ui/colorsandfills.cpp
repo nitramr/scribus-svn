@@ -1951,7 +1951,7 @@ void ColorsAndFillsDialog::doSaveDefaults(const QString& name, bool changed)
 	if (fmt)
 	{
 		std::unique_ptr<ScribusDoc> s_doc(new ScribusDoc());
-		s_doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
+		s_doc->setup(0, 1, 1, 1, 1, QSizeF(), "Custom");
 		s_doc->setPage(100, 100, 0, 0, 0, 0, 0, 0, false, false);
 		s_doc->addPage(0);
 		s_doc->setGUI(false, mainWin, nullptr);

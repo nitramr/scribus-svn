@@ -61,13 +61,13 @@ struct PageSizeInfo
 		Swedish = 57,
 	};
 
-	double width;
-	double height;
+	double width {0.0};
+	double height {0.0};
 	QString trSizeName;
 	QString sizeName;
 	QString sizeLabel;
-	int pageUnitIndex;
-	Category category;
+	int pageUnitIndex {-1};
+	Category category {PageSizeInfo::Custom};
 };
 
 using PageSizeInfoMap = QMap<QString, PageSizeInfo>;
@@ -80,7 +80,6 @@ public:
 	PageSize(double, double);
 	PageSize& operator=(const PageSize& other);
 
-	void init(const QString&);
 	const QString& name() const { return m_pageSizeName; }
 	const QString& nameTR() const { return m_trPageSizeName; }
 	PageSizeInfo::Category category() const { return m_category; };
@@ -93,9 +92,11 @@ public:
 	static QStringList defaultSizesList();
 	PageSizeCategoriesMap categories() const;
 	PageSizeInfoMap sizesByCategory(PageSizeInfo::Category category) const;
-	PageSizeInfoMap sizesByDimensions(QSize sizePt) const;
+	PageSizeInfoMap sizesByDimensions(QSizeF sizePt) const;
 	PageSizeInfoMap activePageSizes() const;
-	const PageSizeInfoMap& pageSizes() const { return m_pageSizeList; };
+	const PageSizeInfoMap& pageSizes() const { return m_pageSizeList; }
+	PageSizeInfo pageInfoByDimensions(double width, double height) const { return pageInfoByDimensions(QSizeF(width, height));}
+	PageSizeInfo pageInfoByDimensions(QSizeF sizePt) const;
 	void printSizeList() const;
 
 private:
@@ -107,6 +108,8 @@ private:
 	QString m_trPageSizeName;
 	PageSizeInfo::Category m_category {PageSizeInfo::Custom};
 
+	void initByName(const QString&); // legacy support for < 1.7.1
+	void initByDimensions(QSizeF sizePt);
 	void generateSizeList();
 	void addPageSize(const QString id, double width, double height, int unitIndex, PageSizeInfo::Category category);
 	void addPageSize(const QString id, const QString name, double width, double height, int unitIndex, PageSizeInfo::Category category);
