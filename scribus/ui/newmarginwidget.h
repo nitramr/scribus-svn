@@ -48,13 +48,13 @@ public slots:
 	void languageChange();
 	void iconSetChange();
 	void toggleLabelVisibility(bool v);
-	void setPreset();
 
 protected slots:
 
 	void onSpinBoxChanged();
 	void onLinkMarginsClicked();
 	void onPrinterMarginsClicked();
+	void setPreset();
 
 protected:
 

@@ -43,21 +43,21 @@ void NewMarginWidget::setup(const MarginStruct& margs, int layoutType, int unitI
 
 	setFacingPages(!(layoutType == singlePage));
 
-	disconnect(topMarginSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onSpinBoxChanged()));
-	disconnect(bottomMarginSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onSpinBoxChanged()));
-	disconnect(leftMarginSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onSpinBoxChanged()));
-	disconnect(rightMarginSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onSpinBoxChanged()));
+	disconnect(topMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
+	disconnect(bottomMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
+	disconnect(leftMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
+	disconnect(rightMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
 
 	updateUIFromState();
 
-	connect(ScQApp, SIGNAL(iconSetChanged()), this, SLOT(iconSetChange()));
-	connect(topMarginSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onSpinBoxChanged()));
-	connect(bottomMarginSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onSpinBoxChanged()));
-	connect(leftMarginSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onSpinBoxChanged()));
-	connect(rightMarginSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onSpinBoxChanged()));
-	connect(presetLayoutComboBox, SIGNAL(activated(int)), this, SLOT(setPreset()));
-	connect(marginLinkButton, SIGNAL(clicked()), this, SLOT(onLinkMarginsClicked()));
-	connect(printerMarginsPushButton, SIGNAL(clicked()), this, SLOT(onPrinterMarginsClicked()));
+	connect(ScQApp, &ScribusQApp::iconSetChanged, this, &NewMarginWidget::iconSetChange);
+	connect(topMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
+	connect(bottomMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
+	connect(leftMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
+	connect(rightMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
+	connect(presetLayoutComboBox, &QComboBox::activated, this, &NewMarginWidget::setPreset);
+	connect(marginLinkButton, &QToolButton::clicked, this, &NewMarginWidget::onLinkMarginsClicked);
+	connect(printerMarginsPushButton, &QPushButton::clicked, this, &NewMarginWidget::onPrinterMarginsClicked);
 
 	languageChange();
 	iconSetChange();
@@ -85,65 +85,49 @@ MarginStruct NewMarginWidget::calculateMarginsForPreset(int preset, double w, do
 MarginStruct NewMarginWidget::sanitizeMargins(const MarginStruct& margins, double w, double h) const
 {
 	MarginStruct safe = margins;
-
 	bool validW = w > 0.001;
 	bool validH = h > 0.001;
 
 	if (!validW && !validH)
 		return safe;
 
-	if (marginLinkButton->isChecked())
+	if (marginLinkButton->isChecked() && !m_facingPages)
 	{
-		double limit = 0.0;
-		if (validW && validH)
-			limit = qMin(w, h);
-		else if (validW)
-			limit = w;
-		else
-			limit = h;
-
-		double maxAllowed = limit / 2.0;
-
-		double val = safe.left();
-		if (val > maxAllowed)
-			val = maxAllowed;
-
+		double limit = (validW && validH) ? qMin(w, h) : (validW ? w : h);
+		double maxVal = limit / 2.0;
+		double val = qMin(safe.left(), maxVal);
 		safe.set(val, val, val, val);
-
 		return safe;
 	}
 
-	if (validW)
+	auto adjustDimension = [](double val1, double val2, double maxDim, double& out1, double& out2)
 	{
-		if (safe.left() + safe.right() > w)
+		if (val1 + val2 > maxDim)
 		{
-			if (safe.left() > w)
+			if (val1 > maxDim)
 			{
-				safe.setLeft(w);
-				safe.setRight(0.0);
+				out1 = maxDim;
+				out2 = 0.0;
 			}
 			else
 			{
-				safe.setRight(w - safe.left());
+				out1 = val1;
+				out2 = maxDim - val1;
 			}
 		}
-	}
+		else
+		{
+			out1 = val1;
+			out2 = val2;
+		}
+	};
 
+	double l = safe.left(), r = safe.right(), t = safe.top(), b = safe.bottom();
+	if (validW)
+		adjustDimension(l, r, w, l, r);
 	if (validH)
-	{
-		if (safe.top() + safe.bottom() > h)
-		{
-			if (safe.top() > h)
-			{
-				safe.setTop(h);
-				safe.setBottom(0.0);
-			}
-			else
-			{
-				safe.setBottom(h - safe.top());
-			}
-		}
-	}
+		adjustDimension(t, b, h, t, b);
+	safe.set(t, l, b, r);
 
 	return safe;
 }
@@ -201,7 +185,7 @@ void NewMarginWidget::setMarginPreset(int p)
 
 	MarginStruct targetMargins = m_marginData;
 
-	if (p == PresetLayout::none)
+	if (p == PresetLayout::none || m_facingPages == false)
 	{
 		if (m_savedPresetItem != PresetLayout::none)
 			targetMargins = m_savedMarginData;
@@ -229,7 +213,11 @@ void NewMarginWidget::setFacingPages(bool facing, int pageType)
 	if (m_flags & ShowPreset)
 	{
 		presetLayoutComboBox->setEnabled(m_facingPages);
-		setPreset();
+
+		if (m_facingPages)
+			setPreset();
+		else
+			setInternalState(m_pageWidth, m_pageHeight, m_marginData, m_savedPresetItem);
 	}
 }
 
@@ -242,14 +230,16 @@ void NewMarginWidget::setInternalState(double width, double height, const Margin
 	m_marginData = sanitizeMargins(margins, width, height);
 	m_savedPresetItem = presetIndex;
 
-	if (presetIndex == PresetLayout::none)
+	bool noPreset = presetIndex == PresetLayout::none || m_facingPages == false;
+
+	if (noPreset)
 		m_savedMarginData = margins;
 
 	if (m_flags & ShowPreset)
 	{
 		presetLayoutComboBox->setCurrentIndex(presetIndex);
-		marginLinkButton->setEnabled(presetIndex == PresetLayout::none);
-		if (presetIndex != PresetLayout::none)
+		marginLinkButton->setEnabled(noPreset);
+		if (presetIndex != PresetLayout::none && m_facingPages)
 			marginLinkButton->setChecked(false);
 	}
 
@@ -276,8 +266,8 @@ void NewMarginWidget::updateUIFromState()
 	rightMarginSpinBox->setValue(m_marginData.right() * m_unitRatio);
 	bottomMarginSpinBox->setValue(m_marginData.bottom() * m_unitRatio);
 
-	bool hasPreset = (m_savedPresetItem != PresetLayout::none) && (m_flags & ShowPreset);
-	bool isNineParts = (m_savedPresetItem == PresetLayout::nineparts);
+	bool hasPreset = (m_savedPresetItem != PresetLayout::none) && (m_flags & ShowPreset) && (m_facingPages == true);
+	bool isNineParts = (m_savedPresetItem == PresetLayout::nineparts) && (m_facingPages == true);
 
 	leftMarginSpinBox->setEnabled(!(hasPreset && isNineParts));
 	topMarginSpinBox->setEnabled(!hasPreset);
@@ -358,7 +348,7 @@ void NewMarginWidget::onSpinBoxChanged()
 
 	double valInPoints = val / m_unitRatio;
 
-	if ((m_flags & ShowPreset) && m_savedPresetItem != PresetLayout::none)
+	if ((m_flags & ShowPreset) && m_savedPresetItem != PresetLayout::none && m_facingPages)
 	{
 		MarginStruct newMargins = calculateMarginsForPreset(m_savedPresetItem, m_pageWidth, m_pageHeight, valInPoints);
 		setInternalState(m_pageWidth, m_pageHeight, newMargins, m_savedPresetItem);
@@ -390,7 +380,7 @@ void NewMarginWidget::onSpinBoxChanged()
 		}
 
 		m_savedMarginData = newM;
-		setInternalState(m_pageWidth, m_pageHeight, newM, PresetLayout::none);
+		setInternalState(m_pageWidth, m_pageHeight, newM, m_savedPresetItem);
 	}
 }
 

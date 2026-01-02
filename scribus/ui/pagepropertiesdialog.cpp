@@ -106,10 +106,7 @@ PagePropertiesDialog::PagePropertiesDialog( QWidget* parent, ScribusDoc* doc )
 	marginWidget->setup(doc->currentPage()->initialMargins, !(doc->pagePositioning() == singlePage), doc->unitIndex(), NewMarginWidget::MarginWidgetFlags );
 	marginWidget->setPageHeight(doc->currentPage()->height());
 	marginWidget->setPageWidth(doc->currentPage()->width());
-	if (doc->pagePositioning() == singlePage)
-		marginWidget->setMarginPreset(PresetLayout::none);
-	else
-		marginWidget->setMarginPreset(doc->currentPage()->marginPreset);
+	marginWidget->setMarginPreset(doc->currentPage()->marginPreset);
 	dialogLayout->addWidget( marginWidget );
 
 	groupMaster = new QGroupBox( this );

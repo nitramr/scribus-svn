@@ -41,32 +41,32 @@ void PageSizePreview::paintEvent(QPaintEvent *event)
 		// Left Page
 		if (i == 0 && count > 1)
 		{
-			rMargin.setLeft(rPage.left() + m_margins.right() * ratio);
-			rMargin.setRight(rPage.right() - m_margins.left() * ratio);
-			rBleed.setLeft(rPage.left() - m_bleeds.left() * ratio);
+			rMargin.setLeft(rPage.left() + ceil(m_margins.right() * ratio));
+			rMargin.setRight(rPage.right() - ceil(m_margins.left() * ratio));
+			rBleed.setLeft(rPage.left() - ceil(m_bleeds.left() * ratio));
 			rBleed.setRight(rPage.right());
 		}
 		// Right Page
 		else if (i == 1 && count > 1)
 		{
-			rMargin.setLeft(rPage.left() + m_margins.left() * ratio);
-			rMargin.setRight(rPage.right() - m_margins.right() * ratio);
+			rMargin.setLeft(rPage.left() + ceil(m_margins.left() * ratio));
+			rMargin.setRight(rPage.right() - ceil(m_margins.right() * ratio));
 			rBleed.setLeft(rPage.left());
-			rBleed.setRight(rPage.right() + m_bleeds.right() * ratio);
+			rBleed.setRight(rPage.right() + ceil(m_bleeds.right() * ratio));
 		}
 		// Single Page
 		else
 		{
-			rMargin.setLeft(rPage.left() + m_margins.left() * ratio);
-			rMargin.setRight(rPage.right() - m_margins.right() * ratio);
-			rBleed.setLeft(rPage.left() - m_bleeds.left() * ratio);
-			rBleed.setRight(rPage.right() + m_bleeds.right() * ratio);
+			rMargin.setLeft(rPage.left() + ceil(m_margins.left() * ratio));
+			rMargin.setRight(rPage.right() - ceil(m_margins.right() * ratio));
+			rBleed.setLeft(rPage.left() - ceil(m_bleeds.left() * ratio));
+			rBleed.setRight(rPage.right() + ceil(m_bleeds.right() * ratio));
 		}
 
-		rMargin.setTop(rPage.top() + m_margins.top() * ratio);
-		rMargin.setBottom(rPage.bottom() - m_margins.bottom() * ratio);
-		rBleed.setTop(rPage.top() - m_bleeds.top() * ratio);
-		rBleed.setBottom(rPage.bottom() + m_bleeds.bottom() * ratio);
+		rMargin.setTop(rPage.top() + ceil(m_margins.top() * ratio));
+		rMargin.setBottom(rPage.bottom() - ceil(m_margins.bottom() * ratio));
+		rBleed.setTop(rPage.top() - ceil(m_bleeds.top() * ratio));
+		rBleed.setBottom(rPage.bottom() + ceil(m_bleeds.bottom() * ratio));
 
 		// Draw Bleeds
 		painter.setBrush( colPage );

@@ -39,7 +39,7 @@ PagePresetManager::PagePresetManager(QObject *parent)
 {
 
 	reloadAllPresets();
-	connect(ScQApp, SIGNAL(localeChanged()), this, SLOT(localeChange()));
+	connect(ScQApp, &ScribusQApp::localeChanged, this, &PagePresetManager::localeChange);
 }
 
 
@@ -426,12 +426,12 @@ LocalizedStringsMap PagePresetManager::parseNamesBlock(QXmlStreamReader &xml)
 		{
 			if (xml.name() == u"name")
 			{
-				const auto langView = xml.attributes().value(u"lang");
+				const auto langView = xml.attributes().value(u"lang").toString();
 				if (!langView.isEmpty())
 				{
 					QString val = xml.readElementText();
 					if (!val.isEmpty())
-						namesMap.insert(langView.toString(), std::move(val));
+						namesMap.insert(langView, std::move(val));
 				}
 				else
 					xml.skipCurrentElement();
