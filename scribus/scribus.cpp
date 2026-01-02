@@ -276,6 +276,7 @@ bool printDinUse;
 extern bool emergencyActivated;
 
 ScribusMainWindow::ScribusMainWindow() :
+	m_documentLogManager(DocumentLogManager::instance()),
 	m_prefsManager(PrefsManager::instance()),
 	m_widgetManager(WidgetManager::instance())
 {
@@ -368,7 +369,6 @@ int ScribusMainWindow::initScMW(bool primaryMainWindow)
 	m_objectSpecificUndo = false;
 
 	m_undoManager = UndoManager::instance();
-	m_documentLogManager = DocumentLogManager::instance();
 	PrefsContext *undoPrefs = m_prefsManager.prefsFile->getContext("undo");
 	m_undoManager->setUndoEnabled(undoPrefs->getBool("enabled", true));
 	m_tocGenerator = new TOCGenerator();
@@ -771,7 +771,7 @@ void ScribusMainWindow::initPalettes()
 
 	// DocumentLog
 	documentLogViewer = new DocumentLogViewer(this, false);
-	documentLogViewer->setManager(m_documentLogManager);
+	documentLogViewer->setManagerConnections();
 	connect( scrActions["toolsDocumentLog"], SIGNAL(toggled(bool)) , documentLogViewer, SLOT(setPaletteShown(bool)) );
 	connect( documentLogViewer, SIGNAL(paletteShown(bool)), scrActions["toolsDocumentLog"], SLOT(setChecked(bool)));
 	documentLogViewer->installEventFilter(this);
@@ -1929,7 +1929,6 @@ void ScribusMainWindow::closeEvent(QCloseEvent *ce)
 		m_prefsManager.savePrefs();
 	UndoManager::deleteInstance();
 	FormatsManager::deleteInstance();
-	DocumentLogManager::deleteInstance();
 //	qApp->changeOverrideCursor(QCursor(Qt::ArrowCursor));
 	ce->accept();
 }
