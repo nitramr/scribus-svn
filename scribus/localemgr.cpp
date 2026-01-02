@@ -32,7 +32,7 @@ for which a new license (GPL+exception) is in place.
 #include "scribuscore.h"
 #include "localemgr.h"
 #include "scpaths.h"
-#include "pagesize.h"
+#include "manager/pagepreset_manager.h"
 
 LocaleManager& LocaleManager::instance()
 {
@@ -61,13 +61,13 @@ void LocaleManager::generateLocaleList()
 	//Build table;
 	//No, we don't translate these, they are internal use that don't get to the GUI
 	m_localeTable.clear();
-	m_localeTable.append(LocaleDef("default","mm",   PageSize::defaultSizesList().at(1)));
-	m_localeTable.append(LocaleDef("en",     "in",   PageSize::defaultSizesList().at(4)));
-	m_localeTable.append(LocaleDef("en_AU",  "mm",   PageSize::defaultSizesList().at(1)));
-	m_localeTable.append(LocaleDef("en_GB",  "mm",   PageSize::defaultSizesList().at(1)));
-	m_localeTable.append(LocaleDef("en_US",  "in",   PageSize::defaultSizesList().at(4)));
-	m_localeTable.append(LocaleDef("fr",     "mm",   PageSize::defaultSizesList().at(1)));
-	m_localeTable.append(LocaleDef("fr_QC",  "pica", PageSize::defaultSizesList().at(4)));
+	m_localeTable.append(LocaleDef("default","mm",   PagePresetManager::defaultSizesList().at(1)));
+	m_localeTable.append(LocaleDef("en",     "in",   PagePresetManager::defaultSizesList().at(4)));
+	m_localeTable.append(LocaleDef("en_AU",  "mm",   PagePresetManager::defaultSizesList().at(1)));
+	m_localeTable.append(LocaleDef("en_GB",  "mm",   PagePresetManager::defaultSizesList().at(1)));
+	m_localeTable.append(LocaleDef("en_US",  "in",   PagePresetManager::defaultSizesList().at(4)));
+	m_localeTable.append(LocaleDef("fr",     "mm",   PagePresetManager::defaultSizesList().at(1)));
+	m_localeTable.append(LocaleDef("fr_QC",  "pica", PagePresetManager::defaultSizesList().at(4)));
 }
 
 void LocaleManager::printSelectedForLocale(const QString& locale)
@@ -105,8 +105,8 @@ QString LocaleManager::pageSizeForLocale(const QString& locale)
 	//qDebug()<<"No definition for locale: "<<selectedLocale;
 	//No, we don't translate these, they are internal use that don't get to the GUI
 	if (m_sysLocale.measurementSystem()==0)
-		return PageSize::defaultSizesList().at(1);
-	return PageSize::defaultSizesList().at(4);
+		return PagePresetManager::defaultSizesList().at(1);
+	return PagePresetManager::defaultSizesList().at(4);
 //	qFatal("Page Size not found in LocaleManager");
 //	return "";
 }

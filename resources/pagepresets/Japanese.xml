@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="7e673619-cdbf-4cb5-a772-102e7e0add75" name="Japanese" minVersion="1.7.2" version="1.7.2">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">Japanese</name>
+            <name lang="de">Japanisch</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="mm" width="1030" height="1456" name="JB0"/>
+        <page id="00001" unit="mm" width="728" height="1030" name="JB1"/>
+        <page id="00002" unit="mm" width="515" height="728" name="JB2"/>
+        <page id="00003" unit="mm" width="364" height="515" name="JB3"/>
+        <page id="00004" unit="mm" width="257" height="364" name="JB4"/>
+        <page id="00005" unit="mm" width="182" height="257" name="JB5"/>
+        <page id="00006" unit="mm" width="128" height="182" name="JB6"/>
+        <page id="00007" unit="mm" width="91" height="128" name="JB7"/>
+        <page id="00008" unit="mm" width="64" height="91" name="JB8"/>
+        <page id="00009" unit="mm" width="45" height="64" name="JB9"/>
+        <page id="00010" unit="mm" width="32" height="45" name="JB10"/>
+        <page id="00011" unit="mm" width="22" height="32" name="JB11"/>
+        <page id="00012" unit="mm" width="16" height="22" name="JB12"/>
+        <page id="00013" unit="mm" width="227" height="306" name="Kiku 4"/>
+        <page id="00014" unit="mm" width="151" height="227" name="Kiku 5"/>
+        <page id="00015" unit="mm" width="264" height="379" name="Shiroku ban 4"/>
+        <page id="00016" unit="mm" width="189" height="262" name="Shiroku ban 5"/>
+        <page id="00017" unit="mm" width="127" height="188" name="Shiroku ban 6"/>
+    </pages>
+</collection>

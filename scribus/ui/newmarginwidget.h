@@ -10,73 +10,76 @@ for which a new license (GPL+exception) is in place.
 
 #include "ui_newmarginwidgetbase.h"
 #include "scribusapi.h"
-#include "scribusstructs.h"
 
 class SCRIBUS_API NewMarginWidget : public QWidget, Ui::NewMarginWidget
 {
 	Q_OBJECT
 
-	public:
-		NewMarginWidget(QWidget* parent = nullptr);
-		~NewMarginWidget() = default;
+public:
+	NewMarginWidget(QWidget* parent = nullptr);
+	~NewMarginWidget() = default;
 
-		enum SetupFlags
-		{
-			DistanceWidgetFlags	= 0,
-			ShowPreset			= 1,
-			ShowPrinterMargins	= 2,
-			MarginWidgetFlags	= 3,
-			BleedWidgetFlags	= 4
-		};
+	enum SetupFlags
+	{
+		DistanceWidgetFlags = 0,
+		ShowPreset          = 1,
+		ShowPrinterMargins  = 2,
+		MarginWidgetFlags   = 3,
+		BleedWidgetFlags    = 4
+	};
 
-		void setup(const MarginStruct& margs, int layoutType, int unitIndex, int flags = MarginWidgetFlags);
-		/*! \brief Setup the labels by facing pages option */
-		void setFacingPages(bool facing, int pageType = 0);
-		/*! \brief Setup the spinboxes properties (min/max value etc.) by width */
-		void setPageWidth(double);
-		/*! \brief Setup the spinboxes properties (min/max value etc.) by height */
-		void setPageHeight(double);
-		void setNewUnit(int unitIndex);
-		void setNewValues(const MarginStruct& margs);
-		/*! \brief Setup the presetCombo without changing the margin values, only used by tabdocument */
-		void setMarginPreset(int p);
-		int marginPreset() { return m_savedPresetItem; };
-		const MarginStruct & margins() const { return m_marginData; };
+	void setup(const MarginStruct& margs, int layoutType, int unitIndex, int flags = MarginWidgetFlags);
+	/*! \brief Setup the labels by facing pages option */
+	void setFacingPages(bool facing, int pageType = 0);
+	/*! \brief Setup the spinboxes properties (min/max value etc.) by width */
+	void setPageWidth(double width);
+	/*! \brief Setup the spinboxes properties (min/max value etc.) by height */
+	void setPageHeight(double height);
+	void setNewUnit(int unitIndex);
+	void setNewValues(const MarginStruct& margs);
+	/*! \brief Setup the presetCombo without changing the margin values */
+	void setMarginPreset(int p);
 
-	public slots:
-		void languageChange();
-		void iconSetChange();
-		void toggleLabelVisibility(bool v);
-		void setTop();
-		void setBottom();
-		void setLeft();
-		void setRight();
-		void slotLinkMargins();
-		void setPreset();
+	int marginPreset() const { return m_savedPresetItem; };
 
-	protected slots:
-		void setMarginsToPrinterMargins();
+	const MarginStruct& margins() const { return m_marginData; };
 
-	protected:
-		void updateMarginSpinValues();
+public slots:
+	void languageChange();
+	void iconSetChange();
+	void toggleLabelVisibility(bool v);
+	void setPreset();
 
-		MarginStruct m_marginData;
-		MarginStruct m_savedMarginData;
-		bool   m_facingPages {false};
-		double m_pageHeight {0.0};
-		double m_pageWidth {0.0};
-		double m_unitRatio {1.0};
-		int    m_flags {MarginWidgetFlags};
-		int    m_pageType {0};
-		int    m_savedPresetItem {PresetLayout::none};
-		int    m_unitIndex {0};
+protected slots:
+
+	void onSpinBoxChanged();
+	void onLinkMarginsClicked();
+	void onPrinterMarginsClicked();
+
+protected:
+
+	bool m_facingPages {false};
+	double m_pageHeight {0.0};
+	double m_pageWidth {0.0};
+	double m_unitRatio {1.0};
+	int m_flags {MarginWidgetFlags};
+	int m_pageType {0};
+	int m_savedPresetItem {PresetLayout::none};
+	int m_unitIndex {0};
+
+	MarginStruct m_marginData;
+	MarginStruct m_savedMarginData;
+
+	MarginStruct calculateMarginsForPreset(int preset, double w, double h, double refLeft) const;
+	MarginStruct sanitizeMargins(const MarginStruct& margins, double w, double h) const;
+
+	void setInternalState(double width, double height, const MarginStruct& margins, int presetIndex);
+	void updateUIFromState();
+	void updateSpinBoxLimits();
+	void blockSpinBoxSignals(bool block);
 
 signals:
-		void marginChanged(MarginStruct);
-		void valuesChanged(MarginStruct);
+	void valuesChanged(MarginStruct);
 };
 
 #endif // NEWMARGINWIDGET_H
-
-
-

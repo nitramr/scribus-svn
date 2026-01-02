@@ -17,7 +17,7 @@ for which a new license (GPL+exception) is in place.
 
 #include "commonstrings.h"
 #include "iconmanager.h"
-#include "pagesize.h"
+#include "manager/pagepreset_manager.h"
 #include "scpage.h"
 #include "scribusdoc.h"
 #include "scrspinbox.h"
@@ -225,17 +225,8 @@ InsPage::InsPage( QWidget* parent, ScribusDoc* currentDoc, int currentPage, int 
 		}
 	}
 
-	QScopedPointer<PageSize> ps(new PageSize(m_doc->pageSize()));
-
-	// try to find corresponding page size by dimensions
-	if (ps->name() == CommonStrings::customPageSize)
-	{
-		PageSizeInfoMap pages = ps->sizesByDimensions(QSize(m_doc->pageWidth(), m_doc->pageHeight()));
-		if (pages.count() > 0)
-			prefsPageSizeName = pages.firstKey();
-	}
-	else
-		prefsPageSizeName = ps->name();
+	PageSizeInfo psi = PagePresetManager::instance().pageInfoByDimensions(QSize(m_doc->pageWidth(), m_doc->pageHeight()));
+	prefsPageSizeName = psi.id;
 
 	dialogLayout->addWidget(masterPageGroup);
 	overrideMPSizingCheckBox = new QCheckBox( tr("Override Master Page Sizing"));
@@ -282,7 +273,7 @@ InsPage::InsPage( QWidget* parent, ScribusDoc* currentDoc, int currentPage, int 
 	dialogLayout->addWidget(dsGroupBox7);
 
 	dsGroupBox7->setEnabled(false);
-	bool b = (pageSizeSelector->pageSizeTR() == CommonStrings::trCustomPageSize);
+	bool b = (pageSizeSelector->pageSize() == CommonStrings::customPageSize);
 	heightSpinBox->setEnabled(b);
 	widthSpinBox->setEnabled(b);
 
@@ -302,20 +293,19 @@ InsPage::InsPage( QWidget* parent, ScribusDoc* currentDoc, int currentPage, int 
 
 void InsPage::setSize(const QString & gr)
 {
-	PageSize ps2(gr);
-	prefsPageSizeName = ps2.name();
-	if (gr == CommonStrings::trCustomPageSize)
+	PageSizeInfo psi = PagePresetManager::instance().pageInfoByName(gr);
+	prefsPageSizeName = psi.id;
+	if (psi.id == CommonStrings::customPageSize)
 	{
 		widthSpinBox->setEnabled(true);
 		heightSpinBox->setEnabled(true);
-		prefsPageSizeName = CommonStrings::customPageSize;
 	}
 	else
 	{
 		widthSpinBox->setEnabled(false);
 		heightSpinBox->setEnabled(false);
-		double w = ps2.width() * m_unitRatio;
-		double h = ps2.height() * m_unitRatio;
+		double w = psi.width * m_unitRatio;
+		double h = psi.height * m_unitRatio;
 		if (orientationQComboBox->currentIndex() == 1)
 		{
 			double t = h;

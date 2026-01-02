@@ -11,7 +11,6 @@ for which a new license (GPL+exception) is in place.
 #include <QScrollBar>
 #include <QStandardItemModel>
 
-#include "pagesize.h"
 #include "scribusapi.h"
 
 class SCRIBUS_API PageSizeList : public QListView
@@ -20,21 +19,31 @@ class SCRIBUS_API PageSizeList : public QListView
 
 public:
 
-	enum SortMode {
+	enum SortMode
+	{
 		NameAsc = 0,
 		NameDesc = 1,
 		DimensionAsc = 2,
 		DimensionDesc = 3
 	};
 
-	enum ItemData {
+	enum ItemData
+	{
 		SizeLabel = Qt::UserRole,
-		Unit = Qt::UserRole + 1,
-		Category = Qt::UserRole + 2,
-		Name = Qt::UserRole + 3,
-		Dimension = Qt::UserRole + 4,
-		Width = Qt::UserRole + 5,
-		Height = Qt::UserRole + 6
+		Type = Qt::UserRole + 1,
+		Unit = Qt::UserRole + 2,
+		Category = Qt::UserRole + 3,
+		ID = Qt::UserRole + 4,
+		Dimension = Qt::UserRole + 5,
+		Width = Qt::UserRole + 6,
+		Height = Qt::UserRole + 7,
+		Name = Qt::UserRole + 8,
+		MarginPreset = Qt::UserRole + 9,
+		Margins = Qt::UserRole + 10,
+		Bleeds = Qt::UserRole + 11,
+		Layout = Qt::UserRole + 12,
+		FirstPage = Qt::UserRole + 13,
+		TextFrame = Qt::UserRole + 14
 	};
 
 	PageSizeList(QWidget* parent);
@@ -45,25 +54,34 @@ public:
 	void setOrientation(int orientation);
 	int orientation() const { return m_orientation; };
 
-	void setCategory(PageSizeInfo::Category category);
-	PageSizeInfo::Category category() const { return m_category; };
+	void setCategory(const QString& category);
+	const QString& category() const { return m_category; };
 
 	void setSortMode(SortMode sortMode);
 	SortMode sortMode() const { return m_sortMode; };
 
-	void setValues(QSizeF dimensions, int orientation, PageSizeInfo::Category category, SortMode sortMode);
+	void setValues(QSizeF dimensions, int orientation, const QString& category, SortMode sortMode);
 
 	void updateGeometries() override;
+
+private slots:
+
+	void showContextMenu(const QPoint &pos);
+	void deleteItem();
 
 private:
 	QSizeF m_dimensions;
 	int m_orientation {0};
-	PageSizeInfo::Category m_category {PageSizeInfo::Preferred};
+	QString m_category;
 	SortMode m_sortMode {SortMode::NameAsc};
 	QStandardItemModel* m_model { nullptr };
+	QModelIndex m_modelIndex;
 
-	QIcon sizePreview(QSize iconSize, QSize pageSize) const;
-	void loadPageSizes(QSizeF dimensions, int orientation, PageSizeInfo::Category category);
+	QIcon sizePreview(QSize iconSize, QSize pageSize, QList<double> dataMargins) const;
+	void loadPageSizes(QSizeF dimensions, int orientation, const QString& category);
+
+signals:
+	void changedCategories();
 };
 
 

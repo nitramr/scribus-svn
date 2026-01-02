@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="d8a790fc-6bcd-4a53-a084-6d1a559525a3" name="US Press" minVersion="1.7.2" version="1.7.2">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">US Press</name>
+            <name lang="de">US Druck</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="in" width="11" height="17" name="11x17"/>
+        <page id="00001" unit="in" width="12" height="18" name="12x18"/>
+        <page id="00002" unit="in" width="17" height="22" name="17x22"/>
+        <page id="00003" unit="in" width="19" height="25" name="19x25"/>
+        <page id="00004" unit="in" width="20" height="26" name="20x26"/>
+        <page id="00005" unit="in" width="23" height="29" name="23x29"/>
+        <page id="00006" unit="in" width="23" height="35" name="23x35"/>
+        <page id="00007" unit="in" width="25" height="38" name="25x38"/>
+        <page id="00008" unit="in" width="26" height="40" name="26x40"/>
+        <page id="00009" unit="in" width="28" height="40" name="28x40"/>
+        <page id="00010" unit="in" width="35" height="45" name="38x45"/>
+        <page id="00011" unit="in" width="38" height="50" name="38x50"/>
+    </pages>
+</collection>

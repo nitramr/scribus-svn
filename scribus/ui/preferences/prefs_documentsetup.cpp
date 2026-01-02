@@ -11,7 +11,7 @@ for which a new license (GPL+exception) is in place.
 
 #include "commonstrings.h"
 #include "langmgr.h"
-#include "pagesize.h"
+#include "manager/pagepreset_manager.h"
 #include "prefsfile.h"
 #include "prefsmanager.h"
 #include "prefsstructs.h"
@@ -321,7 +321,7 @@ void Prefs_DocumentSetup::setPageOrientation(int orientation)
 	setSize(pageSizeSelector->pageSize());
 	pageWidthSpinBox->blockSignals(true);
 	pageHeightSpinBox->blockSignals(true);
-	if ((orientation==0 && pageSizeSelector->pageSizeTR() == CommonStrings::trCustomPageSize) || orientation!=0)
+	if ((orientation == 0 && pageSizeSelector->pageSize() == CommonStrings::customPageSize) || orientation != 0)
 	{
 		double w = pageWidthSpinBox->value(), h = pageHeightSpinBox->value();
 		pageWidthSpinBox->setValue((orientation == portraitPage) ? qMin(w, h) : qMax(w, h));
@@ -343,15 +343,14 @@ void Prefs_DocumentSetup::setSize(const QString &newSize)
 	pageW = pageWidthSpinBox->value() / unitRatio;
 	pageH = pageHeightSpinBox->value() / unitRatio;
 
-	PageSize ps2(newSize);
-	prefsPageSizeName = ps2.name();
-	if (newSize != CommonStrings::customPageSize && newSize != CommonStrings::trCustomPageSize)
+	PageSizeInfo psi = PagePresetManager::instance().pageInfoByName(newSize);
+
+	prefsPageSizeName = psi.id;
+	if (psi.id != CommonStrings::customPageSize)
 	{
-		pageW = ps2.width();
-		pageH = ps2.height();
+		pageW = psi.width;
+		pageH = psi.height;
 	}
-	else
-		prefsPageSizeName = CommonStrings::customPageSize;
 
 	pageWidthSpinBox->blockSignals(true);
 	pageHeightSpinBox->blockSignals(true);

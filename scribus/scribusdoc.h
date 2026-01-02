@@ -80,7 +80,7 @@ class Selection;
 class ScribusView;
 class ScribusMainWindow;
 class ResourceCollection;
-class PageSize;
+struct PageSizeInfo;
 class ScPattern;
 class Serializer;
 class QProgressBar;
@@ -98,7 +98,7 @@ class SCRIBUS_API ScribusDoc : public QObject, public UndoObject, public Observa
 
 public:
 	ScribusDoc();
-	ScribusDoc(const QString& docName, int unitIndex, const PageSize& pagesize, const MarginStruct& margins, const DocPagesSetup& pagesSetup);
+	ScribusDoc(const QString& docName, int unitIndex, const PageSizeInfo& pagesize, const MarginStruct& margins, const DocPagesSetup& pagesSetup);
 	~ScribusDoc();
 
 	void init();

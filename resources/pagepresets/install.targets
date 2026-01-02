@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup>
+		<FilesToInstall_resources_pagepresets Include="$(MSBuildThisFileDirectory)*.xml" />
+	</ItemGroup>
+	
+	<PropertyGroup>
+		<AfterBuildDependsOn>
+			$(AfterBuildDependsOn);
+			Install_resources_pagepresets;
+		</AfterBuildDependsOn>
+	</PropertyGroup>
+	
+	<Target Name="Install_resources_pagepresets">  
+		<Copy  
+			SourceFiles="@(FilesToInstall_resources_pagepresets)"  
+			DestinationFiles="@(FilesToInstall_resources_pagepresets-&gt;'$(OutDir)\share\pagepresets\%(Filename)%(Extension)')"
+			SkipUnchangedFiles="true"
+		/>  
+	</Target>
+</Project>

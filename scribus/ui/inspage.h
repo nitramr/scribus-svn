@@ -73,7 +73,6 @@ private:
 	QLabel*     textLabel1 { nullptr };
 	QLabel*     textLabel2 { nullptr };
 	PageSizeSelector* pageSizeSelector { nullptr };
-//	QComboBox*  sizeQComboBox { nullptr };
 	QComboBox*  orientationQComboBox { nullptr };
 	QCheckBox*  moveObjectsCheckBox { nullptr };
 	QCheckBox*  overrideMPSizingCheckBox { nullptr };

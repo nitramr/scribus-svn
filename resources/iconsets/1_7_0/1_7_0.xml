@@ -116,6 +116,7 @@ On Dark:  #e580ff; rgb(229, 128, 255); hsl(288, 100, 75)
 		<icon id="rotate-ccw" file="16/action-rotate-left.svg" />
 		<icon id="rotate-cw" file="16/action-rotate-right.svg" />
 		<icon id="round-corners" file="16/object-rounded-corner.svg" />
+		<icon id="save" file="16/action-save.svg" />
 		<icon id="scale-height" file="16/action-scale-height.svg" />
 		<icon id="scale-width" file="16/action-scale-width.svg" />
 		<icon id="settings" file="16/properties-external-tools.svg" />
@@ -399,6 +400,7 @@ On Dark:  #e580ff; rgb(229, 128, 255); hsl(288, 100, 75)
 		<icon id="page-simple" file="16/page-type-single.svg" />
 		<icon id="page-sizes" file="16/page-sizes.svg" />
 		<icon id="show-object" file="16/object-visible.svg" />
+		<icon onLight="#E54545" onDark="#FF6666" id="user-page-preset" file="16/draw-heart.svg" />
     
 		<!-- PDF Tools -->
 		<icon id="pdf-annotation-3d" file="16/pdf-annotation-3d.svg" />

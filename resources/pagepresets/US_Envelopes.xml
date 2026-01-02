@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="4bd5118b-ec0f-4990-86cf-da1f00dab0fb" name="US Envelopes" minVersion="1.7.2" version="1.7.2">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">US Envelopes</name>
+            <name lang="de">US Briefumschläge</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="in" width="5.125" height="3.625" name="A-1"/>
+        <page id="00001" unit="in" width="5.75" height="4.375" name="A-2 (Lady Grey)"/>
+        <page id="00002" unit="in" width="6.25" height="4.25" name="A-4"/>
+        <page id="00003" unit="in" width="6.5" height="4.75" name="A-6 (Thompson Standard)"/>
+        <page id="00004" unit="in" width="7.25" height="5.25" name="A-7 (Besselheim)"/>
+        <page id="00005" unit="in" width="8.125" height="5.5" name="A-8 (Carrs)"/>
+        <page id="00006" unit="in" width="8.75" height="5.75" name="A-9 (Diplomat)"/>
+        <page id="00007" unit="in" width="9.5" height="6" name="A-10 (Willow)"/>
+        <page id="00008" unit="in" width="8.875" height="3.875" name="A Long"/>
+        <page id="00009" unit="in" width="5.125" height="3.625" name="Baronial 4"/>
+        <page id="00010" unit="in" width="5.75" height="4.375" name="Baronial 5 1/2"/>
+        <page id="00011" unit="in" width="6.5" height="4.75" name="Baronial 6"/>
+        <page id="00012" unit="in" width="7.25" height="5.25" name="Lee"/>
+        <page id="00013" unit="in" width="6" height="4.75" name="Booklet 3"/>
+        <page id="00014" unit="in" width="7.5" height="5.5" name="Booklet 4 1/2"/>
+        <page id="00015" unit="in" width="8.875" height="5.75" name="Booklet 6"/>
+        <page id="00016" unit="in" width="9" height="6" name="Booklet 6 1/2"/>
+        <page id="00017" unit="in" width="9.5" height="6.5" name="Booklet 6 3/4"/>
+        <page id="00018" unit="in" width="9.5" height="6" name="Booklet 6 7/8"/>
+        <page id="00019" unit="in" width="10.5" height="7.5" name="Booklet 7 1/2"/>
+        <page id="00020" unit="in" width="11.5" height="8.75" name="Booklet 9"/>
+        <page id="00021" unit="in" width="12" height="9" name="Booklet 9 1/2"/>
+        <page id="00022" unit="in" width="12.625" height="9.5" name="Booklet 10"/>
+        <page id="00023" unit="in" width="13" height="10" name="Booklet 13"/>
+        <page id="00024" unit="in" width="9" height="6" name="Catalog 1"/>
+        <page id="00025" unit="in" width="9.5" height="6.5" name="Catalog 1 3/4"/>
+        <page id="00026" unit="in" width="10" height="7" name="Catalog 3"/>
+        <page id="00027" unit="in" width="10.5" height="7.5" name="Catalog 6"/>
+        <page id="00028" unit="in" width="11.25" height="8.25" name="Catalog 8"/>
+        <page id="00029" unit="in" width="11.25" height="8.75" name="Catalog 9 3/4"/>
+        <page id="00030" unit="in" width="12" height="9" name="Catalog 10 1/2"/>
+        <page id="00031" unit="in" width="12.5" height="9.5" name="Catalog 12 1/5"/>
+        <page id="00032" unit="in" width="13" height="10" name="Catalog 13 1/2"/>
+        <page id="00033" unit="in" width="14.5" height="11.5" name="Catalog 14 1/2"/>
+        <page id="00034" unit="in" width="15" height="10" name="Catalog 15"/>
+        <page id="00035" unit="in" width="15.5" height="12" name="Catalog 15 1/2"/>
+        <page id="00036" unit="in" width="5.5" height="3.125" name="Commerical 5"/>
+        <page id="00037" unit="in" width="6" height="3.5" name="Commerical 6 1/4"/>
+        <page id="00038" unit="in" width="6.5" height="3.625" name="Commerical 6 3/4"/>
+        <page id="00039" unit="in" width="6.75" height="3.75" name="Commerical 7"/>
+        <page id="00040" unit="in" width="7.5" height="3.9375" name="Commerical 7 1/2"/>
+        <page id="00041" unit="in" width="8.625" height="3.625" name="Commerical 8 5/8"/>
+        <page id="00042" unit="in" width="8.875" height="3.875" name="Commerical 9"/>
+        <page id="00043" unit="in" width="9.5" height="4.125" name="Commerical 10"/>
+        <page id="00044" unit="in" width="10.375" height="4.5" name="Commerical 11"/>
+        <page id="00045" unit="in" width="11" height="4.75" name="Commerical 12"/>
+        <page id="00046" unit="in" width="11.5" height="5" name="Commerical 14"/>
+        <page id="00047" unit="in" width="6" height="6" name="Square 6"/>
+        <page id="00048" unit="in" width="6.5" height="6.5" name="Square 6 1/2"/>
+        <page id="00049" unit="in" width="7" height="7" name="Square 7"/>
+        <page id="00050" unit="in" width="7.5" height="7.5" name="Square 7 1/2"/>
+        <page id="00051" unit="in" width="8" height="8" name="Square 8"/>
+        <page id="00052" unit="in" width="8.5" height="8.5" name="Square 8 1/2"/>
+        <page id="00053" unit="in" width="9" height="9" name="Square 9"/>
+        <page id="00054" unit="in" width="9.5" height="9.5" name="Square 9 1/2"/>
+    </pages>
+</collection>

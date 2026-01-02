@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="e0036dd5-edfa-440e-8f49-e40432beb4c0" name="Chinese" minVersion="1.7.2" version="1.7.2">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">Chinese</name>
+            <name lang="de">Chinesisch</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="mm" width="764" height="1064" name="D0"/>
+        <page id="00001" unit="mm" width="532" height="760" name="D1"/>
+        <page id="00002" unit="mm" width="380" height="528" name="D2"/>
+        <page id="00003" unit="mm" width="264" height="375" name="D3"/>
+        <page id="00004" unit="mm" width="188" height="260" name="D4"/>
+        <page id="00005" unit="mm" width="130" height="184" name="D5"/>
+        <page id="00006" unit="mm" width="92" height="126" name="D6"/>
+        <page id="00007" unit="mm" width="787" height="1092" name="RD0"/>
+        <page id="00008" unit="mm" width="546" height="787" name="RD1"/>
+        <page id="00009" unit="mm" width="393" height="546" name="RD2"/>
+        <page id="00010" unit="mm" width="273" height="393" name="RD3"/>
+        <page id="00011" unit="mm" width="196" height="273" name="RD4"/>
+        <page id="00012" unit="mm" width="136" height="196" name="RD5"/>
+        <page id="00013" unit="mm" width="98" height="136" name="RD6"/>
+    </pages>
+</collection>

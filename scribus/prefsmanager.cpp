@@ -42,6 +42,7 @@ for which a new license (GPL+exception) is in place.
 #include "latexhelpers.h"
 #include "langmgr.h"
 #include "localemgr.h"
+#include "manager/pagepreset_manager.h"
 #include "pagesize.h"
 #include "pagestructs.h"
 #include "pdfoptions.h"
@@ -325,9 +326,9 @@ void PrefsManager::initDefaults()
 		appPrefs.docSetupPrefs.language = "en_GB";
 	appPrefs.docSetupPrefs.pageSize = LocaleManager::instance().pageSizeForLocale(ScQApp->currGUILanguage());
 	appPrefs.docSetupPrefs.pageOrientation = 0;
-	PageSize defaultPageSize(appPrefs.docSetupPrefs.pageSize);
-	appPrefs.docSetupPrefs.pageWidth = defaultPageSize.width();
-	appPrefs.docSetupPrefs.pageHeight = defaultPageSize.height();
+	PageSizeInfo psi = PagePresetManager::instance().pageInfoByName(appPrefs.docSetupPrefs.pageSize);
+	appPrefs.docSetupPrefs.pageWidth = psi.width;
+	appPrefs.docSetupPrefs.pageHeight = psi.height;
 	appPrefs.docSetupPrefs.margins.set(40, 40, 40, 40);
 	appPrefs.docSetupPrefs.marginPreset = 0;
 	appPrefs.docSetupPrefs.bleeds.set(0, 0, 0, 0);
@@ -533,7 +534,7 @@ void PrefsManager::initDefaults()
 	appPrefs.imageCachePrefs.maxCacheEntries = 1000;
 	appPrefs.imageCachePrefs.compressionLevel = 1;
 	appPrefs.activePageSizes.clear();
-	appPrefs.activePageSizes = PageSize::defaultSizesList();
+	appPrefs.activePageSizes = PagePresetManager::defaultSizesList();
 
 	//Attribute setup
 	appPrefs.itemAttrPrefs.defaultItemAttributes.clear();
@@ -2070,8 +2071,8 @@ bool PrefsManager::readPref(const QString& filePath)
 			if (appPrefs.docSetupPrefs.language.isEmpty())
 				appPrefs.docSetupPrefs.language = "en_GB";
 			appPrefs.docSetupPrefs.docUnitIndex = dc.attribute("UnitIndex", "0").toInt();
-			PageSize ps( dc.attribute("PageSize", PageSize::defaultSizesList().at(1)) );
-			appPrefs.docSetupPrefs.pageSize = (ps.name() == CommonStrings::customPageSize ) ? PageSize::defaultSizesList().at(1) : ps.name();
+			PageSizeInfo psi = PagePresetManager::instance().pageInfoByName(dc.attribute("PageSize", PagePresetManager::defaultSizesList().at(1)));
+			appPrefs.docSetupPrefs.pageSize = (psi.id.isEmpty() || psi.id == CommonStrings::customPageSize ) ? PagePresetManager::defaultSizesList().at(1) : psi.id;
 			appPrefs.docSetupPrefs.pageOrientation = dc.attribute("PageOrientation", "0").toInt();
 			appPrefs.docSetupPrefs.pageWidth   = ScCLocale::toDoubleC(dc.attribute("PageWidth"), mm2pts(210));
 			appPrefs.docSetupPrefs.pageHeight  = ScCLocale::toDoubleC(dc.attribute("PageHeight"), mm2pts(297));
@@ -2797,12 +2798,12 @@ bool PrefsManager::readPref(const QString& filePath)
 			// check if page sizes existing
 			for (const auto& item : appPrefs.activePageSizes)
 			{
-				PageSize ps(item);
-				if (ps.name() != CommonStrings::customPageSize)
-					checkedPageSizes.append(ps.name());
+				PageSizeInfo psi = PagePresetManager::instance().pageInfoByName(item);
+				if (!psi.id.isEmpty() || psi.id != CommonStrings::customPageSize)
+					checkedPageSizes.append(psi.id);
 			}
 
-			appPrefs.activePageSizes = (checkedPageSizes.count() == 0) ? PageSize::defaultSizesList() : checkedPageSizes;
+			appPrefs.activePageSizes = (checkedPageSizes.count() == 0) ? PagePresetManager::defaultSizesList() : checkedPageSizes;
 
 		}
 		// experimental features

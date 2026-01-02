@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="a2620c5d-4bc1-4891-ada5-6b3904598074" name="ISO A Paper" minVersion="1.7.2" version="1.7.2">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">ISO A Paper</name>
+            <name lang="de">ISO A Papier</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="mm" width="1189" height="1682" name="2A0" legacyNames="IsoA_2A0"/>
+        <page id="00001" unit="mm" width="1682" height="2378" name="4A0" legacyNames="IsoA_4A0"/>
+        <page id="00002" unit="mm" width="841" height="1189" name="A0" legacyNames="IsoA_A00"/>
+        <page id="00003" unit="mm" width="914" height="1292" name="A0+" legacyNames="IsoA_A00+"/>
+        <page id="00004" unit="mm" width="594" height="841" name="A1" legacyNames="IsoA_A01"/>
+        <page id="00005" unit="mm" width="609" height="914" name="A1+" legacyNames="IsoA_A01+"/>
+        <page id="00006" unit="mm" width="420" height="594" name="A2" legacyNames="IsoA_A02"/>
+        <page id="00007" unit="mm" width="297" height="420" name="A3" legacyNames="IsoA_A03"/>
+        <page id="00008" unit="mm" width="329" height="483" name="A3+" legacyNames="IsoA_A03+"/>
+        <page id="00009" unit="mm" width="210" height="297" name="A4" legacyNames="IsoA_A04"/>
+        <page id="00010" unit="mm" width="148" height="210" name="A5" legacyNames="IsoA_A05"/>
+        <page id="00011" unit="mm" width="105" height="148" name="A6" legacyNames="IsoA_A06"/>
+        <page id="00012" unit="mm" width="74" height="105" name="A7" legacyNames="IsoA_A07"/>
+        <page id="00013" unit="mm" width="52" height="74" name="A8" legacyNames="IsoA_A08"/>
+        <page id="00014" unit="mm" width="37" height="52" name="A9" legacyNames="IsoA_A09"/>
+        <page id="00015" unit="mm" width="26" height="37" name="A10" legacyNames="IsoA_A10"/>
+    </pages>
+</collection>

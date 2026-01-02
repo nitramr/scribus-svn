@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="a2453865-815a-42e0-b098-f5bd8162e211" name="Transitional" minVersion="1.7.2" version="1.7.2">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">Transitional</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="mm" width="841" height="1321" name="F0"/>
+        <page id="00001" unit="mm" width="660" height="841" name="F1"/>
+        <page id="00002" unit="mm" width="420" height="660" name="F2"/>
+        <page id="00003" unit="mm" width="330" height="420" name="F3"/>
+        <page id="00004" unit="mm" width="210" height="330" name="F4"/>
+        <page id="00005" unit="mm" width="165" height="210" name="F5"/>
+        <page id="00006" unit="mm" width="105" height="165" name="F6"/>
+        <page id="00007" unit="mm" width="82" height="105" name="F7"/>
+        <page id="00008" unit="mm" width="52" height="82" name="F8"/>
+        <page id="00009" unit="mm" width="41" height="52" name="F9"/>
+        <page id="00010" unit="mm" width="26" height="41" name="F10"/>
+        <page id="00011" unit="mm" width="840" height="1120" name="PA0"/>
+        <page id="00012" unit="mm" width="560" height="840" name="PA1"/>
+        <page id="00013" unit="mm" width="420" height="560" name="PA2"/>
+        <page id="00014" unit="mm" width="280" height="420" name="PA3"/>
+        <page id="00015" unit="mm" width="210" height="280" name="PA4"/>
+        <page id="00016" unit="mm" width="140" height="210" name="PA5"/>
+        <page id="00017" unit="mm" width="105" height="140" name="PA6"/>
+        <page id="00018" unit="mm" width="70" height="105" name="PA7"/>
+        <page id="00019" unit="mm" width="52" height="70" name="PA8"/>
+        <page id="00020" unit="mm" width="35" height="52" name="PA9"/>
+        <page id="00021" unit="mm" width="26" height="35" name="PA10"/>
+    </pages>
+</collection>

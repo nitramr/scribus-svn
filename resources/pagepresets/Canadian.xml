@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="326c5baf-5ebc-429e-89a5-fe4e7f6ec2e2" name="Canadian" minVersion="1.7.2" version="1.7.2">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">Canadian</name>
+            <name lang="de">Kanadisch</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="mm" width="560" height="860" name="P1"/>
+        <page id="00001" unit="mm" width="430" height="560" name="P2"/>
+        <page id="00002" unit="mm" width="280" height="430" name="P3"/>
+        <page id="00003" unit="mm" width="215" height="280" name="P4"/>
+        <page id="00004" unit="mm" width="140" height="215" name="P5"/>
+        <page id="00005" unit="mm" width="107" height="140" name="P6"/>
+    </pages>
+</collection>

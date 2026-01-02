@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="03f612a0-65eb-474e-a9ce-bf63d2cf5d9a" name="German" minVersion="1.7.2" version="1.7.2">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">German</name>
+            <name lang="de">Deutsch</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="mm" width="771" height="1090" name="DIN D0"/>
+        <page id="00001" unit="mm" width="545" height="771" name="DIN D1"/>
+        <page id="00002" unit="mm" width="385" height="545" name="DIN D2"/>
+        <page id="00003" unit="mm" width="272" height="385" name="DIN D3"/>
+        <page id="00004" unit="mm" width="192" height="272" name="DIN D4"/>
+        <page id="00005" unit="mm" width="136" height="192" name="DIN D5"/>
+        <page id="00006" unit="mm" width="96" height="136" name="DIN D6"/>
+        <page id="00007" unit="mm" width="68" height="96" name="DIN D7"/>
+        <page id="00008" unit="mm" width="48" height="68" name="DIN D8"/>
+        <page id="00009" unit="mm" width="34" height="48" name="DIN D9"/>
+        <page id="00010" unit="mm" width="24" height="34" name="DIN D10"/>
+    </pages>
+</collection>

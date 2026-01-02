@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="b40c0dea-c624-4278-bea2-92b2d5b001b0" name="Colombian" minVersion="1.7.2" version="1.7.2">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">Colombian</name>
+            <name lang="de">Kolumbianisch</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="mm" width="500" height="700" name="1/2 Pliego"/>
+        <page id="00001" unit="mm" width="350" height="500" name="1/4 Pliego"/>
+        <page id="00002" unit="mm" width="250" height="350" name="1/8 Pliego"/>
+        <page id="00003" unit="mm" width="216" height="279" name="Carta"/>
+        <page id="00004" unit="mm" width="304" height="457.2" name="Extra Tabloide"/>
+        <page id="00005" unit="mm" width="216" height="330" name="Oficio"/>
+        <page id="00006" unit="mm" width="700" height="1000" name="Pliego"/>
+    </pages>
+</collection>

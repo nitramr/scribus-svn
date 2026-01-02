@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="e6e500dd-83ee-450c-9dd7-9474db0215c6" name="International Envelopes" minVersion="1.7.2" version="1.7.2">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">International Envelopes</name>
+            <name lang="de">Internationale Briefumschläge</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="mm" width="324" height="125" name="B6/C4"/>
+        <page id="00001" unit="mm" width="318" height="229" name="C4M"/>
+        <page id="00002" unit="mm" width="229" height="114" name="C6/C5"/>
+        <page id="00003" unit="mm" width="318" height="114" name="C64M"/>
+        <page id="00004" unit="mm" width="162" height="81" name="C7/C6"/>
+        <page id="00005" unit="mm" width="220" height="110" name="DL, E65"/>
+        <page id="00006" unit="mm" width="312" height="220" name="E4"/>
+        <page id="00007" unit="mm" width="220" height="115" name="E5"/>
+        <page id="00008" unit="mm" width="115" height="115" name="E56"/>
+        <page id="00009" unit="mm" width="155" height="110" name="E6"/>
+        <page id="00010" unit="mm" width="229" height="220" name="EC45"/>
+        <page id="00011" unit="mm" width="229" height="155" name="EC5"/>
+        <page id="00012" unit="mm" width="216" height="115" name="EX5"/>
+        <page id="00013" unit="mm" width="135" height="120" name="R7"/>
+        <page id="00014" unit="mm" width="330" height="250" name="S4"/>
+        <page id="00015" unit="mm" width="255" height="185" name="S5"/>
+        <page id="00016" unit="mm" width="225" height="110" name="S65"/>
+        <page id="00017" unit="mm" width="216" height="105" name="X5"/>
+    </pages>
+</collection>

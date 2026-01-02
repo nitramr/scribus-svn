@@ -9,9 +9,9 @@ for which a new license (GPL+exception) is in place.
 #include <QStringList>
 
 #include "iconmanager.h"
-#include "pagesize.h"
 #include "prefsstructs.h"
 #include "scribusdoc.h"
+#include "manager/pagepreset_manager.h"
 #include "ui/preferences/prefs_pagesizes.h"
 
 
@@ -41,20 +41,28 @@ void Prefs_PageSizes::languageChange()
 	QString textSize = tr("Page Format");
 	QString textDimension = tr("Dimension");
 
-	if(QTreeWidgetItem* header = treeAvailableSizes->headerItem()) {
+	if(QTreeWidgetItem* header = treeAvailableSizes->headerItem())
+	{
 		header->setText(0, textSize);
 
 		if (header->columnCount() > 1)
 			header->setText(1, textDimension);
+
+		treeAvailableSizes->resizeColumnToContents(0);
+		treeAvailableSizes->resizeColumnToContents(1);
 	}
 	else
 		treeAvailableSizes->setHeaderLabel( textSize );
 
 
-	if(QTreeWidgetItem* header = treeActiveSizes->headerItem()) {
+	if(QTreeWidgetItem* header = treeActiveSizes->headerItem())
+	{
 		header->setText(0, textSize);
 		if (header->columnCount() > 1)
 			header->setText(1, textDimension);
+
+		treeActiveSizes->resizeColumnToContents(0);
+		treeActiveSizes->resizeColumnToContents(1);
 	}
 	else
 		treeActiveSizes->setHeaderLabel( textSize );
@@ -63,66 +71,51 @@ void Prefs_PageSizes::languageChange()
 
 void Prefs_PageSizes::restoreDefaults(struct ApplicationPrefs *prefsData)
 {
-	PageSize ps(prefsData->docSetupPrefs.pageSize);
-
 	treeAvailableSizes->clear();
 	treeActiveSizes->clear();
 
-	auto cats = ps.categories();
+	auto& ppm = PagePresetManager::instance();
+	auto categories = ppm.categoriesOrder();
+	auto activeSizesMap = ppm.activePageSizes();
 
-	// Available Page Sizes
-	for (auto it = cats.begin(); it != cats.end(); ++it)
+	for (int i = 0; i < categories.size(); i++)
 	{
-		QTreeWidgetItem* tlItem = new QTreeWidgetItem();
-		tlItem->setText(0, it.value());
-		tlItem->setData(0, Qt::UserRole, it.key());
+		QString id = categories.at(i);
+		if (id == "-")
+			continue;
 
-		treeAvailableSizes->addTopLevelItem(tlItem);
+		PageCollectionInfo pci = ppm.categoryInfoById(id);
 
-		PageSizeInfoMap sizes = ps.sizesByCategory(it.key());
+		QTreeWidgetItem* tlItemAvailable = new QTreeWidgetItem();
+		tlItemAvailable->setText(0, pci.displayName);
+		tlItemAvailable->setData(0, Qt::UserRole, id);
+		treeAvailableSizes->addTopLevelItem(tlItemAvailable);
 
-		for (auto s = sizes.begin(); s != sizes.end(); ++s)
+		QTreeWidgetItem* tlItemActive = new QTreeWidgetItem();
+		tlItemActive->setText(0, pci.displayName);
+		tlItemActive->setData(0, Qt::UserRole, id);
+		treeActiveSizes->addTopLevelItem(tlItemActive);
+
+		PageSizeInfoMap catSizes = ppm.sizesByCategory(id);
+
+		for (auto s = catSizes.begin(); s != catSizes.end(); ++s)
 		{
-			if (!ps.activePageSizes().contains(s.key()))
-			{
-				QTreeWidgetItem* sItem = new QTreeWidgetItem();
-				sItem->setText(0, s.value().trSizeName);
-				sItem->setText(1, s.value().sizeLabel);
-				sItem->setData(0, Qt::UserRole, s.key());
+			QTreeWidgetItem* sItem = new QTreeWidgetItem();
+			sItem->setText(0, s.value().displayName);
+			sItem->setText(1, s.value().label);
+			sItem->setData(0, Qt::UserRole, s.key());
 
-				tlItem->addChild(sItem);
-			}
+			if (activeSizesMap.contains(s.key()))
+				tlItemActive->addChild(sItem);
+			else
+				tlItemAvailable->addChild(sItem);
 		}
 	}
 
-	// Active page Sizes
-	for (auto it = cats.begin(); it != cats.end(); ++it)
-	{
-		PageSizeInfo::Category cat = it.key();
-
-		QTreeWidgetItem* tlItem = new QTreeWidgetItem();
-		tlItem->setText(0, it.value());
-		tlItem->setData(0, Qt::UserRole, cat);
-
-		treeActiveSizes->addTopLevelItem(tlItem);
-
-		PageSizeInfoMap sizes = ps.activePageSizes();
-
-		for (auto s = sizes.begin(); s != sizes.end(); ++s)
-		{
-			if (s.value().category == cat)
-			{
-				QTreeWidgetItem* sItem = new QTreeWidgetItem();
-				sItem->setText(0, s.value().trSizeName);
-				sItem->setText(1, s.value().sizeLabel);
-				sItem->setData(0, Qt::UserRole, s.key());
-
-				tlItem->addChild(sItem);
-			}
-
-		}
-	}
-
+	treeAvailableSizes->resizeColumnToContents(0);
+	treeAvailableSizes->resizeColumnToContents(1);
+	treeActiveSizes->resizeColumnToContents(0);
+	treeActiveSizes->resizeColumnToContents(1);
 }
 
 void Prefs_PageSizes::saveGuiToPrefs(struct ApplicationPrefs *prefsData) const
@@ -131,7 +124,7 @@ void Prefs_PageSizes::saveGuiToPrefs(struct ApplicationPrefs *prefsData) const
 
 	for (int i = 0; i < treeActiveSizes->topLevelItemCount(); ++i)
 	{
-		QTreeWidgetItem* item = treeActiveSizes->takeTopLevelItem(i);
+		QTreeWidgetItem* item = treeActiveSizes->topLevelItem(i);
 
 		for (int j = 0; j < item->childCount(); ++j)
 			newActivePageSizes << item->child(j)->data(0, Qt::UserRole).toString();

@@ -17,8 +17,6 @@ for which a new license (GPL+exception) is in place.
 #include <QVBoxLayout>
 
 #include "pagesizeselector.h"
-#include "pagesize.h"
-#include "commonstrings.h"
 
 PageSizeSelector::PageSizeSelector(QWidget *parent)
 	: QWidget{parent}
@@ -52,18 +50,18 @@ void PageSizeSelector::setHasCustom(bool hasCustom)
 		setPageSize(m_size.width(), m_size.height());
 }
 
-void PageSizeSelector::setCurrentCategory(PageSizeInfo::Category category)
+void PageSizeSelector::setCurrentCategory(const QString &categoryId)
 {
-	int index = comboCategory->findData(category);
+	int index = comboCategory->findData(categoryId);
 	if (index != -1)
 		comboCategory->setCurrentIndex(index);
 }
 
-void PageSizeSelector::setup(PageSize ps)
+void PageSizeSelector::setup(PageSizeInfo psi)
 {
-	m_sizeName = ps.name();
-	m_sizeCategory = ps.category();
-	m_trSizeName = ps.nameTR();
+	m_sizeName = psi.id;
+	m_sizeCategory = psi.categoryId;
+	m_trSizeName = psi.displayName;
 
 	// Load category list
 	int index = -1;
@@ -73,28 +71,35 @@ void PageSizeSelector::setup(PageSize ps)
 	// Add Custom
 	if (hasCustom())
 	{
-		comboCategory->addItem(CommonStrings::trCustomPageSize, PageSizeInfo::Custom);
-		if (m_sizeName == CommonStrings::customPageSize || m_sizeName == CommonStrings::trCustomPageSize)
+		PageCollectionInfo pciCustom = PagePresetManager::instance().categoryInfoCustom();
+		comboCategory->addItem(pciCustom.displayName, pciCustom.id);
+		if (m_sizeName == pciCustom.id || m_sizeName == pciCustom.displayName)
 			index = comboCategory->count() - 1;
 	}
 
 	// Add Preferred
-	comboCategory->addItem(ps.categoryToString(PageSizeInfo::Preferred), PageSizeInfo::Preferred);
+	PageCollectionInfo pciPreferred = PagePresetManager::instance().categoryInfoPreferred();
+	comboCategory->addItem(pciPreferred.displayName, pciPreferred.id);
+	comboCategory->insertSeparator(comboCategory->count());
 
 	// Add all available categories
-	PageSizeCategoriesMap categories = ps.categories();
-	for (auto it = categories.begin(); it != categories.end(); ++it)
+	QList<QString> orderList = PagePresetManager::instance().categoriesOrder();
+	for (int i = 0; i < orderList.size(); i++)
 	{
-		comboCategory->addItem(it.value(), it.key());
-		if (it.key() == m_sizeCategory)
-			index = comboCategory->count() - 1;
+		QString item = orderList.at(i);
+		if (item == "-")
+			comboCategory->insertSeparator(comboCategory->count());
+		else
+		{
+			PageCollectionInfo pci = PagePresetManager::instance().categoryInfoById(item);
+			comboCategory->addItem(pci.displayName, pci.id);
+			if (pci.id == m_sizeCategory)
+				index = comboCategory->count() - 1;
+		}
+
 	}
 
 	comboCategory->setCurrentIndex(index);
-	comboCategory->insertSeparator(comboCategory->findData(PageSizeInfo::Preferred) + 1);
-	comboCategory->insertSeparator(comboCategory->findData(PageSizeInfo::IsoEnvelope) + 1);
-	comboCategory->insertSeparator(comboCategory->findData(PageSizeInfo::USEnvelope) + 1);
-	comboCategory->insertSeparator(comboCategory->findData(PageSizeInfo::Other) + 1);
 
 	// Load size format list
 	setFormat(m_sizeCategory, m_sizeName);
@@ -103,11 +108,11 @@ void PageSizeSelector::setup(PageSize ps)
 void PageSizeSelector::setPageSize(double width, double height)
 {
 	m_size = QSizeF(width, height);
-	PageSize ps(width, height);
-	setup(ps);
+	PageSizeInfo psi = PagePresetManager::instance().pageInfoByDimensions(m_size);
+	setup(psi);
 }
 
-void PageSizeSelector::setFormat(PageSizeInfo::Category category, QString name)
+void PageSizeSelector::setFormat(const QString& categoryId, QString name)
 {
 	if (!hasFormatSelector())
 		return;
@@ -115,11 +120,13 @@ void PageSizeSelector::setFormat(PageSizeInfo::Category category, QString name)
 	QSignalBlocker sigFormat(comboFormat);
 	comboFormat->clear();
 
-	if (category == PageSizeInfo::Custom)
+	PageCollectionInfo pciCustom = PagePresetManager::instance().categoryInfoCustom();
+
+	if (categoryId == pciCustom.id)
 	{
 		comboFormat->setEnabled(false);
-		m_sizeName = CommonStrings::customPageSize;
-		m_trSizeName = CommonStrings::trCustomPageSize;
+		m_sizeName = pciCustom.id;
+		m_trSizeName = pciCustom.displayName;
 		return;
 	}
 	else
@@ -127,14 +134,15 @@ void PageSizeSelector::setFormat(PageSizeInfo::Category category, QString name)
 		comboFormat->setEnabled(true);
 	}
 
-	PageSize ps(name);
+	// PageSize ps(name);
+	PageCollectionInfo pciPreferred = PagePresetManager::instance().categoryInfoPreferred();
 	int index = -1;
-	for (const auto &item : ps.pageSizes())
+	for (const auto &item : PagePresetManager::instance().pageSizes())
 	{
-		if (item.category == category || (category == PageSizeInfo::Preferred && ps.activePageSizes().contains(item.sizeName)))
+		if (item.categoryId == categoryId || (categoryId == pciPreferred.id && PagePresetManager::instance().activePageSizes().contains(item.id)))
 		{
-			comboFormat->addItem(item.trSizeName, item.sizeName);
-			if (item.sizeName == name)
+			comboFormat->addItem(item.displayName, item.id);
+			if (item.id == name)
 				index = comboFormat->count() - 1;
 		}
 	}
@@ -150,7 +158,7 @@ void PageSizeSelector::setFormat(PageSizeInfo::Category category, QString name)
 
 void PageSizeSelector::categorySelected(int index)
 {
-	m_sizeCategory = static_cast<PageSizeInfo::Category>(comboCategory->itemData(index).toInt());
+	m_sizeCategory = comboCategory->itemData(index).toString();
 
 	setFormat(m_sizeCategory, m_sizeName);
 	emit pageCategoryChanged(m_sizeCategory);

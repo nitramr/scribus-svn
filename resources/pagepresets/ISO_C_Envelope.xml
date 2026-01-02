@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="7f2001d2-087f-4693-b478-f20ae0313dfd" name="ISO C Envelope" minVersion="1.7.2" version="1.7.2">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">ISO C Envelope</name>
+            <name lang="de">ISO C Umschläge</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="mm" width="917" height="1297" name="C0"/>
+        <page id="00001" unit="mm" width="648" height="917" name="C1"/>
+        <page id="00002" unit="mm" width="458" height="648" name="C2"/>
+        <page id="00003" unit="mm" width="324" height="458" name="C3"/>
+        <page id="00004" unit="mm" width="229" height="324" name="C4"/>
+        <page id="00005" unit="mm" width="162" height="229" name="C5"/>
+        <page id="00006" unit="mm" width="114" height="162" name="C6"/>
+        <page id="00007" unit="mm" width="81" height="114" name="C7"/>
+        <page id="00008" unit="mm" width="57" height="81" name="C8"/>
+        <page id="00009" unit="mm" width="40" height="57" name="C9"/>
+        <page id="00010" unit="mm" width="28" height="40" name="C10"/>
+    </pages>
+</collection>

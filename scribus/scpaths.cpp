@@ -80,6 +80,7 @@ ScPaths::ScPaths()
 	m_docDir = appPath + "/../" + QString(DOCDIR);
 	m_iconDir = appPath + "/../" + QString(ICONDIR);
 	m_libDir = appPath + "/../" + QString(LIBDIR);
+	m_pagePresetsDir = appPath + "/../" + QString(PAGEPRESETSDIR);
 	m_pluginDir = appPath + "/../" + QString(PLUGINDIR);
 	m_qmlDir = appPath + "/../" + QString(QMLDIR);
 	m_sampleScriptDir = appPath + "/../" + QString(SAMPLESDIR);
@@ -90,6 +91,7 @@ ScPaths::ScPaths()
 	m_docDir = QString(DOCDIR);
 	m_iconDir = QString(ICONDIR);
 	m_libDir = QString(LIBDIR);
+	m_pagePresetsDir = QString(PAGEPRESETSDIR);
 	m_pluginDir = QString(PLUGINDIR);
 	m_qmlDir = QString(QMLDIR);
 	m_sampleScriptDir = QString(SAMPLESDIR);
@@ -111,6 +113,7 @@ ScPaths::ScPaths()
 	m_scriptDir = QString("%1/Contents/share/scribus/scripts/").arg(pathPtr);
 	m_templateDir = QString("%1/Contents/share/scribus/templates/").arg(pathPtr);
 	m_libDir = QString("%1/Contents/lib/").arg(pathPtr);
+	m_pagePresetsDir = QString("%1/Contents/share/scribus/pagepresets/").arg(pathPtr);
 	m_pluginDir = QString("%1/Contents/lib/").arg(pathPtr);
 	m_qmlDir = QString("%1/Contents/share/scribus/qml/").arg(pathPtr);
 	//QApplication::setLibraryPaths(QStringList(QString("%1/Contents/lib/qtplugins/").arg(pathPtr)));
@@ -123,6 +126,7 @@ ScPaths::ScPaths()
 	qDebug() << QString("scpaths: script dir=%1").arg(m_scriptDir);
 	qDebug() << QString("scpaths: template dir=%1").arg(m_templateDir);
 	qDebug() << QString("scpaths: lib dir=%1").arg(m_libDir);
+	qDebug() << QString("scpaths: pagepresets dir=%1").arg(m_pagePresetsDir);
 	qDebug() << QString("scpaths: plugin dir=%1").arg(m_pluginDir);
 	qDebug() << QString("scpaths: QML dir=%1").arg(m_qmlDir);
 	qDebug() << QString("scpaths: qtplugins=%1").arg(QApplication::libraryPaths().join(":"));
@@ -142,6 +146,7 @@ ScPaths::ScPaths()
 	m_scriptDir = QString("%1/share/scripts/").arg(appPath);
 	m_templateDir = QString("%1/share/templates/").arg(appPath);
 	m_libDir = QString("%1/libs/").arg(appPath);
+	m_pagePresetsDir = QString("%1/share/pagepresets/").arg(appPath);
 	m_pluginDir = QString("%1/plugins/").arg(appPath);
 	m_qmlDir = QString("%1/share/qml/").arg(appPath);
 
@@ -247,6 +252,11 @@ const QString&  ScPaths::fontDir() const
 const QString&  ScPaths::libDir() const
 {
 	return m_libDir;
+}
+
+const QString& ScPaths::pagePresetsDir() const
+{
+	return m_pagePresetsDir;
 }
 
 const QString&  ScPaths::pluginDir() const
@@ -613,6 +623,14 @@ QString ScPaths::userFontDir(bool createIfNotExists)
 QString ScPaths::userHelpFilesDir(bool createIfNotExists)
 {
 	QDir useFilesDirectory(applicationDataDir() + "helpfiles/");
+	if (createIfNotExists && !useFilesDirectory.exists())
+		useFilesDirectory.mkpath(useFilesDirectory.absolutePath());
+	return useFilesDirectory.absolutePath() + "/";
+}
+
+QString ScPaths::userPagePresetsDir(bool createIfNotExists)
+{
+	QDir useFilesDirectory(applicationDataDir() + "pagepresets/");
 	if (createIfNotExists && !useFilesDirectory.exists())
 		useFilesDirectory.mkpath(useFilesDirectory.absolutePath());
 	return useFilesDirectory.absolutePath() + "/";

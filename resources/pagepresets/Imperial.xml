@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="490490e4-0d83-4559-9754-d502676691ac" name="Imperial" minVersion="1.7.2" version="1.7.2">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">Imperial</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="in" width="15" height="20" name="Crown"/>
+        <page id="00001" unit="in" width="17.5" height="22.5" name="Demy"/>
+        <page id="00002" unit="in" width="22.5" height="35" name="Double Demy"/>
+        <page id="00003" unit="in" width="23" height="28" name="Elephant"/>
+        <page id="00004" unit="in" width="7.25" height="10.5" name="Executive"/>
+        <page id="00005" unit="in" width="8" height="13" name="Foolscap"/>
+        <page id="00006" unit="in" width="16.5" height="21" name="Large Post"/>
+        <page id="00007" unit="in" width="18" height="23" name="Medium"/>
+        <page id="00008" unit="in" width="15.5" height="19.25" name="Post"/>
+        <page id="00009" unit="in" width="35" height="45" name="Quad Demy"/>
+        <page id="00010" unit="in" width="8" height="10" name="Quarto"/>
+        <page id="00011" unit="in" width="20" height="25" name="Royal"/>
+        <page id="00012" unit="in" width="5.5" height="8.5" name="STMT"/>
+    </pages>
+</collection>

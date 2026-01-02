@@ -113,6 +113,7 @@ for which a new license (GPL+exception) is in place.
 #include "langmgr.h"
 #include "localemgr.h"
 #include "loadsaveplugin.h"
+#include "manager/pagepreset_manager.h"
 #include "marks.h"
 #include "nfttemplate.h"
 #include "notesstyles.h"
@@ -121,7 +122,6 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem_latexframe.h"
 #include "pageitem_table.h"
 #include "pageitem_textframe.h"
-#include "pagesize.h"
 #include "pdflib.h"
 #include "pdfoptions.h"
 #include "pluginmanager.h"
@@ -414,6 +414,11 @@ int ScribusMainWindow::initScMW(bool primaryMainWindow)
 	if (primaryMainWindow)
 		ScCore->setSplashStatus( tr("Reading Scrapbook") );
 	initScrapbook();
+
+	if (primaryMainWindow)
+		ScCore->setSplashStatus( tr("Initializing Page Presets") );
+	PagePresetManager::instance();
+
 	scrActions["helpTooltips"]->setChecked(m_prefsManager.appPrefs.displayPrefs.showToolTips);
 	scrActions["showMouseCoordinates"]->setChecked(m_prefsManager.appPrefs.displayPrefs.showMouseCoordinates);
 	scrActions["stickyTools"]->setChecked(m_prefsManager.appPrefs.uiPrefs.stickyTools);
@@ -2028,10 +2033,10 @@ void ScribusMainWindow::startUpDialog()
 			int facingPages = dia->choosenLayout();
 			int firstPage = dia->layoutFirstPage();
 			docSet = dia->startDocSetup->isChecked();
-			double topMargin = dia->marginGroup->margins().top();
-			double bottomMargin = dia->marginGroup->margins().bottom();
-			double leftMargin = dia->marginGroup->margins().left();
-			double rightMargin = dia->marginGroup->margins().right();
+			double topMargin = dia->margins().top();
+			double bottomMargin = dia->margins().bottom();
+			double leftMargin = dia->margins().left();
+			double rightMargin = dia->margins().right();
 			double columnDistance = dia->distance();
 			double pageWidth = dia->pageWidth();
 			double pageHeight = dia->pageHeight();
@@ -2042,7 +2047,7 @@ void ScribusMainWindow::startUpDialog()
 			QSizeF pagesize(dia->pageWidth(), dia->pageHeight());
 			doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->marginPreset());
 			doc->setPageSetFirstPage(facingPages, firstPage);
-			doc->bleeds()->set(dia->bleedTop(), dia->bleedLeft(), dia->bleedBottom(), dia->bleedRight());
+			doc->bleeds()->set(dia->bleeds().top(), dia->bleeds().left(), dia->bleeds().bottom(), dia->bleeds().right());
 			HaveNewDoc();
 			doc->reformPages(true);
 			// Don's disturb user with "save?" dialog just after new doc
@@ -2104,10 +2109,10 @@ bool ScribusMainWindow::slotFileNew()
 	int facingPages = dia->choosenLayout();
 	int firstPage = dia->layoutFirstPage();
 	bool docSet = dia->startDocSetup->isChecked();
-	double topMargin = dia->marginGroup->margins().top();
-	double bottomMargin = dia->marginGroup->margins().bottom();
-	double leftMargin = dia->marginGroup->margins().left();
-	double rightMargin = dia->marginGroup->margins().right();
+	double topMargin = dia->margins().top();
+	double bottomMargin = dia->margins().bottom();
+	double leftMargin = dia->margins().left();
+	double rightMargin = dia->margins().right();
 	double columnDistance = dia->distance();
 	double pageWidth = dia->pageWidth();
 	double pageHeight = dia->pageHeight();
@@ -2120,7 +2125,7 @@ bool ScribusMainWindow::slotFileNew()
 	if (doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->marginPreset()))
 	{
 		doc->setPageSetFirstPage(facingPages, firstPage);
-		doc->bleeds()->set(dia->bleedTop(), dia->bleedLeft(), dia->bleedBottom(), dia->bleedRight());
+		doc->bleeds()->set(dia->bleeds().top(), dia->bleeds().left(), dia->bleeds().bottom(), dia->bleeds().right());
 		m_mainWindowStatusLabel->setText( tr("Ready"));
 		HaveNewDoc();
 		doc->reformPages(true);

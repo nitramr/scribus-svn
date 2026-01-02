@@ -19,7 +19,7 @@ for which a new license (GPL+exception) is in place.
 #include "iconmanager.h"
 #include "newmarginwidget.h"
 #include "pagepropertiesdialog.h"
-#include "pagesize.h"
+#include "manager/pagepreset_manager.h"
 #include "pagestructs.h"
 #include "scpage.h"
 #include "scribusdoc.h"
@@ -38,17 +38,8 @@ PagePropertiesDialog::PagePropertiesDialog( QWidget* parent, ScribusDoc* doc )
 	dialogLayout->setContentsMargins(9, 9, 9, 9);
 	dialogLayout->setSpacing(4);
 	
-	PageSize ps(doc->currentPage()->size());
-
-	// try to find corresponding page size by dimensions
-	if (ps.name() == CommonStrings::customPageSize)
-	{
-		PageSizeInfoMap pages = ps.sizesByDimensions(QSize(doc->currentPage()->width(), doc->currentPage()->height()));
-		if (pages.count() > 0)
-			prefsPageSizeName = pages.firstKey();
-	}
-	else
-		prefsPageSizeName = ps.name();
+	PageSizeInfo psi = PagePresetManager::instance().pageInfoByDimensions(QSize(doc->currentPage()->width(), doc->currentPage()->height()));
+	prefsPageSizeName = psi.id;
 
 	dsGroupBox7 = new QGroupBox(this);
 	dsGroupBox7->setTitle( tr( "Page Size" ) );
@@ -111,13 +102,14 @@ PagePropertiesDialog::PagePropertiesDialog( QWidget* parent, ScribusDoc* doc )
 	}
 	dialogLayout->addWidget( dsGroupBox7 );
 	
-//	marginWidget = new MarginWidget(this,  tr( "Margin Guides" ), &doc->currentPage()->initialMargins, doc->unitIndex(), false, false);
 	marginWidget = new NewMarginWidget();
-	marginWidget->setup(doc->currentPage()->initialMargins, doc->currentPage()->marginPreset, doc->unitIndex(), NewMarginWidget::MarginWidgetFlags );
+	marginWidget->setup(doc->currentPage()->initialMargins, !(doc->pagePositioning() == singlePage), doc->unitIndex(), NewMarginWidget::MarginWidgetFlags );
 	marginWidget->setPageHeight(doc->currentPage()->height());
 	marginWidget->setPageWidth(doc->currentPage()->width());
-	marginWidget->setFacingPages(!(doc->pagePositioning() == singlePage), doc->locationOfPage(doc->currentPage()->pageNr()));
-//	marginWidget->setMarginPreset(doc->currentPage()->marginPreset);
+	if (doc->pagePositioning() == singlePage)
+		marginWidget->setMarginPreset(PresetLayout::none);
+	else
+		marginWidget->setMarginPreset(doc->currentPage()->marginPreset);
 	dialogLayout->addWidget( marginWidget );
 
 	groupMaster = new QGroupBox( this );
@@ -165,7 +157,7 @@ PagePropertiesDialog::PagePropertiesDialog( QWidget* parent, ScribusDoc* doc )
 	m_pageWidth = widthSpinBox->value() / m_unitRatio;
 	m_pageHeight = heightSpinBox->value() / m_unitRatio;
 
-	bool isCustom = (pageSizeSelector->pageSizeTR() == CommonStrings::trCustomPageSize);
+	bool isCustom = (pageSizeSelector->pageSize() == CommonStrings::customPageSize);
 	heightSpinBox->setEnabled(isCustom);
 	widthSpinBox->setEnabled(isCustom);
 	// signals and slots connections
@@ -219,7 +211,7 @@ void PagePropertiesDialog::setPageHeight(double)
 
 void PagePropertiesDialog::setPageSize()
 {
-	if (pageSizeSelector->pageSizeTR() != CommonStrings::trCustomPageSize)
+	if (pageSizeSelector->pageSize() != CommonStrings::customPageSize)
 		oldOri++;
 	setOrientation(orientationQComboBox->currentIndex());
 }
@@ -230,18 +222,19 @@ void PagePropertiesDialog::setSize(const QString & gr)
 	m_pageHeight = heightSpinBox->value() / m_unitRatio;
 	widthSpinBox->setEnabled(false);
 	heightSpinBox->setEnabled(false);
-	PageSize ps2(gr);
-	prefsPageSizeName = ps2.name();
-	if (gr == CommonStrings::trCustomPageSize)
+
+	PageSizeInfo psi = PagePresetManager::instance().pageInfoByName(gr);
+
+	prefsPageSizeName = psi.id;
+	if (gr == CommonStrings::customPageSize)
 	{
 		widthSpinBox->setEnabled(true);
 		heightSpinBox->setEnabled(true);
-		prefsPageSizeName = CommonStrings::customPageSize;
 	}
 	else
 	{
-		m_pageWidth = ps2.width();
-		m_pageHeight = ps2.height();
+		m_pageWidth = psi.width;
+		m_pageHeight = psi.height;
 	}
 	disconnect(widthSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setPageWidth(double)));
 	disconnect(heightSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setPageHeight(double)));
@@ -255,10 +248,10 @@ void PagePropertiesDialog::setSize(const QString & gr)
 
 void PagePropertiesDialog::setOrientation(int ori)
 {
-	setSize(pageSizeSelector->pageSizeTR());
+	setSize(pageSizeSelector->pageSize());
 	disconnect(widthSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setPageWidth(double)));
 	disconnect(heightSpinBox, SIGNAL(valueChanged(double)), this, SLOT(setPageHeight(double)));
-	if ((pageSizeSelector->pageSizeTR() == CommonStrings::trCustomPageSize) && (ori != oldOri))
+	if ((pageSizeSelector->pageSize() == CommonStrings::customPageSize) && (ori != oldOri))
 	{
 		double w = widthSpinBox->value(), h = heightSpinBox->value();
 		widthSpinBox->setValue((ori == portraitPage) ? qMin(w, h) : qMax(w, h));

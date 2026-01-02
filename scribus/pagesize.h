@@ -27,51 +27,7 @@ for which a new license (GPL+exception) is in place.
 #include <QSize>
 #include "scribusapi.h"
 #include "units.h"
-
-struct PageSizeInfo
-{
-	enum Category {
-
-		Custom = 0, // don't use for presets, it is reserved for custom sizes
-		Preferred = 1, // don't use for presets, it is reserved for user favorite sizes
-
-		IsoA = 10,
-		IsoB = 11,
-		IsoC = 12,
-		IsoEnvelope = 13,
-
-		USStandard = 20,
-		USPress = 21,
-		USEnvelope = 22,
-
-		Book = 30,
-		BusinessCards = 31,
-		Newspaper = 32,
-		Transitional = 33,
-
-		Other = 40,
-
-		Canadian = 50,
-		Chinese = 51,
-		Colombian = 52,
-		French = 53,
-		German = 54,
-		Imperial = 55,
-		Japanese = 56,
-		Swedish = 57,
-	};
-
-	double width {0.0};
-	double height {0.0};
-	QString trSizeName;
-	QString sizeName;
-	QString sizeLabel;
-	int pageUnitIndex {-1};
-	Category category {PageSizeInfo::Custom};
-};
-
-using PageSizeInfoMap = QMap<QString, PageSizeInfo>;
-using PageSizeCategoriesMap = QMap<PageSizeInfo::Category, QString>;
+#include "manager/pagepreset_manager.h"
 
 class SCRIBUS_API PageSize
 {
@@ -80,39 +36,17 @@ public:
 	PageSize(double, double);
 	PageSize& operator=(const PageSize& other);
 
-	const QString& name() const { return m_pageSizeName; }
-	const QString& nameTR() const { return m_trPageSizeName; }
-	PageSizeInfo::Category category() const { return m_category; };
-	QString categoryToString(PageSizeInfo::Category category) const;
-	double width() const { return m_width; }
-	double height() const { return m_height; }
-	double originalWidth() const { return m_width * unitGetRatioFromIndex(m_pageUnitIndex); }
-	double originalHeight() const { return m_height * unitGetRatioFromIndex(m_pageUnitIndex); }
-	QString originalUnit() const { return unitGetSuffixFromIndex(m_pageUnitIndex); }
-	static QStringList defaultSizesList();
-	PageSizeCategoriesMap categories() const;
-	PageSizeInfoMap sizesByCategory(PageSizeInfo::Category category) const;
-	PageSizeInfoMap sizesByDimensions(QSizeF sizePt) const;
-	PageSizeInfoMap activePageSizes() const;
-	const PageSizeInfoMap& pageSizes() const { return m_pageSizeList; }
-	PageSizeInfo pageInfoByDimensions(double width, double height) const { return pageInfoByDimensions(QSizeF(width, height));}
-	PageSizeInfo pageInfoByDimensions(QSizeF sizePt) const;
-	void printSizeList() const;
+	const QString& name() const { return m_pageInfo.id; }
+	const QString& nameTR() const { return m_pageInfo.displayName; }
+	QString categoryId() const { return m_pageInfo.categoryId; }
+	double width() const { return m_pageInfo.width; }
+	double height() const { return m_pageInfo.height; }
+	double originalWidth() const { return width() * unitGetRatioFromIndex(m_pageInfo.pageUnitIndex); }
+	double originalHeight() const { return height() * unitGetRatioFromIndex(m_pageInfo.pageUnitIndex); }
+	QString originalUnit() const { return unitGetSuffixFromIndex(m_pageInfo.pageUnitIndex); }
 
 private:
-	PageSizeInfoMap m_pageSizeList;
-	double m_width { 0.0 };
-	double m_height { 0.0 };
-	int m_pageUnitIndex { -1 };
-	QString m_pageSizeName;
-	QString m_trPageSizeName;
-	PageSizeInfo::Category m_category {PageSizeInfo::Custom};
-
-	void initByName(const QString&); // legacy support for < 1.7.1
-	void initByDimensions(QSizeF sizePt);
-	void generateSizeList();
-	void addPageSize(const QString id, double width, double height, int unitIndex, PageSizeInfo::Category category);
-	void addPageSize(const QString id, const QString name, double width, double height, int unitIndex, PageSizeInfo::Category category);
+	PageSizeInfo m_pageInfo;
 };
 
 #endif

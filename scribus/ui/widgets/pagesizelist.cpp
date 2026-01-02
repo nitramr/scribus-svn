@@ -7,9 +7,9 @@ for which a new license (GPL+exception) is in place.
 #include <QApplication>
 #include <QPainter>
 
-#include "pagesize.h"
 #include "pagesizelist.h"
 #include "prefsmanager.h"
+#include "manager/pagepreset_manager.h"
 #include "ui/delegates/sclistitemdelegate.h"
 
 
@@ -37,6 +37,9 @@ PageSizeList::PageSizeList(QWidget* parent) :
 #endif
 	setItemDelegate(new ScListItemDelegate(QListWidget::IconMode, iconSize()));
 	setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+	setContextMenuPolicy(Qt::CustomContextMenu);
+
+	connect(this, &QListView::customContextMenuRequested, this, &PageSizeList::showContextMenu);
 }
 
 void PageSizeList::setDimensions(double width, double height)
@@ -53,7 +56,7 @@ void PageSizeList::setOrientation(int orientation)
 	setSortMode(m_sortMode);
 }
 
-void PageSizeList::setCategory(PageSizeInfo::Category category)
+void PageSizeList::setCategory(const QString& category)
 {
 	loadPageSizes(m_dimensions, m_orientation, category);
 	m_category = category;
@@ -87,7 +90,7 @@ void PageSizeList::setSortMode(SortMode sortMode)
 	}
 }
 
-void PageSizeList::setValues(QSizeF dimensions, int orientation, PageSizeInfo::Category category, SortMode sortMode)
+void PageSizeList::setValues(QSizeF dimensions, int orientation, const QString& category, SortMode sortMode)
 {
 	loadPageSizes(dimensions, orientation, category);
 	m_dimensions = dimensions;
@@ -96,12 +99,14 @@ void PageSizeList::setValues(QSizeF dimensions, int orientation, PageSizeInfo::C
 	setSortMode(sortMode);
 }
 
-void PageSizeList::loadPageSizes(QSizeF dimensions, int orientation, PageSizeInfo::Category category)
+void PageSizeList::loadPageSizes(QSizeF dimensions, int orientation, const QString& category)
 {
 	QSignalBlocker sig(this);
 
-	PageSize pref(PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth, PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight);
-	PageSize ps(dimensions.width(), dimensions.height());
+	auto &ppm = PagePresetManager::instance();
+
+	PageSizeInfo pref = ppm.pageInfoByDimensions(PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth, PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight);
+	PageSizeInfo ps = ppm.pageInfoByDimensions(dimensions.width(), dimensions.height());
 
 	int sel = -1;
 
@@ -115,32 +120,57 @@ void PageSizeList::loadPageSizes(QSizeF dimensions, int orientation, PageSizeInf
 
 	m_model->clear();
 
-	foreach (auto item, ps.pageSizes())
+	PageCollectionInfo pciPreferred = ppm.categoryInfoPreferred();
+
+	foreach (auto item, ppm.pageSizes())
 	{
 		QSize size;
 		size.setWidth(orientation == 0 ? item.width : item.height);
 		size.setHeight(orientation == 0 ? item.height : item.width);
 
 		// Add items of selected category or all preferred and defaults
-		if (item.category == category ||
-				(category == PageSizeInfo::Preferred && ps.activePageSizes().contains(item.sizeName)) ||
-				(category == PageSizeInfo::Preferred && item.sizeName == pref.name()))
+		if (item.categoryId == category ||
+				(category == pciPreferred.id && ppm.activePageSizes().contains(item.id)) ||
+				(category == pciPreferred.id && item.id == pref.id))
 		{
+			QList<double> margins;
+			margins.append(item.margins.isNull());
+			margins.append(item.margins.top());
+			margins.append(item.margins.left());
+			margins.append(item.margins.bottom());
+			margins.append(item.margins.right());
+
+			QList<double> bleeds;
+			bleeds.append(item.bleeds.isNull());
+			bleeds.append(item.bleeds.top());
+			bleeds.append(item.bleeds.left());
+			bleeds.append(item.bleeds.bottom());
+			bleeds.append(item.bleeds.right());
+
 			QStandardItem* itemA = new QStandardItem();
-			itemA->setText(item.trSizeName);
+			itemA->setText(item.displayName);
 			itemA->setEditable(false);
-			itemA->setIcon(sizePreview(this->iconSize(), size));
-			itemA->setData(QVariant(item.sizeLabel), ItemData::SizeLabel);
+			itemA->setIcon(sizePreview(this->iconSize(), size, margins));
+			itemA->setData(QVariant(item.label), ItemData::SizeLabel);
 			itemA->setData(QVariant(item.pageUnitIndex), ItemData::Unit);
-			itemA->setData(QVariant(item.category), ItemData::Category);
-			itemA->setData(QVariant(item.sizeName), ItemData::Name);
+			itemA->setData(QVariant(item.categoryId), ItemData::Category);
+			itemA->setData(QVariant(item.id), ItemData::ID);
 			itemA->setData(QVariant(item.width * item.height), ItemData::Dimension);
 			itemA->setData(QVariant(item.width), ItemData::Width);
 			itemA->setData(QVariant(item.height), ItemData::Height);
+			itemA->setData(QVariant(item.type), ItemData::Type);
+			itemA->setData(QVariant(item.displayName), ItemData::Name);
+			itemA->setData(QVariant(item.marginPreset), ItemData::MarginPreset);
+			itemA->setData(QVariant::fromValue(margins), ItemData::Margins);
+			itemA->setData(QVariant::fromValue(bleeds), ItemData::Bleeds);
+			itemA->setData(QVariant(item.layout), ItemData::Layout);
+			itemA->setData(QVariant(item.firstPage), ItemData::FirstPage);
+			itemA->setData(QVariant::fromValue(item.textFrame), ItemData::TextFrame);
+
 			m_model->appendRow(itemA);
 
 			// select item with name match OR equal size
-			if (sel == -1 && (item.sizeName == ps.name() || (item.width == ps.width() && item.height == ps.height())))
+			if (sel == -1 && (item.id == ps.id || (item.width == ps.width && item.height == ps.height)))
 				sel = itemA->row();
 
 		}
@@ -156,7 +186,7 @@ void PageSizeList::updateGeometries()
 	verticalScrollBar()->setSingleStep(10);
 }
 
-QIcon PageSizeList::sizePreview(QSize iconSize, QSize pageSize) const
+QIcon PageSizeList::sizePreview(QSize iconSize, QSize pageSize, QList<double> dataMargins) const
 {
 	double devicePixelRatio = qApp->devicePixelRatio();
 	double max = mm2pts(500 * devicePixelRatio); // reference for scale: large side of B3
@@ -198,7 +228,71 @@ QIcon PageSizeList::sizePreview(QSize iconSize, QSize pageSize) const
 	painter.setPen(QPen(palette().text().color()));
 	painter.setBrush(m_gradient);
 	painter.drawRect(page.adjusted(0, 0, -1, -1));
+
+	if (!QVariant(dataMargins.at(0)).toBool())
+	{
+
+		int t = ceil(dataMargins.at(1) / height * devicePixelRatio);
+		int l = ceil(dataMargins.at(2) / width * devicePixelRatio);
+		int b = ceil(dataMargins.at(3) / height * devicePixelRatio);
+		int r = ceil(dataMargins.at(4) / width * devicePixelRatio);
+
+		QColor colMargin = PrefsManager::instance().appPrefs.guidesPrefs.marginColor;
+		painter.setPen(colMargin);
+		painter.setBrush(Qt::NoBrush);
+		painter.drawRect(page.adjusted(l, t, -r - 1, -b - 1));
+	}
+
 	painter.end();
 
 	return QIcon(pix);
+}
+
+void PageSizeList::showContextMenu(const QPoint &pos)
+{
+	QModelIndex index = indexAt(pos);
+
+	if (!index.isValid())
+		return;
+
+	m_modelIndex = index;
+
+	int itemType = index.data(ItemData::Type).toInt();
+
+	QMenu contextMenu(this);
+	QAction *deleteAction = contextMenu.addAction(tr("Delete Preset"));
+
+	if (itemType == PageSizeType::User)
+		deleteAction->setEnabled(true);
+	else
+	{
+		deleteAction->setEnabled(false);
+		deleteAction->setToolTip("This preset cannot be deleted");
+	}
+
+	connect(deleteAction, &QAction::triggered, this, &PageSizeList::deleteItem);
+
+	contextMenu.exec(mapToGlobal(pos));
+}
+
+void PageSizeList::deleteItem()
+{
+	if (m_modelIndex.isValid())
+	{
+		QString categoryId = m_modelIndex.data(PageSizeList::Category).toString();
+		QString pageId = m_modelIndex.data(PageSizeList::ID).toString();
+		PageCollectionInfo pci = PagePresetManager::instance().categoryInfoById(categoryId);
+
+		PagePresetManager::instance().removeCollectionPage(pci.filePath, pageId);
+		model()->removeRow(m_modelIndex.row());
+
+		bool isEmpty = PagePresetManager::instance().isCollectionsEmpty(pci.filePath);
+		if (isEmpty)
+			PagePresetManager::instance().removeCollection(pci.filePath);
+
+		PagePresetManager::instance().reloadAllPresets();
+
+		if (isEmpty)
+			emit changedCategories();
+	}
 }

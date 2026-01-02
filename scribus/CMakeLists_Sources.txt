@@ -263,6 +263,7 @@ set(SCRIBUS_SOURCES
 	imagedataloaders/scimgdataloader_tiff.cpp
 	imagedataloaders/scimgdataloader_wpg.cpp
 	manager/dock_manager.cpp
+	manager/pagepreset_manager.cpp
 	manager/widget_manager.cpp
 	models/gradientlistmodel.cpp
 	palettes/cxfcolor.cpp

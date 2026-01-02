@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="c0a578dc-a88d-4b86-a9e1-e1517a6fb1f6" name="French" minVersion="1.7.2" version="1.7.2">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">French</name>
+            <name lang="de">Französisch</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="mm" width="450" height="560" name="Carré"/>
+        <page id="00001" unit="mm" width="460" height="620" name="Cavalier"/>
+        <page id="00002" unit="mm" width="300" height="400" name="Cloche"/>
+        <page id="00003" unit="mm" width="600" height="800" name="Colombier affiche"/>
+        <page id="00004" unit="mm" width="630" height="900" name="Colombier commercial"/>
+        <page id="00005" unit="mm" width="440" height="560" name="Coquille"/>
+        <page id="00006" unit="mm" width="360" height="360" name="Couronne écriture"/>
+        <page id="00007" unit="mm" width="370" height="470" name="Couronne édition"/>
+        <page id="00008" unit="mm" width="325" height="500" name="Demi-raisin"/>
+        <page id="00009" unit="mm" width="650" height="1000" name="Double Raisin"/>
+        <page id="00010" unit="mm" width="400" height="520" name="Écu"/>
+        <page id="00011" unit="mm" width="750" height="1050" name="Grand Aigle"/>
+        <page id="00012" unit="mm" width="900" height="1260" name="Grand Monde"/>
+        <page id="00013" unit="mm" width="560" height="760" name="Jésus"/>
+        <page id="00014" unit="mm" width="700" height="940" name="Petit Aigle"/>
+        <page id="00015" unit="mm" width="310" height="400" name="Pot, écolier"/>
+        <page id="00016" unit="mm" width="500" height="650" name="Raisin"/>
+        <page id="00017" unit="mm" width="390" height="500" name="Roberto"/>
+        <page id="00018" unit="mm" width="600" height="800" name="Soleil"/>
+        <page id="00019" unit="mm" width="340" height="440" name="Tellière"/>
+        <page id="00020" unit="mm" width="1000" height="1130" name="Univers"/>
+    </pages>
+</collection>
