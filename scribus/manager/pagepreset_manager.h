@@ -95,7 +95,7 @@ public:
 
 	PageSizeInfo pageInfoByDimensions(double width, double height) const { return pageInfoByDimensions(QSizeF(width, height)); }
 	PageSizeInfo pageInfoByDimensions(QSizeF sizePt) const;
-	PageSizeInfo pageInfoByName(const QString &name);
+	PageSizeInfo pageInfoByName(const QString &name) const;
 	PageSizeInfo pageInfoCustom() const;
 
 	void reloadAllPresets();

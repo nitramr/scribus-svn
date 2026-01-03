@@ -21,10 +21,12 @@ to the COPYING file provided with the program.
 #include <QXmlStreamWriter>
 #include "api/api_application.h"
 #include "commonstrings.h"
+#include "langmgr.h"
 #include "prefsmanager.h"
 #include "scpaths.h"
 #include "scribusapp.h"
 #include "units.h"
+#include "util.h"
 
 PagePresetManager *PagePresetManager::m_instance = nullptr;
 
@@ -58,7 +60,8 @@ void PagePresetManager::reloadAllPresets()
 
 QStringList PagePresetManager::defaultSizesList()
 {
-	static const QStringList list = {"A3", "A4", "A5", "A6", "US Letter"};
+	// A3, A4, A5, A6, US letter
+	static const QStringList list = {"FzlMfpPelK5894hHnoLDC_00007", "FzlMfpPelK5894hHnoLDC_00009", "FzlMfpPelK5894hHnoLDC_00010", "FzlMfpPelK5894hHnoLDC_00011", "6w0FSR1dcD7Lh6qfbD3QvD_00019"};
 	return list;
 }
 
@@ -97,6 +100,10 @@ PageSizeInfoMap PagePresetManager::activePageSizes() const
 		auto it = m_pageSizeList.find(id);
 		if (it != m_pageSizeList.end())
 			map.insert(id, *it);
+
+		// This is an alternative way to find a page size, but needs more time
+		// PageSizeInfo psi = pageInfoByName(id);
+		// map.insert(psi.id, psi);
 	}
 	return map;
 }
@@ -131,7 +138,7 @@ PageSizeInfo PagePresetManager::pageInfoByDimensions(QSizeF sizePt) const
 	return psi;
 }
 
-PageSizeInfo PagePresetManager::pageInfoByName(const QString &name)
+PageSizeInfo PagePresetManager::pageInfoByName(const QString &name) const
 {
 	auto it = m_pageSizeList.find(name);
 	if (it != m_pageSizeList.end())
@@ -399,7 +406,8 @@ void PagePresetManager::updateDisplayName(T &info)
 	if (!info.localizedNames.empty())
 	{
 		const QString language = PrefsManager::instance().appPrefs.uiPrefs.language;
-		info.displayName = info.localizedNames.value(language, info.name);
+		const QString normalizeLanguage = LanguageManager::instance()->getShortAbbrevFromAbbrevDecomposition(language);
+		info.displayName = info.localizedNames.value(normalizeLanguage, info.name);
 	}
 }
 
@@ -543,7 +551,7 @@ bool PagePresetManager::createOrUpdateCollection(const QString &filePath, const 
 		root = doc.createElement(QStringLiteral("collection"));
 		doc.appendChild(root);
 
-		QString newId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+		QString newId = getShortUuidFromUuid(QUuid::createUuid());
 		root.setAttribute(QStringLiteral("id"), newId);
 		root.appendChild(doc.createElement(QStringLiteral("pages")));
 		outUuid = newId;
@@ -557,7 +565,7 @@ bool PagePresetManager::createOrUpdateCollection(const QString &filePath, const 
 		outUuid = root.attribute(QStringLiteral("id"));
 		if (outUuid.isEmpty())
 		{
-			outUuid = QUuid::createUuid().toString(QUuid::WithoutBraces);
+			outUuid = getShortUuidFromUuid(QUuid::createUuid());
 			root.setAttribute(QStringLiteral("id"), outUuid);
 		}
 	}

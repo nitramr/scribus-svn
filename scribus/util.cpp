@@ -1356,3 +1356,65 @@ bool inRange(unsigned min, unsigned value, unsigned max)
 {
 	return (min <= value && value <= max);
 }
+
+static const char* BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+QString getShortUuidFromUuid(const QUuid& uuid)
+{
+	if (uuid.isNull())
+		return QString();
+
+	int length = 62;
+	QByteArray bytes = uuid.toRfc4122();
+	QByteArray result;
+	result.reserve(22);
+
+	bool isZero = false;
+	while (!isZero)
+	{
+		int remainder = 0;
+		isZero = true;
+
+		for (int i = 0; i < 16; ++i)
+		{
+			int val = ((unsigned char) bytes[i]) + (remainder << 8);
+
+			bytes[i] = val / length;
+			remainder = val % length;
+
+			if (bytes[i] != 0)
+				isZero = false;
+		}
+		result.append(BASE62_ALPHABET[remainder]);
+	}
+
+	std::reverse(result.begin(), result.end());
+	return QString::fromLatin1(result);
+}
+
+QUuid getUuidFromShortUuid(const QString& shortId)
+{
+	if (shortId.isEmpty())
+		return QUuid();
+
+	QByteArray bytes(16, 0);
+	int length = 62;
+
+	for (const QChar& c : shortId)
+	{
+		const char* p = strchr(BASE62_ALPHABET, c.toLatin1());
+		if (!p)
+			return QUuid();
+		int value = p - BASE62_ALPHABET;
+
+		int carry = value;
+		for (int i = 15; i >= 0; --i)
+		{
+			int val = ((unsigned char) bytes[i] * length) + carry;
+			bytes[i] = val & 0xFF;
+			carry = val >> 8;
+		}
+	}
+
+	return QUuid::fromRfc4122(bytes);
+}
