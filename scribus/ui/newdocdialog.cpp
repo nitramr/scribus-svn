@@ -41,6 +41,7 @@ for which a new license (GPL+exception) is in place.
 #include "pagestructs.h"
 #include "prefsfile.h"
 #include "prefsmanager.h"
+#include "scmessagebox.h"
 #include "scpaths.h"
 #include "scrspinbox.h"
 #include "units.h"
@@ -452,6 +453,12 @@ void NewDocDialog::changeSortMode(int ic)
 
 void NewDocDialog::savePagePreset()
 {
+	if (textPagePresetName->text().isEmpty())
+	{
+		ScMessageBox::warning(this, tr("Empty Preset Name"), tr("The preset name must not be empty!\nEnter a preset name."), QMessageBox::Ok);
+		return;
+	}
+
 	const QString presetUserFolder = QDir::toNativeSeparators(ScPaths::userPagePresetsDir(true));
 
 	QString uuid;
