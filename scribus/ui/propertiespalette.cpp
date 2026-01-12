@@ -243,11 +243,11 @@ void PropertiesPalette::unsetItem()
 	handleSelectionChanged();
 }
 
-void PropertiesPalette::setTextFlowMode(PageItem::TextFlowMode mode)
+void PropertiesPalette::setTextFlowMode(PageItem::TextFlowMode mode, MarginStruct distances)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning() || !m_haveItem)
 		return;
-	shapePal->showTextFlowMode(mode);
+	shapePal->showTextFlowMode(mode, distances);
 }
 
 PageItem* PropertiesPalette::currentItemFromSelection()
@@ -307,7 +307,7 @@ void PropertiesPalette::setCurrentItem(PageItem *item)
 	m_haveItem = false;
 	m_item = item;
 
-	setTextFlowMode(m_item->textFlowMode());
+	setTextFlowMode(m_item->textFlowMode(), m_item->textFlowMargins());
 
 //CB replaces old emits from PageItem::emitAllToGUI()
 	setLocked(item->locked());

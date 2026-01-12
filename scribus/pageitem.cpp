@@ -1955,6 +1955,7 @@ void PageItem::DrawObj_Post(ScPainter *p)
 void PageItem::DrawObj_Decoration(ScPainter *p)
 {
 	p->save();
+	p->setPenOpacity(1.0);
 //	p->setAntialiasing(false);
 	if (!isEmbedded)
 		p->translate(m_xPos, m_yPos);
@@ -1998,12 +1999,10 @@ void PageItem::DrawObj_Decoration(ScPainter *p)
 				p->strokePath();
 			}
 		}
-		if ((m_Doc->guidesPrefs().framesShown) && textFlowUsesContourLine() && (!ContourLine.empty()))
-		{
-			p->setPen(Qt::darkGray, 0, Qt::DotLine, Qt::FlatCap, Qt::MiterJoin);
-			p->setupSharpPolygon(&ContourLine);
-			p->strokePath();
-		}
+
+		drawContourLine(p);
+		drawTextFlowPath(p);
+
 		if (itemType() == ImageFrame)
 		{
 			double minres = m_Doc->checkerProfiles()[m_Doc->curCheckProfile()].minResolution;
@@ -2387,6 +2386,29 @@ void PageItem::DrawPolyL(QPainter *p, const QPolygon& pts)
 		firstVal = (*it2);
 	}
 	p->drawPolygon(pts.constData() + firstVal, pts.size() - firstVal);
+}
+
+void PageItem::setShape(const FPointArray &val)
+{
+	PoLine = val;
+
+	if (textFlowUsesFrameShape())
+	{
+		m_textFlowMarginsNeedUpdate = true;
+		checkChanges();
+	}
+
+}
+
+void PageItem::setContour(const FPointArray &val)
+{
+	ContourLine = val;
+
+	if (textFlowUsesContourLine())
+	{
+		m_textFlowMarginsNeedUpdate = true;
+		checkChanges();
+	}
 }
 
 void PageItem::setItemName(const QString& newName)
@@ -4444,31 +4466,39 @@ void PageItem::togglePrintEnabled()
 	m_PrintEnabled=!m_PrintEnabled;
 }
 
-void PageItem::setTextFlowMode(TextFlowMode mode)
+void PageItem::setTextFlowMode(TextFlowMode mode, MarginStruct distances)
 {
-	if (m_textFlowMode == mode)
-		return;
-	if (UndoManager::undoEnabled())
+	if (m_textFlowMargins != distances)
 	{
-		QString stateMessage;
-		if (mode == TextFlowUsesFrameShape)
-			stateMessage = Um::ObjectFrame;
-		else if (mode == TextFlowUsesBoundingBox)
-			stateMessage = Um::BoundingBox;
-		else if (mode == TextFlowUsesContourLine)
-			stateMessage = Um::ContourLine;
-		else if (mode == TextFlowUsesImageClipping)
-			stateMessage = Um::ImageClip;
-		else
-			stateMessage = Um::NoTextFlow;
-		auto *ss = new SimpleState(stateMessage, QString(), Um::IFont);
-		ss->set("TEXTFLOW_OLDMODE", (int) m_textFlowMode);
-		ss->set("TEXTFLOW_NEWMODE", (int) mode);
-		undoManager->action(this, ss);
+		m_textFlowMargins = distances;
+		m_textFlowMarginsNeedUpdate = true;
 	}
-	m_textFlowMode = mode;
-	
-	checkTextFlowInteractions();
+
+	if (m_textFlowMode != mode)
+	{
+		if (UndoManager::undoEnabled())
+		{
+			QString stateMessage;
+			if (mode == TextFlowUsesFrameShape)
+				stateMessage = Um::ObjectFrame;
+			else if (mode == TextFlowUsesBoundingBox)
+				stateMessage = Um::BoundingBox;
+			else if (mode == TextFlowUsesContourLine)
+				stateMessage = Um::ContourLine;
+			else if (mode == TextFlowUsesImageClipping)
+				stateMessage = Um::ImageClip;
+			else
+				stateMessage = Um::NoTextFlow;
+			auto *ss = new SimpleState(stateMessage, QString(), Um::IFont);
+			ss->set("TEXTFLOW_OLDMODE", (int) m_textFlowMode);
+			ss->set("TEXTFLOW_NEWMODE", (int) mode);
+			undoManager->action(this, ss);
+		}
+		m_textFlowMode = mode;
+		m_textFlowMarginsNeedUpdate = true;
+	}
+
+	checkChanges();
 }
 
 void PageItem::checkTextFlowInteractions(bool allItems)
@@ -4598,7 +4628,7 @@ void PageItem::checkChanges(bool force)
 	{
 		if ((oldXpos  != m_xPos  || oldYpos != m_yPos) ||
 			(oldWidth != m_width || oldHeight != m_height) ||
-			(oldRot != m_rotation))
+			(oldRot != m_rotation || m_textFlowMarginsNeedUpdate))
 		{
 			textFlowCheckRect = getOldBoundingRect();
 			QRectF rect1 = textInteractionRegion(0.0, 0.0).boundingRect().adjusted(-1, -1, 1, 1);
@@ -4606,6 +4636,8 @@ void PageItem::checkChanges(bool force)
 			rect2.setWidth(qMax(1.0, rect1.width() + oldWidth - m_width));
 			rect2.setHeight(qMax(1.0, rect1.height() + oldHeight - m_height));
 			textFlowCheckRect = textFlowCheckRect.united(rect1.united(rect2));
+			spreadChanges = true;
+			m_textFlowMarginsNeedUpdate = false;
 		}
 	}
 
@@ -4616,7 +4648,7 @@ void PageItem::checkChanges(bool force)
 		spreadChanges = (textFlowMode() != TextFlowDisabled);
 	}
 	// has the item been rotated
-	if (force || ((oldRot != m_rotation) && (shouldCheck())))
+	if (force || ((oldRot != m_rotation) && shouldCheck()))
 	{
 		rotateUndoAction();
 		spreadChanges = (textFlowMode() != TextFlowDisabled);
@@ -9090,6 +9122,9 @@ void PageItem::SetFrameShape(int count, const double *vals)
 		PoLine.addPoint(x1, y1);
 		PoLine.addPoint(x2, y2);
 	}
+
+	setShape(PoLine);
+
 	Clip = flattenPath(PoLine, Segments);
 	ClipEdited = true;
 }
@@ -9150,6 +9185,9 @@ void PageItem::SetFrameRound()
 		PoLine.addQuadPoint(0, Height_rr, 0, Height_rr, 0, rr, 0, rr);
 		PoLine.addQuadPoint(0, rr, rrxBezierFactor, rr, rr, 0, rr, rr*bezierFactor);
 	}
+
+	setShape(PoLine);
+
 	Clip = flattenPath(PoLine, Segments);
 	ClipEdited = false;
 	FrameType = 2;
@@ -9665,19 +9703,14 @@ QRectF PageItem::getEndArrowOldBoundingRect() const
 	return arrowRect;
 }
 
-QRegion PageItem::textInteractionRegion(double xOffset, double yOffset) const
+QPainterPath PageItem::createTextFlowPath(double xOffset, double yOffset)
 {
-	QRegion res;
-	if (m_textFlowMode == TextFlowDisabled)
-		return res;
+	QPainterPath pathOut;
 
-	QTransform pp;
-	if (this->isGroupChild())
-		pp.translate(gXpos, gYpos);
-	else
-		pp.translate(m_xPos - xOffset, m_yPos - yOffset);
-	pp.rotate(m_rotation);
+	if (textFlowMode() == TextFlowDisabled)
+		return pathOut;
 
+	// Bounding Box
 	if (textFlowUsesBoundingBox())
 	{
 		QRectF bb = getVisualBoundingRect();
@@ -9686,19 +9719,37 @@ QRegion PageItem::textInteractionRegion(double xOffset, double yOffset) const
 			bb.translate(-m_xPos, -m_yPos);
 			bb.translate(gXpos, gYpos);
 		}
-		res = QRegion(bb.toRect());
+
+		pathOut.addRect(bb.adjusted(-m_textFlowMargins.left(), -m_textFlowMargins.top(), m_textFlowMargins.right(), m_textFlowMargins.bottom()));
+		setTextFlowPath(pathOut);
+		return pathOut;
 	}
-	else if ((textFlowUsesImageClipping()) && (!imageClip.empty()))
+
+	QPainterPath shape;
+	QPolygonF poly;
+	QTransform pp;
+	bool strokePath = false;
+
+	if (this->isGroupChild())
+		pp.translate(gXpos, gYpos);
+	else
+		pp.translate(m_xPos - xOffset, m_yPos - yOffset);
+
+	pp.rotate(m_rotation);
+
+	// Image Clipping Path
+	if ((textFlowUsesImageClipping()) && (!imageClip.empty()))
 	{
-		QList<uint> Segs;
-		QPolygon Clip2 = flattenPath(imageClip, Segs);
-		res = QRegion(pp.map(Clip2)).intersected(QRegion(pp.map(Clip)));
+		shape = pp.map(imageClip.toQPainterPath(true));
+		poly = shape.toFillPolygon();
+		strokePath = true;
 	}
+	//Contour Line
 	else if ((textFlowUsesContourLine()) && (!ContourLine.empty()))
 	{
-		QList<uint> Segs;
-		QPolygon Clip2 = flattenPath(ContourLine, Segs);
-		res = QRegion(pp.map(Clip2));
+		shape = pp.map(ContourLine.toQPainterPath(true));
+		poly = shape.toFillPolygon();
+		strokePath = true;
 	}
 	else
 	{
@@ -9715,22 +9766,27 @@ QRegion PageItem::textInteractionRegion(double xOffset, double yOffset) const
 				pp.scale(1, -1);
 			}
 		}
+
+		poly = pp.map(Clip);
+
+		// Shape with Stroke
 		if ((((m_lineColor != CommonStrings::None) || (!patternStrokeVal.isEmpty()) || (GrTypeStroke > 0)) && (m_lineWidth > 1)) || (!NamedLStyle.isEmpty()))
 		{
 			QPainterPath ppa;
-			QPainterPath result;
+			// QPainterPath result;
 			if (itemType() == PageItem::PolyLine)
 				ppa = PoLine.toQPainterPath(false);
 			else
 				ppa = PoLine.toQPainterPath(true);
+
 			if (NamedLStyle.isEmpty())
 			{
 				QPainterPathStroker stroke;
 				stroke.setCapStyle(PLineEnd);
 				stroke.setJoinStyle(PLineJoin);
 				stroke.setDashPattern(Qt::SolidLine);
-				stroke.setWidth(m_lineWidth);
-				result = stroke.createStroke(ppa);
+				stroke.setWidth(m_lineWidth + m_textFlowMargins.all() * 2.0);
+				shape = pp.map(stroke.createStroke(ppa));
 			}
 			else
 			{
@@ -9742,21 +9798,49 @@ QRegion PageItem::textInteractionRegion(double xOffset, double yOffset) const
 					stroke.setCapStyle(static_cast<Qt::PenCapStyle>(ml[ind].LineEnd));
 					stroke.setJoinStyle(static_cast<Qt::PenJoinStyle>(ml[ind].LineJoin));
 					stroke.setDashPattern(Qt::SolidLine);
-					stroke.setWidth(ml[ind].Width);
-					result = stroke.createStroke(ppa);
+					stroke.setWidth(ml[ind].Width + m_textFlowMargins.all() * 2.0);
+					shape = pp.map(stroke.createStroke(ppa));
 				}
 			}
-			res = QRegion(pp.map(Clip));
-			QList<QPolygonF> pl = result.toSubpathPolygons();
-			for (int b = 0; b < pl.count(); b++)
-			{
-				res = res.united(QRegion(pp.map(pl[b].toPolygon())));
-			}
 		}
+		// Shape without Stroke
 		else
-			res = QRegion(pp.map(Clip));
+		{
+			shape.addPolygon(poly);
+			shape.closeSubpath();
+
+			strokePath = true;
+		}
 	}
-	return  res;
+
+	// TODO: nitramr: Replace QPainterPathStroker with a more performant path offset method.
+	if (strokePath)
+	{
+		QPainterPathStroker stroke;
+		stroke.setWidth(m_textFlowMargins.all() * 2.0);
+		stroke.setJoinStyle(Qt::MiterJoin);
+		shape = stroke.createStroke(shape);
+	}
+
+	shape = shape.simplified();
+
+	QList<QPolygonF> pl = shape.toSubpathPolygons();
+	for (int b = 0; b < pl.count(); b++)
+	{
+		poly = poly.united(pl[b].toPolygon());
+	}
+
+	pathOut.addPolygon(poly);
+	pathOut = pathOut.simplified();
+
+	setTextFlowPath(pathOut);
+
+	return  pathOut;
+}
+
+QRegion PageItem::textInteractionRegion(double xOffset, double yOffset)
+{
+	return QRegion(createTextFlowPath(xOffset, yOffset).toFillPolygon().toPolygon());
 }
 
 bool PageItem::pointWithinItem(int x, const int y) const
@@ -10131,6 +10215,37 @@ void PageItem::drawLockedMarker(ScPainter *p) const
 		p->drawLine(FPoint(bx1 + scp1 / 2, ofy + scp1), FPoint(bx1 + scp1 / 2, by1));
 	p->drawLine(FPoint(bx1 + scp1 * 3.5, ofy + scp1), FPoint(bx1 + scp1 * 3.5, by1));
 	p->drawLine(FPoint(bx1 + scp1 / 2, ofy + scp1), FPoint(bx1 + scp1 * 3.5, ofy + scp1));
+}
+
+void PageItem::drawTextFlowPath(ScPainter *p) const
+{
+	bool usesTextFlowBoundingBox = textFlowUsesBoundingBox() && (m_textFlowMargins.left() > 0 || m_textFlowMargins.top() > 0 || m_textFlowMargins.right() > 0 || m_textFlowMargins.bottom() > 0);
+	bool usesTextFlowAround = textFlowAroundObject() && m_textFlowMargins.all() > 0;
+
+	// Draw Text Flow Margin Path
+	if (m_Doc->guidesPrefs().framesShown && (usesTextFlowBoundingBox || usesTextFlowAround))
+	{
+		QTransform tf;
+		tf.rotate(-m_rotation);
+		tf.translate(-m_xPos, -m_yPos);
+		QPainterPath qpp = tf.map(textFlowPath());
+		FPointArray tfMargin;
+		tfMargin.fromQPainterPath(qpp);
+		// Color: Scribus Blue 200, https://wiki.scribus.net/canvas/IndigoUI_Style_Guide#Colors
+		p->setPen(QColor(168, 220, 248), 0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+		p->setupSharpPolygon(&tfMargin);
+		p->strokePath();
+	}
+}
+
+void PageItem::drawContourLine(ScPainter *p) const
+{
+	if (m_Doc->guidesPrefs().framesShown && textFlowUsesContourLine() && (!ContourLine.empty()))
+	{
+		p->setPen(Qt::darkGray, 0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+		p->setupSharpPolygon(&ContourLine);
+		p->strokePath();
+	}
 }
 
 void PageItem::drawArrow(ScPainter *p, QTransform &arrowTrans, int arrowIndex)

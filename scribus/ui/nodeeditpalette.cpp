@@ -370,7 +370,7 @@ void NodePalette::ResetContour()
 		UndoManager::instance()->action(currItem, is);
 	}
 	//FIXME make an internal item copy poline to contourline member
-	currItem->ContourLine = currItem->PoLine.copy();
+	currItem->setContour(currItem->PoLine.copy());
 	currItem->ClipEdited = true;
 	m_doc->regionsChanged()->update(QRectF());
 	emit DocChanged();
@@ -382,7 +382,7 @@ void NodePalette::ResetContourToImageClip()
 		return;
 
 	PageItem *currItem = m_doc->m_Selection->itemAt(0);
-	currItem->ContourLine = currItem->imageClip.copy();
+	currItem->setContour(currItem->imageClip.copy());
 	currItem->ClipEdited = true;
 	m_doc->regionsChanged()->update(QRectF());
 	emit DocChanged();
@@ -394,7 +394,7 @@ void NodePalette::ResetShapeToImageClip()
 		return;
 
 	PageItem *currItem = m_doc->m_Selection->itemAt(0);
-	currItem->PoLine = currItem->imageClip.copy();
+	currItem->setShape(currItem->imageClip.copy());
 	currItem->ClipEdited = true;
 	currItem->FrameType = 3;
 	m_doc->adjustItemSize(currItem);
@@ -796,9 +796,9 @@ void NodePalette::CancelEdit()
 		// relative to the current position (in the item's coordinate space).
 		// adjustItemSize will then take care of moving the position and changing
 		// image offsets, etc.
-		currItem->PoLine = m_itemPath.copy();
+		currItem->setShape(m_itemPath.copy());
 		currItem->PoLine.translate(delta.x(), delta.y());
-		currItem->ContourLine = m_itemContourPath.copy();
+		currItem->setContour(m_itemContourPath.copy());
 		m_doc->adjustItemSize(currItem);
 		if (currItem->itemType() == PageItem::PathText)
 			currItem->updatePolyClip();
@@ -828,15 +828,15 @@ void NodePalette::ResetToEditDefaults()
 	QPointF delta = m.map(QPointF(m_xPos, m_yPos)) - m.map(QPointF(currItem->xPos(), currItem->yPos()));
 	if (EditCont->isChecked())
 	{
-		currItem->ContourLine = m_itemContourPath.copy();
+		currItem->setContour(m_itemContourPath.copy());
 		currItem->ContourLine.translate(delta.x(), delta.y());
 	}
 	else
 	{
 		// See comment in NodePalette::CancelEdit
-		currItem->PoLine = m_itemPath;
+		currItem->setShape(m_itemPath);
  		currItem->PoLine.translate(delta.x(), delta.y());
- 		currItem->ContourLine = m_itemContourPath;
+		currItem->setContour(m_itemContourPath);
 		m_doc->adjustItemSize(currItem);
 	}
 	if (currItem->itemType() == PageItem::PathText)

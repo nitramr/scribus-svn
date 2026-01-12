@@ -338,7 +338,7 @@ public: // Start public functions
 	virtual QRectF getEndArrowBoundingRect() const;
 	virtual QRectF getEndArrowOldBoundingRect() const;
 
-	virtual QRegion textInteractionRegion(double xOffset, double yOffset) const;
+	virtual QRegion textInteractionRegion(double xOffset, double yOffset);
 
 	//>> ********* Functions related to drawing the item *********
 
@@ -453,9 +453,9 @@ public: // Start public functions
 	void SetQColor(QColor *tmp, const QString& farbe, double shad);
 	void DrawPolyL(QPainter *p, const QPolygon& pts);
 	FPointArray shape() const { return PoLine; }
-	void setShape(const FPointArray& val) { PoLine = val; }
+	void setShape(const FPointArray& val);
 	FPointArray contour() const { return ContourLine; }
-	void setContour(const FPointArray& val) { ContourLine = val; }
+	void setContour(const FPointArray& val);
 	bool flipPathText() const { return textPathFlipped; }
 	void setFlipPathText(bool val) { textPathFlipped = val; }
 	int pathTextType() const { return textPathType; }
@@ -1117,7 +1117,13 @@ public: // Start public functions
 	 * @param mode true if text is wanted to flow around this object or false if not
 	 * @sa textFlowMode()
 	 */
-	void setTextFlowMode(TextFlowMode mode);
+	void setTextFlowMode(TextFlowMode mode, MarginStruct distances = MarginStruct());
+
+	MarginStruct textFlowMargins() { return m_textFlowMargins; }
+	QPainterPath createTextFlowPath(double xOffset, double yOffset);
+
+	void setTextFlowPath(const QPainterPath path) { m_textFlowPath = path; }
+	QPainterPath textFlowPath() const { return m_textFlowPath; }
 
 	/**
 	 * @brief If text should flow around object frame
@@ -1532,6 +1538,8 @@ protected: // Start protected functions
 	void DrawObj_PolyLine(ScPainter *p);
 	void DrawObj_PathText(ScPainter *p, double sc);
 	void drawLockedMarker(ScPainter *p) const;
+	void drawTextFlowPath(ScPainter *p) const;
+	void drawContourLine(ScPainter *p) const;
 	void drawArrow(ScPainter *p, QTransform &arrowTrans, int arrowIndex);
 
 	/** @brief Manages undostack and is where all undo actions/states are sent. */
@@ -1847,6 +1855,9 @@ protected: // Start protected variables
 	 * @sa PageItem::textFlowMode(), PateItem::setTextFlowMode()
 	 */
 	TextFlowMode m_textFlowMode {TextFlowDisabled};
+	MarginStruct m_textFlowMargins;
+	QPainterPath m_textFlowPath;
+	bool m_textFlowMarginsNeedUpdate {false};
 
 	/**
 	 * @brief Stores the attributes of the pageitem (NOT properties, the user defined ATTRIBUTES)

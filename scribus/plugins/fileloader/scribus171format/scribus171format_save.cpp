@@ -2832,7 +2832,14 @@ void Scribus171Format::SetItemProps(ScXmlStreamWriter& docu, PageItem* item, con
 	if (!item->AutoName)
 		docu.writeAttribute("AutoName", item->itemName());
 	if (item->textFlowMode() != 0)
+	{
 		docu.writeAttribute("TextFlowMode", (int) item->textFlowMode() );
+		docu.writeAttribute("TextFlowLeft", item->textFlowMargins().left());
+		docu.writeAttribute("TextFlowTop", item->textFlowMargins().top());
+		docu.writeAttribute("TextFlowRight", item->textFlowMargins().right());
+		docu.writeAttribute("TextFlowBottom", item->textFlowMargins().bottom());
+		docu.writeAttribute("TextFlowAll", item->textFlowMargins().all());
+	}
 	if (item->isTextFrame() || item->isPathText() || item->isImageFrame())
 	{
 		docu.writeAttribute("ImageScaleX", item->imageXScale());

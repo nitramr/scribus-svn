@@ -62,7 +62,7 @@ public:
 //	void updateColorSpecialGradient();
 	void updateColorList();
 	void setGradientEditMode(bool);
-	void setTextFlowMode(PageItem::TextFlowMode mode);
+	void setTextFlowMode(PageItem::TextFlowMode mode, MarginStruct distances);
 
 	/** @brief Returns true if there is a user action going on at the moment of call. */
 	bool userActionOn(); // not yet implemented!!! This is needed badly.

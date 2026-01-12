@@ -6994,19 +6994,25 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		currItem->textPathType =  attrs.valueAsInt("TextPathType", 0);
 		currItem->textPathFlipped = attrs.valueAsBool("TextPathFlipped", false);
 	}
+	MarginStruct textFlowMargins;
+	textFlowMargins.setLeft(attrs.valueAsDouble("TextFlowLeft", 0.0));
+	textFlowMargins.setTop(attrs.valueAsDouble("TextFlowTop", 0.0));
+	textFlowMargins.setRight(attrs.valueAsDouble("TextFlowRight", 0.0));
+	textFlowMargins.setBottom(attrs.valueAsDouble("TextFlowBottom", 0.0));
+	textFlowMargins.setAll(attrs.valueAsDouble("TextFlowAll", 0.0));
 	if ( attrs.hasAttribute("TEXTFLOWMODE") )
-		currItem->setTextFlowMode((PageItem::TextFlowMode) attrs.valueAsInt("TEXTFLOWMODE", 0));
+		currItem->setTextFlowMode((PageItem::TextFlowMode) attrs.valueAsInt("TEXTFLOWMODE", 0), textFlowMargins);
 	else
 		if ( attrs.hasAttribute("TextFlowMode") )
-			currItem->setTextFlowMode((PageItem::TextFlowMode) attrs.valueAsInt("TextFlowMode", 0));
+			currItem->setTextFlowMode((PageItem::TextFlowMode) attrs.valueAsInt("TextFlowMode", 0), textFlowMargins);
 	else if ( attrs.valueAsInt("TEXTFLOW", 0) != 0)
 	{
 		if (attrs.valueAsInt("TEXTFLOW2", 0))
-			currItem->setTextFlowMode(PageItem::TextFlowUsesBoundingBox);
+			currItem->setTextFlowMode(PageItem::TextFlowUsesBoundingBox, textFlowMargins);
 		else if (attrs.valueAsInt("TEXTFLOW3", 0))
-			currItem->setTextFlowMode(PageItem::TextFlowUsesContourLine);
+			currItem->setTextFlowMode(PageItem::TextFlowUsesContourLine, textFlowMargins);
 		else
-			currItem->setTextFlowMode(PageItem::TextFlowUsesFrameShape);	
+			currItem->setTextFlowMode(PageItem::TextFlowUsesFrameShape, textFlowMargins);
 	}
 	else
 		currItem->setTextFlowMode(PageItem::TextFlowDisabled);

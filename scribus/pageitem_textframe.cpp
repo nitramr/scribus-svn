@@ -3591,6 +3591,7 @@ void PageItem_TextFrame::DrawObj_Decoration(ScPainter *p)
 	//#12405 if (isAnnotation() && ((annotation().Type() > 1) && (annotation().Type() < 7)) && (annotation().borderWidth() > 0))
 	//	return;
 	p->save();
+	p->setPenOpacity(1.0);
 //	p->setAntialiasing(false);
 	if (!isEmbedded)
 		p->translate(m_xPos, m_yPos);
@@ -3612,12 +3613,9 @@ void PageItem_TextFrame::DrawObj_Decoration(ScPainter *p)
 			p->setupSharpPolygon(&PoLine);
 			p->strokePath();
 		}
-		if ((m_Doc->guidesPrefs().framesShown) && textFlowUsesContourLine() && (!ContourLine.empty()))
-		{
-			p->setPen(Qt::darkGray, 0, Qt::DotLine, Qt::FlatCap, Qt::MiterJoin);
-			p->setupSharpPolygon(&ContourLine);
-			p->strokePath();
-		}
+
+		drawContourLine(p);
+		drawTextFlowPath(p);
 
 		//Draw the overflow icon
 		if (frameOverflows())

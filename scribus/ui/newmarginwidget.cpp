@@ -27,6 +27,8 @@ void NewMarginWidget::setup(const MarginStruct& margs, int layoutType, int unitI
 	m_marginData = margs;
 	m_savedMarginData = margs;
 
+	allMarginLabel->hide();
+	allMarginSpinBox->init(unitIndex);
 	leftMarginSpinBox->init(unitIndex);
 	rightMarginSpinBox->init(unitIndex);
 	topMarginSpinBox->init(unitIndex);
@@ -43,6 +45,7 @@ void NewMarginWidget::setup(const MarginStruct& margs, int layoutType, int unitI
 
 	setFacingPages(!(layoutType == singlePage));
 
+	disconnect(allMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
 	disconnect(topMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
 	disconnect(bottomMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
 	disconnect(leftMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
@@ -51,6 +54,8 @@ void NewMarginWidget::setup(const MarginStruct& margs, int layoutType, int unitI
 	updateUIFromState();
 
 	connect(ScQApp, &ScribusQApp::iconSetChanged, this, &NewMarginWidget::iconSetChange);
+	connect(ScQApp, &ScribusQApp::labelVisibilityChanged, this, &NewMarginWidget::toggleLabelVisibility);
+	connect(allMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
 	connect(topMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
 	connect(bottomMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
 	connect(leftMarginSpinBox, &ScrSpinBox::valueChanged, this, &NewMarginWidget::onSpinBoxChanged);
@@ -66,6 +71,7 @@ void NewMarginWidget::setup(const MarginStruct& margs, int layoutType, int unitI
 
 void NewMarginWidget::blockSpinBoxSignals(bool block)
 {
+	allMarginSpinBox->blockSignals(block);
 	leftMarginSpinBox->blockSignals(block);
 	rightMarginSpinBox->blockSignals(block);
 	topMarginSpinBox->blockSignals(block);
@@ -96,7 +102,7 @@ MarginStruct NewMarginWidget::sanitizeMargins(const MarginStruct& margins, doubl
 		double limit = (validW && validH) ? qMin(w, h) : (validW ? w : h);
 		double maxVal = limit / 2.0;
 		double val = qMin(safe.left(), maxVal);
-		safe.set(val, val, val, val);
+		safe.set(val, val, val, val, margins.all());
 		return safe;
 	}
 
@@ -127,7 +133,7 @@ MarginStruct NewMarginWidget::sanitizeMargins(const MarginStruct& margins, doubl
 		adjustDimension(l, r, w, l, r);
 	if (validH)
 		adjustDimension(t, b, h, t, b);
-	safe.set(t, l, b, r);
+	safe.set(t, l, b, r, margins.all());
 
 	return safe;
 }
@@ -169,6 +175,7 @@ void NewMarginWidget::setNewUnit(int unitIndex)
 	m_unitRatio = unitGetRatioFromIndex(unitIndex);
 
 	blockSpinBoxSignals(true);
+	allMarginSpinBox->setNewUnit(unitIndex);
 	leftMarginSpinBox->setNewUnit(unitIndex);
 	rightMarginSpinBox->setNewUnit(unitIndex);
 	topMarginSpinBox->setNewUnit(unitIndex);
@@ -200,6 +207,32 @@ void NewMarginWidget::setMarginPreset(int p)
 	}
 
 	setInternalState(m_pageWidth, m_pageHeight, targetMargins, p);
+}
+
+void NewMarginWidget::setSingleMode(bool isSingle)
+{
+	// Single mode only for modes other than margin and bleed
+	if ((m_flags & MarginWidgetFlags) || (m_flags & BleedWidgetFlags))
+		return;
+
+	m_isSingle = isSingle;
+
+	QSignalBlocker blocker(this);
+
+	allMarginLabel->setVisible(isSingle);
+	leftMarginLabel->setVisible(!isSingle);
+	topMarginLabel->setVisible(!isSingle);
+	rightMarginLabel->setVisible(!isSingle);
+	bottomMarginLabel->setVisible(!isSingle);
+	formWidget->setVisible(!isSingle);
+
+	iconSetChange();
+	languageChange();
+}
+
+void NewMarginWidget::setLinkValues(bool link)
+{
+	marginLinkButton->setChecked(link);
 }
 
 void NewMarginWidget::setFacingPages(bool facing, int pageType)
@@ -260,11 +293,13 @@ void NewMarginWidget::updateUIFromState()
 	rightMarginSpinBox->setMaximum(maxVal);
 	topMarginSpinBox->setMaximum(maxVal);
 	bottomMarginSpinBox->setMaximum(maxVal);
+	allMarginSpinBox->setMaximum(1000);
 
 	leftMarginSpinBox->setValue(m_marginData.left() * m_unitRatio);
 	topMarginSpinBox->setValue(m_marginData.top() * m_unitRatio);
 	rightMarginSpinBox->setValue(m_marginData.right() * m_unitRatio);
 	bottomMarginSpinBox->setValue(m_marginData.bottom() * m_unitRatio);
+	allMarginSpinBox->setValue(m_marginData.all() * m_unitRatio);
 
 	bool hasPreset = (m_savedPresetItem != PresetLayout::none) && (m_flags & ShowPreset) && (m_facingPages == true);
 	bool isNineParts = (m_savedPresetItem == PresetLayout::nineparts) && (m_facingPages == true);
@@ -344,6 +379,7 @@ void NewMarginWidget::onSpinBoxChanged()
 	if (s == topMarginSpinBox) val = topMarginSpinBox->value();
 	else if (s == bottomMarginSpinBox) val = bottomMarginSpinBox->value();
 	else if (s == rightMarginSpinBox) val = rightMarginSpinBox->value();
+	else if (s == allMarginSpinBox) val = allMarginSpinBox->value();
 	else val = leftMarginSpinBox->value();
 
 	double valInPoints = val / m_unitRatio;
@@ -362,7 +398,7 @@ void NewMarginWidget::onSpinBoxChanged()
 			double maxAllowed = qMin(m_pageWidth, m_pageHeight) / 2.0;
 			valInPoints = qMin(maxAllowed, valInPoints);
 
-			newM.set(valInPoints, valInPoints, valInPoints, valInPoints);
+			newM.set(valInPoints, valInPoints, valInPoints, valInPoints, valInPoints);
 		}
 		else
 		{
@@ -370,13 +406,15 @@ void NewMarginWidget::onSpinBoxChanged()
 			double b = bottomMarginSpinBox->value() / m_unitRatio;
 			double l = leftMarginSpinBox->value() / m_unitRatio;
 			double r = rightMarginSpinBox->value() / m_unitRatio;
+			double a = allMarginSpinBox->value() / m_unitRatio;
 
 			if (s == topMarginSpinBox) t = valInPoints;
 			else if (s == bottomMarginSpinBox) b = valInPoints;
 			else if (s == leftMarginSpinBox) l = valInPoints;
 			else if (s == rightMarginSpinBox) r = valInPoints;
+			else if (s == allMarginSpinBox) a = valInPoints;
 
-			newM.set(t, l, b, r);
+			newM.set(t, l, b, r, a);
 		}
 
 		m_savedMarginData = newM;
@@ -392,7 +430,7 @@ void NewMarginWidget::onLinkMarginsClicked()
 		double maxAllowed = qMin(m_pageWidth, m_pageHeight) / 2.0;
 		double val = qMin(maxAllowed, leftMarginSpinBox->value() / m_unitRatio);
 
-		MarginStruct newM(val, val, val, val);
+		MarginStruct newM(val, val, val, val, val);
 		setInternalState(m_pageWidth, m_pageHeight, newM, m_savedPresetItem);
 	}
 	else
@@ -420,6 +458,7 @@ void NewMarginWidget::languageChange()
 	}
 	else
 	{
+		allMarginSpinBox->setToolTip( "<qt>" + tr( "Distance around the object" ) + "</qt>" );
 		topMarginSpinBox->setToolTip("<qt>" + tr("Distance from the top") + "</qt>");
 		bottomMarginSpinBox->setToolTip("<qt>" + tr("Distance from the bottom") + "</qt>");
 		leftMarginSpinBox->setToolTip("<qt>" + tr("Distance from the left") + "</qt>");
@@ -428,6 +467,7 @@ void NewMarginWidget::languageChange()
 	}
 	printerMarginsPushButton->setToolTip("<qt>" + tr("Import the margins for the selected page size from the available printers") + "</qt>");
 
+	allMarginLabel->setText( tr("Around"));
 	leftMarginLabel->setText(m_facingPages ? tr("Inside") : tr("Left"));
 	rightMarginLabel->setText(m_facingPages ? tr("Outside") : tr("Right"));
 }
@@ -436,6 +476,7 @@ void NewMarginWidget::iconSetChange()
 {
 	IconManager& im = IconManager::instance();
 
+	allMarginLabel->setPixmap(im.loadPixmap("border-all"));
 	leftMarginLabel->setPixmap(im.loadPixmap(m_facingPages ? "border-inside" : "border-left"));
 	rightMarginLabel->setPixmap(im.loadPixmap(m_facingPages ? "border-outside" : "border-right"));
 	topMarginLabel->setPixmap(im.loadPixmap("border-top"));
@@ -444,6 +485,7 @@ void NewMarginWidget::iconSetChange()
 
 void NewMarginWidget::toggleLabelVisibility(bool v)
 {
+	allMarginLabel->setLabelVisibility(v);
 	formWidget->setLabelVisibility(v);
 	leftMarginLabel->setLabelVisibility(v);
 	rightMarginLabel->setLabelVisibility(v);

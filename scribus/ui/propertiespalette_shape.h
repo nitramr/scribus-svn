@@ -35,7 +35,7 @@ public:
 	void setLocked(bool isLocked);
 	void setSizeLocked(bool isLocked);
 	void setRoundRectEnabled(bool enabled);
-	void showTextFlowMode(PageItem::TextFlowMode mode);
+	void showTextFlowMode(PageItem::TextFlowMode mode, MarginStruct distances);
 
 protected:
 	bool m_haveDoc {false};

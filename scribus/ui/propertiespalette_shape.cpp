@@ -38,11 +38,19 @@ PropertiesPalette_Shape::PropertiesPalette_Shape( QWidget* parent)
 	iconSetChange();
 	languageChange();
 
+	MarginStruct distances;
+	distances.resetToZero();
+
+	textFlowMargins->setup(distances, 0, m_unitIndex, NewMarginWidget::DistanceWidgetFlags);
+	textFlowMargins->toggleLabelVisibility(false);
+	textFlowMargins->setLinkValues(true);
+
 	connect(ScQApp, SIGNAL(iconSetChanged()), this, SLOT(iconSetChange()));
 	connect(ScQApp, SIGNAL(localeChanged()), this, SLOT(localeChange()));
 	connect(ScQApp, SIGNAL(labelVisibilityChanged(bool)), this, SLOT(toggleLabelVisibility(bool)));
 
 	connect(textFlowBtnGroup, SIGNAL(idClicked(int)), this, SLOT(handleTextFlow()));
+	connect(textFlowMargins, SIGNAL(valuesChanged(MarginStruct)), this, SLOT(handleTextFlow()));
 	connect(editShape, SIGNAL(clicked()) , this, SLOT(handleShapeEdit()));
 	connect(roundRect, SIGNAL(valueChanged(double)) , this, SLOT(handleCornerRadius()));
 	connect(customShape, SIGNAL(FormSel(int,int,qreal*)), this, SLOT(handleNewShape(int,int,qreal*)));
@@ -325,13 +333,12 @@ void PropertiesPalette_Shape::setCurrentItem(PageItem *item)
 		customShape->setIcon(customShape->getIconPixmap(m_item->FrameType-2));
 
 	roundRect->setValue(m_item->cornerRadius()*m_unitRatio);
-	showTextFlowMode(m_item->textFlowMode());
 	setLocked(m_item->locked());
 	setSizeLocked(m_item->sizeLocked());
 
 	// Frame type 3 is obsolete: CR 2005-02-06
 	//if (((i->itemType() == PageItem::TextFrame) || (i->itemType() == PageItem::ImageFrame) || (i->itemType() == 3)) &&  (!i->ClipEdited))
-	if (((m_item->isTextFrame()) || (m_item->isImageFrame())) &&  (!m_item->ClipEdited) && ((m_item->FrameType == 0) || (m_item->FrameType == 2)))
+	if ((m_item->isTextFrame() || m_item->isImageFrame()) &&  (!m_item->ClipEdited) && ((m_item->FrameType == 0) || (m_item->FrameType == 2)))
 		roundRect->setEnabled(true);
 	else
 	{
@@ -356,7 +363,8 @@ void PropertiesPalette_Shape::setCurrentItem(PageItem *item)
 		customShape->setEnabled(false);
 	}
 	m_haveItem = true;
-	showTextFlowMode(m_item->textFlowMode());
+
+	showTextFlowMode(m_item->textFlowMode(), m_item->textFlowMargins());
 }
 
 void PropertiesPalette_Shape::handleTextFlow()
@@ -364,17 +372,38 @@ void PropertiesPalette_Shape::handleTextFlow()
 	PageItem::TextFlowMode mode = PageItem::TextFlowDisabled;
 	if (!m_haveDoc || !m_haveItem || !m_ScMW || m_ScMW->scriptIsRunning())
 		return;
+
 	if (textFlowDisabled->isChecked())
+	{
 		mode = PageItem::TextFlowDisabled;
-	if (textFlowUsesFrameShape->isChecked())
+		textFlowMargins->setVisible(false);
+	}
+	else if (textFlowUsesFrameShape->isChecked())
+	{
 		mode = PageItem::TextFlowUsesFrameShape;
-	if (textFlowUsesBoundingBox->isChecked())
+		textFlowMargins->setVisible(true);
+		textFlowMargins->setSingleMode(true);
+	}
+	else if (textFlowUsesBoundingBox->isChecked())
+	{
 		mode = PageItem::TextFlowUsesBoundingBox;
-	if (textFlowUsesContourLine->isChecked())
+		textFlowMargins->setVisible(true);
+		textFlowMargins->setSingleMode(false);
+	}
+	else if (textFlowUsesContourLine->isChecked())
+	{
 		mode = PageItem::TextFlowUsesContourLine;
-	if (textFlowUsesImageClipping->isChecked())
+		textFlowMargins->setVisible(true);
+		textFlowMargins->setSingleMode(true);
+	}
+	else if (textFlowUsesImageClipping->isChecked())
+	{
 		mode = PageItem::TextFlowUsesImageClipping;
-	m_item->setTextFlowMode(mode);
+		textFlowMargins->setVisible(true);
+		textFlowMargins->setSingleMode(true);
+	}
+
+	m_item->setTextFlowMode(mode, textFlowMargins->margins());
 	m_doc->changed();
 	m_doc->changedPagePreview();
 	m_doc->invalidateAll();
@@ -447,30 +476,57 @@ void PropertiesPalette_Shape::handleNewShape(int f, int c, qreal *vals)
 	roundRect->blockSignals(b);
 	if (f == 0)
 		m_doc->setFrameRounded();
-	if ((m_item->itemType() == PageItem::ImageFrame) || (m_item->itemType() == PageItem::TextFrame))
-		return;
+	// if ((m_item->itemType() == PageItem::ImageFrame) || (m_item->itemType() == PageItem::TextFrame))
+	// 	return;
 	m_doc->invalidateAll();
 	m_doc->regionsChanged()->update(QRect());
 }
 
-void PropertiesPalette_Shape::showTextFlowMode(PageItem::TextFlowMode mode)
+void PropertiesPalette_Shape::showTextFlowMode(PageItem::TextFlowMode mode, MarginStruct distances)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning() || !m_haveItem)
 		return;
+
+	QSignalBlocker textFlowMarginsBlocker(textFlowMargins);
+	textFlowMargins->setPageHeight(2000);
+	textFlowMargins->setPageWidth(2000);
+	textFlowMargins->setNewValues(distances);
+
 	if (mode == PageItem::TextFlowDisabled)
+	{
 		textFlowDisabled->setChecked(true);
+		textFlowMargins->setVisible(false);
+	}
 	else if (mode == PageItem::TextFlowUsesFrameShape)
+	{
 		textFlowUsesFrameShape->setChecked(true);
+		textFlowMargins->setVisible(true);
+		textFlowMargins->setSingleMode(true);
+	}
 	else if (mode == PageItem::TextFlowUsesBoundingBox)
+	{
 		textFlowUsesBoundingBox->setChecked(true);
+		textFlowMargins->setVisible(true);
+		textFlowMargins->setSingleMode(false);
+	}
 	else if (mode == PageItem::TextFlowUsesContourLine)
+	{
 		textFlowUsesContourLine->setChecked(true);
+		textFlowMargins->setVisible(true);
+		textFlowMargins->setSingleMode(true);
+	}
 	else if (mode == PageItem::TextFlowUsesImageClipping)
+	{
 		textFlowUsesImageClipping->setChecked(true);
+		textFlowMargins->setVisible(true);
+		textFlowMargins->setSingleMode(true);
+	}
+
 	if ((m_item->isImageFrame()) && (!m_item->imageClip.empty()))
 		textFlowUsesImageClipping->setEnabled(true);
 	else
 		textFlowUsesImageClipping->setEnabled(false);
+
 }
 
 void PropertiesPalette_Shape::iconSetChange()
@@ -501,15 +557,19 @@ void PropertiesPalette_Shape::unitChange()
 	m_unitRatio = m_doc->unitRatio();
 	m_unitIndex = m_doc->unitIndex();
 
-	roundRect->blockSignals(true);
+	QSignalBlocker roundRectBlocker(roundRect);
+	QSignalBlocker textFlowMarginBlocker(textFlowMargins);
+
 	roundRect->setNewUnit( m_unitIndex );
-	roundRect->blockSignals(false);
+	textFlowMargins->setNewUnit(m_unitIndex);
+
 }
 
 void PropertiesPalette_Shape::localeChange()
 {
 	const QLocale& l(LocaleManager::instance().userPreferredLocale());
 	roundRect->setLocale(l);
+	textFlowMargins->setLocale(l);
 }
 
 void PropertiesPalette_Shape::toggleLabelVisibility(bool v)

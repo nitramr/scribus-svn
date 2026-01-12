@@ -37,9 +37,14 @@ public:
 	void setPageHeight(double height);
 	void setNewUnit(int unitIndex);
 	void setNewValues(const MarginStruct& margs);
+	/*! \brief Switch 4 inputs to 1*/
+	void setSingleMode(bool isSingle);
+	bool isSingleMode() { return m_isSingle; };
+	/*! \brief Link input fields*/
+	void setLinkValues(bool link);
+	bool linkValues() { return marginLinkButton->isChecked(); }
 	/*! \brief Setup the presetCombo without changing the margin values */
 	void setMarginPreset(int p);
-
 	int marginPreset() const { return m_savedPresetItem; };
 
 	const MarginStruct& margins() const { return m_marginData; };
@@ -59,6 +64,7 @@ protected slots:
 protected:
 
 	bool m_facingPages {false};
+	bool   m_isSingle {false};
 	double m_pageHeight {0.0};
 	double m_pageWidth {0.0};
 	double m_unitRatio {1.0};

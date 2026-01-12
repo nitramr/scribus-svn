@@ -2745,7 +2745,7 @@ void ScribusMainWindow::HaveNewSel()
 		actionManager->setPDFActions(view);
 		updateItemLayerList();
 		rebuildScrapbookMenu();
-		propertiesPalette->setTextFlowMode(currItem->textFlowMode());
+		propertiesPalette->setTextFlowMode(currItem->textFlowMode(), currItem->textFlowMargins());
 	}
 
 	if (selectedType != -1)

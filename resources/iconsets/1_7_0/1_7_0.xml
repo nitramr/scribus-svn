@@ -368,6 +368,7 @@ On Dark:  #e580ff; rgb(229, 128, 255); hsl(288, 100, 75)
 		<icon id="folder" file="16/file-open.svg" />
 				
 		<!-- Page & Layer -->
+		<icon id="border-all" file="16/border-all.svg" />
 		<icon id="border-bottom" file="16/border-bottom.svg" />
 		<icon id="border-inside" file="16/border-inside.svg" />
 		<icon id="border-left" file="16/border-left.svg" />

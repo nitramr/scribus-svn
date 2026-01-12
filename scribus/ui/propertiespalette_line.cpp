@@ -677,8 +677,11 @@ void PropertiesPalette_Line::handleLineStyle(int c)
 		return;
 	bool setter = (c == 0);
 	m_doc->itemSelection_SetNamedLineStyle(setter ? QString("") : comboLineStyle->currentText());
+	m_doc->invalidateAll();
+	m_doc->regionsChanged()->update(QRect());
 
 	buttonLineStyleEdit->setEnabled(comboLineStyle->currentIndex() != 0);
+
 }
 
 void PropertiesPalette_Line::handleLineStyleNew()
@@ -760,7 +763,6 @@ void PropertiesPalette_Line::handleLineColor()
 
 		m_item->setStrokeGradientExtend(buttonLineColor->gradientData().repeatMethod);
 		m_item->update();
-		m_doc->regionsChanged()->update(QRect());
 
 		break;
 	case Mode::Hatch:
@@ -785,9 +787,9 @@ void PropertiesPalette_Line::handleLineColor()
 	}
 
 	m_doc->itemSelection_SetOverprint(buttonLineColor->generalData().overprint);
+	m_doc->invalidateAll();
+	m_doc->regionsChanged()->update(QRect());
 
-	//	m_item->update();
-	//	m_doc->regionsChanged()->update(QRect());
 	blockUpdates(false);
 
 }
