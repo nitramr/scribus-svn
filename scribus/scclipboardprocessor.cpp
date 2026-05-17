@@ -112,7 +112,7 @@ void ScClipboardProcessor::debugDumpClipboard()
 
 bool ScClipboardProcessor::process()
 {
-// #define SCCLIP_DEBUG
+	// #define SCCLIP_DEBUG
 #ifdef SCCLIP_DEBUG
 	debugDumpClipboard();
 #endif
@@ -326,7 +326,7 @@ void ScClipboardProcessor::html_MSFT_ParseStyles(xmlNode *node, QMap<QString, QS
 		xmlFree(styleContent);
 
 		// // Regular expression to extract class and styles
-		static QRegularExpression regex("\\.(\\w+)\\s*\\{([^}]*)\\}");
+		static QRegularExpression regex("(\\.?)(\\w[\\w-]*)\\s*\\{([^}]*)\\}");
 		QRegularExpressionMatchIterator it = regex.globalMatch(stylesText);
 		static QRegularExpression regex2("mso-[^:]+:[^;]+;?");
 		static QRegularExpression regex3("[\t\r\n]");
@@ -336,12 +336,14 @@ void ScClipboardProcessor::html_MSFT_ParseStyles(xmlNode *node, QMap<QString, QS
 			QRegularExpressionMatch match = it.next();
 			if (match.hasMatch())
 			{
-				QString className = match.captured(1).trimmed();
-				QString style = match.captured(2).trimmed();
+				// dot indicator in capture(1), name in capture(2), body in capture(3).
+				// Both classes (.blah → "blah") and tag selectors (td → "td") map to bare names.
+				QString selector = match.captured(2).trimmed();
+				QString style = match.captured(3).trimmed();
 				style.remove(regex2);
 				style.remove(regex3);
 				if (html_MSFT_StyleToProcess(style))
-					styles[className] = style;
+					styles[selector] = style;
 			}
 		}
 	}
@@ -354,6 +356,17 @@ void ScClipboardProcessor::html_MSFT_Process_CSS(const QMap<QString, QString> &s
 	{
 		i.next();
 		QString paraStyleName = i.key();
+		if (htmlHeadingTags.contains(paraStyleName))
+			paraStyleName = "Heading " + paraStyleName.mid(1);
+
+		// Skip tag-level selectors (e.g. "td", "tr") — they're not class-based
+		// paragraph styles. They're used directly by the table fallback below.
+		// Heuristic: class names from Word/Excel are like "MsoNormal", "xl65" —
+		// they start with a letter and contain at least one digit or look like
+		// CSS class identifiers. Tag selectors are short HTML tag names.
+		static const QStringList tagSelectors = { "td", "tr", "th", "table", "p", "body", "div", "span", "col" };
+		if (tagSelectors.contains(paraStyleName))
+			continue;
 
 		// Parse properties
 		QMap<QString, QString> propertyMap;
@@ -421,11 +434,70 @@ void ScClipboardProcessor::html_MSFT_Process_CSS(const QMap<QString, QString> &s
 					fontSize = PrefsManager::instance().appPrefs.itemToolPrefs.textSize;
 				newParaStyle.charStyle().setFontSize(fontSize);
 			}
-			StyleSet<ParagraphStyle> tmpParagraphStyleSet;
-			tmpParagraphStyleSet.create(newParaStyle);
-			m_doc->redefineStyles(tmpParagraphStyleSet, false);
 		}
+		StyleSet<ParagraphStyle> tmpParagraphStyleSet;
+		tmpParagraphStyleSet.create(newParaStyle);
+		m_doc->redefineStyles(tmpParagraphStyleSet, false);
 	}
+}
+
+// Apply CSS-style properties from a raw style string (e.g. "color:#FF0000;font-weight:bold;")
+// onto the given TextSegment in-place. Unknown properties are ignored.
+// Only properties relevant to character formatting are recognized.
+void ScClipboardProcessor::applyMSFTCssStyleToSegment(QString styleData, TextSegment &ts)
+{
+	if (styleData.isEmpty())
+		return;
+
+	// Strip MSO-specific properties first so they don't interfere with the matchers below.
+	static QRegularExpression regexMso("mso-[^:]+:[^;]+;?");
+	styleData.remove(regexMso);
+
+	static QRegularExpression regexColor(R"((?:^|;)\s*color\s*:\s*([^;]+))");
+	static QRegularExpression regexFontsize(R"(font-size\s*:\s*([\d.]+)pt)");
+	static QRegularExpression regexFamily(R"(font-family\s*:\s*((?:"[^"]+"|'[^']+'|[\w-]+(?:\s*,\s*[\w-]+)*)))");
+	static QRegularExpression regexWeight(R"(font-weight\s*:\s*([^;]+))");
+	static QRegularExpression regexFontStyle(R"(font-style\s*:\s*([^;]+))");
+	static QRegularExpression regexDecoration(R"(text-decoration\s*:\s*([^;]+))");
+
+	QRegularExpressionMatch m;
+
+	m = regexColor.match(styleData);
+	if (m.hasMatch())
+		ts.color = m.captured(1).trimmed();
+
+	m = regexFontsize.match(styleData);
+	if (m.hasMatch())
+		ts.fontsize = m.captured(1).toDouble() * 10.0;
+
+	m = regexFamily.match(styleData);
+	if (m.hasMatch())
+	{
+		QString fam = m.captured(1).trimmed();
+		fam.remove('"');
+		fam.remove('\'');
+		// If it's a comma-separated list, take the first.
+		const int comma = fam.indexOf(',');
+		if (comma > 0)
+			fam = fam.left(comma).trimmed();
+		ts.family = fam;
+	}
+
+	m = regexWeight.match(styleData);
+	if (m.hasMatch())
+	{
+		const QString w = m.captured(1).trimmed().toLower();
+		if (w == "bold" || w == "bolder" || w.toInt() >= 600)
+			ts.isBold = true;
+	}
+
+	m = regexFontStyle.match(styleData);
+	if (m.hasMatch() && m.captured(1).trimmed().toLower() == "italic")
+		ts.isItalic = true;
+
+	m = regexDecoration.match(styleData);
+	if (m.hasMatch() && m.captured(1).contains("underline", Qt::CaseInsensitive))
+		ts.hasUnderline = true;
 }
 
 //Function to extract text content (including formatted text like <b> and <i>)
@@ -467,43 +539,29 @@ QString ScClipboardProcessor::html_MSFT_ExtractText(xmlNode *node, QList<TextSeg
 			if (tag == "span")
 			{
 				xmlChar *styleAttr = xmlGetProp(cur, (const xmlChar *)"style");
-				QString styleData = styleAttr ? QString::fromUtf8((const char*)styleAttr) : "None";
-				xmlFree(styleAttr);
-				static QRegularExpression regexMso("mso-[^:]+:[^;]+;?");
-				static QRegularExpression regexColor(R"((?:^|;)\s*color\s*:\s*([^;]+))");
-				static QRegularExpression regexFontsize(R"(font-size:([\d.]+)pt)");
-				static QRegularExpression regexFamily(R"(font-family:(\"([^']+)\"|([\w]+)))");
-				// Added: weight / italic-style / underline-decoration from inline style.
-				// Word emits these on <span> for table-cell content (e.g.
-				// <span style='font-weight:bold'>) rather than wrapping in <b>/<i>/<u>.
-				static QRegularExpression regexWeight(R"(font-weight\s*:\s*([^;]+))");
-				static QRegularExpression regexFontStyle(R"(font-style\s*:\s*([^;]+))");
-				static QRegularExpression regexDecoration(R"(text-decoration\s*:\s*([^;]+))");
-
-				styleData.remove(regexMso);
-				QRegularExpressionMatch matchC = regexColor.match(styleData);
-				if (matchC.hasMatch())
-					newColor = matchC.captured(1);
-				QRegularExpressionMatch matchFS = regexFontsize.match(styleData);
-				if (matchFS.hasMatch())
-					newFontSize = matchFS.captured(1).toDouble() * 10.0;
-				QRegularExpressionMatch matchFamily = regexFamily.match(styleData);
-				if (matchFamily.hasMatch())
-					newFamily = matchFamily.captured(matchFamily.lastCapturedIndex());
-
-				QRegularExpressionMatch matchW = regexWeight.match(styleData);
-				if (matchW.hasMatch())
+				if (styleAttr)
 				{
-					const QString w = matchW.captured(1).trimmed().toLower();
-					if (w == "bold" || w == "bolder" || w.toInt() >= 600)
-						newBold = true;
+					QString styleData = QString::fromUtf8((const char*)styleAttr);
+					xmlFree(styleAttr);
+
+					// Apply inline CSS to a new TextSegment representing this span's state.
+					// Start from current ts state, then let the CSS override.
+					TextSegment spanTs;
+					spanTs.color = newColor;
+					spanTs.fontsize = newFontSize;
+					spanTs.family = newFamily;
+					spanTs.isBold = newBold;
+					spanTs.isItalic = newItalic;
+					spanTs.hasUnderline = newUnderline;
+					applyMSFTCssStyleToSegment(styleData, spanTs);
+
+					newColor = spanTs.color;
+					newFontSize = spanTs.fontsize;
+					newFamily = spanTs.family;
+					newBold = spanTs.isBold;
+					newItalic = spanTs.isItalic;
+					newUnderline = spanTs.hasUnderline;
 				}
-				QRegularExpressionMatch matchIt = regexFontStyle.match(styleData);
-				if (matchIt.hasMatch() && matchIt.captured(1).trimmed().toLower() == "italic")
-					newItalic = true;
-				QRegularExpressionMatch matchUL = regexDecoration.match(styleData);
-				if (matchUL.hasMatch() && matchUL.captured(1).contains("underline", Qt::CaseInsensitive))
-					newUnderline = true;
 			}
 			TextSegment ts{QString(), newColor, newBold, newItalic, newUnderline, newFontSize, newFamily};
 			QString innerText = html_MSFT_ExtractText(cur->children, segments, ts);
@@ -561,8 +619,7 @@ void ScClipboardProcessor::html_LibreOffice_Parse(xmlNodePtr node)
 			{
 				for (xmlNode *bodyChild = cur->children; bodyChild; bodyChild = bodyChild->next)
 				{
-					if (bodyChild->type == XML_ELEMENT_NODE &&
-							xmlStrcmp(bodyChild->name, (const xmlChar *)"table") == 0)
+					if (bodyChild->type == XML_ELEMENT_NODE && xmlStrcmp(bodyChild->name, (const xmlChar *)"table") == 0)
 					{
 						hasTablePaste = true;
 						break;
@@ -571,7 +628,6 @@ void ScClipboardProcessor::html_LibreOffice_Parse(xmlNodePtr node)
 			}
 		}
 	}
-
 	for (xmlNode *cur = node->children; cur; cur = cur->next)
 	{
 		if (cur->type == XML_ELEMENT_NODE && xmlStrcmp(cur->name, (const xmlChar *)"body") == 0)
@@ -623,10 +679,6 @@ void ScClipboardProcessor::html_LibreOffice_ProcessCSS(const QMap<QString, QStri
 		newParaStyle.setName(paraStyleName);
 		for (auto it = propertyMap.begin(); it != propertyMap.end(); ++it)
 		{
-			if (it.key() == "line-height")
-			{
-				qDebug()<<"LH:"<<it.value();
-			}
 			StyleSet<ParagraphStyle> tmpParagraphStyleSet;
 			tmpParagraphStyleSet.create(newParaStyle);
 			m_doc->redefineStyles(tmpParagraphStyleSet, false);
@@ -835,6 +887,18 @@ void ScClipboardProcessor::html_LibreOffice_ParseTable(xmlNode *tableNode, Parse
 					cell.paragraphs.append(para);
 				}
 
+				// Fallback: spreadsheets (Calc) and some other sources don't wrap cell
+				// content in <p>. Extract text directly from cellNode's children if no
+				// <p>-derived paragraph was produced.
+				if (cell.paragraphs.isEmpty())
+				{
+					ParsedTableParagraph para;
+					TextSegment seedTs;
+					html_LibreOffice_ExtractText(cellNode->children, para.segments, seedTs);
+					if (!para.segments.isEmpty())
+						cell.paragraphs.append(para);
+				}
+
 				out.cells.append(cell);
 				observedMaxCols = qMax(observedMaxCols, col + cs);
 				col += cs;
@@ -954,11 +1018,22 @@ void ScClipboardProcessor::html_MSFT_ParseParagraphs(xmlNode *node, QMap<QString
 			// qDebug()<<"Style in para:"<<className;
 			xmlFree(styleAttr);
 		}
-		if (cur->type == XML_ELEMENT_NODE && xmlStrcmp(cur->name, (const xmlChar *)"p") == 0)
+		if (cur->type == XML_ELEMENT_NODE)
 		{
+			QString tag = QString::fromUtf8((const char *)cur->name);
+			if (tag != "p" && !htmlHeadingTags.contains(tag))
+				continue;
+
 			xmlChar *classAttr = xmlGetProp(cur, (const xmlChar *)"class");
 			QString className = classAttr ? QString::fromUtf8((const char*)classAttr) : "None";
 			xmlFree(classAttr);
+
+			// For heading tags, fall back to the tag selector's style (e.g. "h1")
+			// if the element has no class attribute. This lets <h1> pick up the
+			// styling from the CSS `h1 { ... }` rule.
+			QString styleName = className;
+			if (className == "None" && htmlHeadingTags.contains(tag))
+				styleName = "Heading " + tag.mid(1);
 
 			TextSegment ts;
 			QString content = html_MSFT_ExtractText(cur->children, segments, ts);
@@ -966,21 +1041,21 @@ void ScClipboardProcessor::html_MSFT_ParseParagraphs(xmlNode *node, QMap<QString
 			// qDebug() << "Paragraph Class:" << className;
 			// qDebug() << "Text Content:" << content;
 
-			ParagraphStyle currPstyle;
-			if (m_doc->styleExists(className))
-				currPstyle = m_doc->paragraphStyle(className);
+			ParagraphStyle paraSeedStyle;
+			if (m_doc->styleExists(styleName))
+				paraSeedStyle = m_doc->paragraphStyle(styleName);
 			else
-				currPstyle = m_pageItem->itemText.paragraphStyle();
+				paraSeedStyle = m_pageItem->itemText.paragraphStyle();
 			int pos = qMax(0, m_pageItem->itemText.cursorPosition());
-
+			const QString defaultFillColor = paraSeedStyle.charStyle().fillColor();
 			for (const auto &segment : std::as_const(segments))
 			{
+				ParagraphStyle currPstyle = paraSeedStyle;   // fresh per segment
+
 				QString style;
 				QString currFamily(segment.family.isEmpty() ? currPstyle.charStyle().font().family() : segment.family);
 				if (!segment.isBold && !segment.isItalic)
-				{
 					style = availableFonts.getRegularStyle(currFamily);
-				}
 				else
 				{
 					if (segment.isBold && !segment.isItalic)
@@ -990,18 +1065,26 @@ void ScClipboardProcessor::html_MSFT_ParseParagraphs(xmlNode *node, QMap<QString
 					else if (segment.isBold && segment.isItalic)
 						style = availableFonts.getBoldItalicStyle(currFamily);
 				}
+
+				// Underline: explicitly set bit 8 when on, clear when off, so it
+				// doesn't carry over from a previous segment.
+				int featureBits = 0;
 				if (segment.hasUnderline)
-				{
-					int s = 0;
-					s |= 8;
-					currPstyle.charStyle().setFeatures(static_cast<StyleFlag>(s).featureList());
-				}
+					featureBits |= 8;
+				currPstyle.charStyle().setFeatures(static_cast<StyleFlag>(featureBits).featureList());
+
 				if (!segment.color.isEmpty())
 				{
 					ScColor newColor;
 					newColor.fromQColor(QColor(segment.color));
 					QString colorName = m_doc->PageColors.tryAddColor("FromCopy"+segment.color, newColor);
 					currPstyle.charStyle().setFillColor(colorName);
+				}
+				else
+				{
+					// No color from the segment; explicitly set to the default so we
+					// don't inherit a leftover color from a previous applyCharStyle.
+					currPstyle.charStyle().setFillColor(defaultFillColor);
 				}
 				if (segment.fontsize > 0.0)
 					currPstyle.charStyle().setFontSize(segment.fontsize);
@@ -1020,7 +1103,7 @@ void ScClipboardProcessor::html_MSFT_ParseParagraphs(xmlNode *node, QMap<QString
 			//Add a new line after the paragraph
 			pos = qMax(0, m_pageItem->itemText.cursorPosition());
 			m_pageItem->itemText.insertChars(pos, SpecialChars::PARSEP);
-			m_pageItem->itemText.applyStyle(pos, currPstyle);
+			m_pageItem->itemText.applyStyle(pos, paraSeedStyle);
 		}
 	}
 }
@@ -1111,6 +1194,33 @@ void ScClipboardProcessor::html_MSFT_ParseTable(xmlNode *tableNode, ParsedTable 
 					TextSegment seedTs;
 					html_MSFT_ExtractText(pNode->children, para.segments, seedTs);
 					cell.paragraphs.append(para);
+				}
+				// Fallback: spreadsheets (Excel) and similar sources don't wrap cell content
+				// in <p>. If no paragraphs came from <p> extraction, pull text directly from
+				// the cell node, seeding from tag-level `td` CSS so default formatting applies.
+				if (cell.paragraphs.isEmpty())
+				{
+					ParsedTableParagraph para;
+					TextSegment seedTs;
+
+					// Apply tag-level CSS for `td` (Excel emits cell defaults this way).
+					if (cssStyles.contains("td"))
+						applyMSFTCssStyleToSegment(cssStyles.value("td"), seedTs);
+
+					// Apply class-level CSS from the <td>'s class attribute (Excel uses
+					// .xl65, .xl66, etc. for per-cell overrides).
+					xmlChar *classAttr = xmlGetProp(cellNode, (const xmlChar *)"class");
+					if (classAttr)
+					{
+						QString className = QString::fromUtf8((const char*)classAttr);
+						xmlFree(classAttr);
+						if (cssStyles.contains(className))
+							applyMSFTCssStyleToSegment(cssStyles.value(className), seedTs);
+					}
+
+					html_MSFT_ExtractText(cellNode->children, para.segments, seedTs);
+					if (!para.segments.isEmpty())
+						cell.paragraphs.append(para);
 				}
 
 				out.cells.append(cell);
@@ -1242,34 +1352,33 @@ void ScClipboardProcessor::html_ApplyParagraphsToFrame(PageItem_TextFrame *frame
 void ScClipboardProcessor::html_ApplySegmentsToFrame(PageItem_TextFrame *frame, const QList<TextSegment> &segments, const ParagraphStyle &seedStyle)
 {
 	SCFonts &availableFonts = PrefsManager::instance().appPrefs.fontPrefs.AvailFonts;
-	ParagraphStyle currPstyle = seedStyle;
 
 	int pos = qMax(0, frame->itemText.cursorPosition());
 	for (const auto &segment : segments)
 	{
-		QString style;
+		// Per-segment style starts fresh from the seed so attributes from
+		// prior segments don't bleed into this one.
+		ParagraphStyle currPstyle = seedStyle;
+
 		QString currFamily(segment.family.isEmpty()
 						   ? currPstyle.charStyle().font().family()
 						   : segment.family);
-		if (!segment.isBold && !segment.isItalic)
-		{
-			style = availableFonts.getRegularStyle(currFamily);
-		}
+		QString style;
+		if (segment.isBold && segment.isItalic)
+			style = availableFonts.getBoldItalicStyle(currFamily);
+		else if (segment.isBold)
+			style = availableFonts.getBoldStyle(currFamily);
+		else if (segment.isItalic)
+			style = availableFonts.getItalicStyle(currFamily);
 		else
-		{
-			if (segment.isBold && !segment.isItalic)
-				style = availableFonts.getBoldStyle(currFamily);
-			else if (!segment.isBold && segment.isItalic)
-				style = availableFonts.getItalicStyle(currFamily);
-			else if (segment.isBold && segment.isItalic)
-				style = availableFonts.getBoldItalicStyle(currFamily);
-		}
+			style = availableFonts.getRegularStyle(currFamily);
+
+		// Underline: set bit 8 when on, clear when off.
+		int featureBits = 0;
 		if (segment.hasUnderline)
-		{
-			int s = 0;
-			s |= 8;
-			currPstyle.charStyle().setFeatures(static_cast<StyleFlag>(s).featureList());
-		}
+			featureBits |= ScStyle_Underline;
+		currPstyle.charStyle().setFeatures(static_cast<StyleFlag>(featureBits).featureList());
+
 		if (!segment.color.isEmpty())
 		{
 			ScColor newColor;
@@ -1277,8 +1386,10 @@ void ScClipboardProcessor::html_ApplySegmentsToFrame(PageItem_TextFrame *frame, 
 			QString colorName = m_doc->PageColors.tryAddColor("FromCopy" + segment.color, newColor);
 			currPstyle.charStyle().setFillColor(colorName);
 		}
+
 		if (segment.fontsize > 0.0)
 			currPstyle.charStyle().setFontSize(segment.fontsize);
+
 		const ScFace &face = availableFonts.findFont(currFamily, style);
 		if (face != ScFace::none())
 			currPstyle.charStyle().setFont(face);

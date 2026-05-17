@@ -429,7 +429,6 @@ void SMCellStyleWidget::on_borderLineShade_valueChanged(double shade)
 
 void SMCellStyleWidget::on_borderLineColor_textActivated(const QString& colorName)
 {
-	qDebug() << "border color slot fired:" << colorName;
 	int index = borderLineList->currentRow();
 	if (index < 0)
 		return;

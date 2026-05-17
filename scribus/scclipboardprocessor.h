@@ -51,6 +51,8 @@ class ScClipboardProcessor
 		void setDestTable(PageItem_Table *table);
 
 	protected:
+		inline static const QSet<QString> htmlHeadingTags = { "h1", "h2", "h3", "h4", "h5", "h6" };
+
 		struct TextSegment
 		{
 			QString text;
@@ -95,6 +97,7 @@ class ScClipboardProcessor
 		void html_MSFT_Process_CSS(const QMap<QString, QString> &styles);
 		void html_MSFT_ParseParagraphs(xmlNode *node, QMap<QString, QString> &styles);
 		void html_MSFT_ParseTable(xmlNode *tableNode, ParsedTable &out);
+		void applyMSFTCssStyleToSegment(QString styleData, TextSegment &ts);
 		QString html_MSFT_ExtractText(xmlNode *node, QList<TextSegment> &segments, TextSegment ts);
 
 		bool html_LibreOffice_Process();
