@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collection id="6w0FSR1dcD7Lh6qfbD3QvD" name="US Paper" minVersion="1.7.4" version="1.7.4">
+    <metadata>
+        <author>Scribus</author>
+        <license>CC0</license>
+        <names>
+            <name lang="en_US">US Paper</name>
+            <name lang="de">US Papier</name>
+        </names>
+    </metadata>
+    <pages>
+        <page id="00000" unit="in" width="8.5" height="11" name="ANSI A" legacyNames="A"/>
+        <page id="00001" unit="in" width="11" height="17" name="ANSI B" legacyNames="B"/>
+        <page id="00002" unit="in" width="17" height="22" name="ANSI C" legacyNames="C"/>
+        <page id="00003" unit="in" width="22" height="34" name="ANSI D" legacyNames="D"/>
+        <page id="00004" unit="in" width="34" height="44" name="ANSI E" legacyNames="E"/>
+        <page id="00005" unit="in" width="9" height="12" name="Arch A" legacyNames="9x12 (Arch A)"/>
+        <page id="00006" unit="in" width="12" height="18" name="Arch B" legacyNames="12x18 (Arch B)"/>
+        <page id="00007" unit="in" width="18" height="24" name="Arch C" legacyNames="18x24 (Arch C)"/>
+        <page id="00008" unit="in" width="24" height="36" name="Arch D" legacyNames="24x36 (Arch D)"/>
+        <page id="00009" unit="in" width="36" height="48" name="Arch E" legacyNames="36x48 (Arch E)"/>
+        <page id="00010" unit="in" width="30" height="42" name="Arch E1" legacyNames="30x42 (Arch E1)"/>
+        <page id="00011" unit="in" width="26" height="38" name="Arch E2" legacyNames="26x38 (Arch E2)"/>
+        <page id="00012" unit="in" width="27" height="39" name="Arch E3" legacyNames="27x39 (Arch E3)"/>
+        <page id="00013" unit="in" width="8.5" height="13" name="Government Legal"/>
+        <page id="00014" unit="in" width="8" height="10.5" name="Government Letter" legacyNames="Govt. Letter"/>
+        <page id="00015" unit="in" width="5" height="8" name="Junior Legal"/>
+        <page id="00016" unit="in" width="11" height="17" name="Ledger, Tabloid"/>
+        <page id="00017" unit="in" width="8.5" height="14" name="Legal"/>
+        <page id="00018" unit="in" width="7" height="8.5" name="Legal Half"/>
+        <page id="00019" unit="in" width="8.5" height="11" name="Letter" legacyNames="US Letter"/>
+        <page id="00020" unit="in" width="5.5" height="8.5" name="Letter Half"/>
+    </pages>
+</collection>

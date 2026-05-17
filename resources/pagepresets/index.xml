@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<collections minVersion="1.7.2" version="1.7.2">
+  <collection name="ISO_A_Paper.xml"/>
+  <collection name="ISO_B_Paper.xml"/>
+  <collection name="ISO_C_Envelope.xml"/>
+  <collection name="International_Envelopes.xml"/>
+  <separator/>
+  <collection name="US_Paper.xml"/>
+  <collection name="US_Press.xml"/>
+  <collection name="US_Envelopes.xml"/>
+  <separator/>
+  <collection name="Books.xml"/>
+  <collection name="Business_Cards.xml"/>
+  <collection name="Newspapers.xml"/>
+  <collection name="Transitional.xml"/>
+  <collection name="Others.xml"/>
+  <separator/>
+  <collection name="Canadian.xml"/>
+  <collection name="Chinese.xml"/>
+  <collection name="Colombian.xml"/>
+  <collection name="French.xml"/>
+  <collection name="German.xml"/>
+  <collection name="Imperial.xml"/>
+  <collection name="Japanese.xml"/>
+  <collection name="Swedish.xml"/>
+  <separator/>
+</collections>

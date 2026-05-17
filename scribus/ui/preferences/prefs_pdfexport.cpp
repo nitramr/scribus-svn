@@ -414,7 +414,6 @@ void Prefs_PDFExport::restoreDefaults(struct ApplicationPrefs *prefsData, const 
 	bleedsWidget->setup(prefsData->pdfPrefs.bleeds, prefsData->docSetupPrefs.pagePositioning, prefsData->docSetupPrefs.docUnitIndex, NewMarginWidget::BleedWidgetFlags);
 	bleedsWidget->setPageWidth(prefsData->docSetupPrefs.pageWidth);
 	bleedsWidget->setPageHeight(prefsData->docSetupPrefs.pageHeight);
-	bleedsWidget->setPageSize(prefsData->docSetupPrefs.pageSize);
 	bleedsWidget->setMarginPreset(prefsData->docSetupPrefs.marginPreset);
 //
 	useCustomRenderingCheckBox->setChecked(prefsData->pdfPrefs.UseLPI);

@@ -61,8 +61,7 @@ public:
 	void createNewDocPage();
 	void createOpenDocPage();
 	void createRecentDocPage();
-	void setSize(const QString& gr);
-	QString pageSizeName() const { return m_pageSize; };
+	void setSize(QSizeF size);
 
 	QFileDialog *fileDialog {nullptr};
 
@@ -81,10 +80,8 @@ public:
 	double pageWidth() const { return m_pageWidth;}
 	double pageHeight() const { return m_pageHeight;}
 	double distance() const { return m_distance;}
-	double bleedBottom() const { return m_bleedBottom;}
-	double bleedTop() const { return m_bleedTop;}
-	double bleedLeft() const { return m_bleedLeft;}
-	double bleedRight() const { return m_bleedRight;}
+	MarginStruct margins() const { return marginGroup->margins(); }
+	MarginStruct bleeds() const { return bleedGroup->margins(); }
 
 public slots:
 	void setHeight(double v);
@@ -96,7 +93,7 @@ public slots:
 	void setOrientation(int ori);
 	void setLayout(int layoutId);
 	void setBindingDirection(bool checked);
-	void setPageSize(const QString &);
+	void setPageSize(QSizeF size);
 	void setDocLayout(int layout);
 	void setDocFirstPage(int firstPage);
 	/*! Opens document on doubleclick
@@ -115,9 +112,11 @@ public slots:
 private slots:
 	void changeMargin(MarginStruct margin);
 	void changeBleed(MarginStruct bleed);
-	void changeCategory(PageSizeInfo::Category category);
+	void changeCategory(const QString& category);
 	void changePageSize(const QModelIndex &ic);
 	void changeSortMode(int ic);
+	void savePagePreset();
+	void updateCategorySelector();
 
 protected:
 	PrefsManager& prefsManager;
@@ -135,7 +134,6 @@ protected:
 	double m_distance { 11.0 };
 	QString m_unitSuffix;
 	QString m_selectedFile;
-	QString m_pageSize;
 	int m_unitIndex { 0 };
 	int m_tabSelected { 0 };
 	bool m_onStartup { false };
@@ -146,6 +144,7 @@ protected:
 	bool m_labelVisibity {true};
 
 	bool eventFilter(QObject *object, QEvent *event);
+	void updateCategory(const QString& category, bool forceUpdate = false);
 };
 
 #endif // NEWDOC_H

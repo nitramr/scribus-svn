@@ -214,4 +214,8 @@ void SCRIBUS_API getUniqueName(QString &name, const QStringList& list, const QSt
  */
 bool SCRIBUS_API inRange(unsigned min, unsigned value, unsigned max);
 
+
+QString SCRIBUS_API getShortUuidFromUuid(const QUuid &uuid);
+QUuid SCRIBUS_API getUuidFromShortUuid(const QString &shortId);
+
 #endif

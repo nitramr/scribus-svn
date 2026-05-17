@@ -80,7 +80,7 @@ class Selection;
 class ScribusView;
 class ScribusMainWindow;
 class ResourceCollection;
-class PageSize;
+struct PageSizeInfo;
 class ScPattern;
 class Serializer;
 class QProgressBar;
@@ -98,7 +98,7 @@ class SCRIBUS_API ScribusDoc : public QObject, public UndoObject, public Observa
 
 public:
 	ScribusDoc();
-	ScribusDoc(const QString& docName, int unitIndex, const PageSize& pagesize, const MarginStruct& margins, const DocPagesSetup& pagesSetup);
+	ScribusDoc(const QString& docName, int unitIndex, const PageSizeInfo& pagesize, const MarginStruct& margins, const DocPagesSetup& pagesSetup);
 	~ScribusDoc();
 
 	void init();
@@ -110,7 +110,7 @@ public:
 	/**
 	 * @param bindingDirection Defaults to 0 for all the one page temporary documents Scribus creates
 	 */
-	void setup(int unitIndex, int fp, int firstLeft, int orientation, int firstPageNumber, const QString& defaultPageSize, const QString& documentName, int bindingDirection = 0);
+	void setup(int unitIndex, int fp, int firstLeft, int orientation, int firstPageNumber, const QSizeF pageSize, const QString& documentName, int bindingDirection = 0);
 	void setLoading(bool);
 	bool isLoading() const;
 	void setModified(bool);
@@ -227,10 +227,10 @@ public:
 
 	double pageHeight() const { return m_docPrefsData.docSetupPrefs.pageHeight; }
 	double pageWidth() const { return m_docPrefsData.docSetupPrefs.pageWidth; }
-	const QString& pageSize() const { return m_docPrefsData.docSetupPrefs.pageSize; }
+	const QString& pageSize() const { return m_docPrefsData.docSetupPrefs.pageSize; } // legacy support for < 1.7.1
 	void setPageHeight(double h) { m_docPrefsData.docSetupPrefs.pageHeight = h; }
 	void setPageWidth(double w) { m_docPrefsData.docSetupPrefs.pageWidth = w; }
-	void setPageSize(const QString& s) { m_docPrefsData.docSetupPrefs.pageSize = s; }
+	void setPageSize(const QString& s) { m_docPrefsData.docSetupPrefs.pageSize = s; } // legacy support for < 1.7.1
 
 	int marginPreset() const { return m_docPrefsData.docSetupPrefs.marginPreset; }
 	void setMarginPreset(int mp) { m_docPrefsData.docSetupPrefs.marginPreset = mp; }

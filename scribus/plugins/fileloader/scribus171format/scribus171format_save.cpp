@@ -32,6 +32,7 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem_regularpolygon.h"
 #include "pageitem_spiral.h"
 #include "pageitem_table.h"
+#include "pagesize.h"
 #include "prefsmanager.h"
 #include "qtiocompressor.h"
 #include "resourcecollection.h"
@@ -333,7 +334,8 @@ bool Scribus171Format::saveFile(const QString & fileName, const FileFormat & /* 
 	docu.writeAttribute("BleedRight", m_Doc->bleeds()->right());
 	docu.writeAttribute("BleedBottom", m_Doc->bleeds()->bottom());
 	docu.writeAttribute("PageOrientation", m_Doc->pageOrientation());
-	docu.writeAttribute("PageSize", m_Doc->pageSize());
+	PageSize ps(m_Doc->pageWidth(), m_Doc->pageHeight());
+	docu.writeAttribute("PageSize", ps.name()); // legacy for Scribus < 1.7.4
 	docu.writeAttribute("FirstPageNumber", m_Doc->FirstPnum);
 	docu.writeAttribute("PagePositioning", m_Doc->pagePositioning());
 	docu.writeAttribute("BindingDirection", m_Doc->bindingDirection());
@@ -1723,7 +1725,8 @@ void Scribus171Format::WritePages(ScribusDoc *doc, ScXmlStreamWriter& docu, QPro
 		docu.writeAttribute("PageNumber",page->pageNr());
 		docu.writeAttribute("PageName",page->pageName());
 		docu.writeAttribute("MasterPageName",page->masterPageName());
-		docu.writeAttribute("Size", page->size());
+		PageSize ps(page->width(), page->height());
+		docu.writeAttribute("Size", ps.name()); // legacy for Scribus < 1.7.4
 		docu.writeAttribute("Orientation", page->orientation());
 		docu.writeAttribute("LeftPage", page->LeftPg);
 		docu.writeAttribute("Preset", page->marginPreset);

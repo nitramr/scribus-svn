@@ -39,6 +39,8 @@ public:
 	const QString& fontDir() const;
 	/** @brief Return path to lib directory containing translations, keysets, etc. */
 	const QString& libDir() const;
+	/** @brief Return path to page preset directory containing page presets */
+	const QString& pagePresetsDir() const;
 	/** @brief Return path to dir containing plugins. */
 	const QString& pluginDir() const;
 	/** @brief Return path to dir containing sample Python scripts */
@@ -81,6 +83,8 @@ public:
 	static QString userFontDir(bool createIfNotExists);
 	/** @brief Return path to application data dir for downloaded docs*/
 	static QString userHelpFilesDir(bool createIfNotExists);
+	/** @brief Return path to page preset dir for custom page presets */
+	static QString userPagePresetsDir(bool createIfNotExists);
 	/** @brief Return path to application data dir for downloaded palettes */
 	static QString userPaletteFilesDir(bool createIfNotExists);
 	/** @brief Return path to user template dir */
@@ -121,6 +125,7 @@ protected:
 	QString m_fontDir;
 	QString m_iconDir;
 	QString m_libDir;
+	QString m_pagePresetsDir;
 	QString m_pluginDir;
 	QString m_qmlDir;
 	QString m_sampleScriptDir;

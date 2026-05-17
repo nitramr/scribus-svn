@@ -6,6 +6,9 @@
 #include <QFlags>
 #include <QFontMetrics>
 #include <QTextLayout>
+#include "iconmanager.h"
+#include "manager/pagepreset_manager.h"
+#include "ui/widgets/pagesizelist.h"
 
 
 ScListItemDelegate::ScListItemDelegate(QListView::ViewMode mode, QSize iconSize, TextPosition textPosition, Style style, QObject *parent) : QItemDelegate (parent)
@@ -84,7 +87,8 @@ void ScListItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
 	// Item Data
 	QIcon ic = qvariant_cast<QIcon>(index.data(Qt::DecorationRole));
 	QString title = index.data(Qt::DisplayRole).toString();
-	QString subTitle = index.data(Qt::UserRole).toString();
+	QString subTitle = index.data(PageSizeList::ItemData::SizeLabel).toString();
+	PageSizeType type = qvariant_cast<PageSizeType>(index.data(PageSizeList::ItemData::Type));
 
 	switch (m_textPosition)
 	{
@@ -144,7 +148,8 @@ void ScListItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
 		QTextLayout textLayout(title, painter->font());
 		textLayout.beginLayout();
 
-		while (++lineCount < rText.height() / fm.lineSpacing()) {
+		while (++lineCount < rText.height() / fm.lineSpacing())
+		{
 			QTextLine line = textLayout.createLine();
 			if (!line.isValid())
 				break;
@@ -160,6 +165,15 @@ void ScListItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
 		painter->setFont(subFont);
 		painter->drawText(rSubText, sOptions.flags(), subTitle);
 
+	}
+
+	// User Marker
+	if (type == PageSizeType::User)
+	{
+		QRect rMarker(0, 0, 16, 16);
+		rMarker.moveTop(rSaveArea.top() + 4);
+		rMarker.moveRight(rSaveArea.right() - 4);
+		painter->drawPixmap(rMarker, IconManager::instance().loadPixmap("user-page-preset"));
 	}
 
 	painter->restore();

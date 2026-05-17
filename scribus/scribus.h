@@ -156,8 +156,9 @@ public:
 
 	ScribusDoc* doFileNew(double width, double height, double topMargin, double leftMargin, double rightMargin,
 		double bottomMargin, double columnDistance, double columnCount, bool autoTextFrames, int pageArrangement,
-		int unitIndex, int firstPageLocation, int orientation, int firstPageNumber, const QString& defaultPageSize,
+		int unitIndex, int firstPageLocation, int orientation, int firstPageNumber, QSizeF defaultPageSize,
 		bool requiresGUI, int pageCount = 1, bool showView = true, int marginPreset = 0, int bindingDirection = 0);
+
 	bool DoFileSave(const QString& fileName, QString* savedFileName = nullptr, uint formatID = FORMATID_CURRENTEXPORT);
 
 	void changeEvent(QEvent *e) override;

@@ -4178,18 +4178,6 @@ bool Scribus170Format::readPage(ScribusDoc* doc, ScXmlStreamReader& reader)
 	else
 		newPage->setWidth(attrs.valueAsDouble("PAGEWITH"));
 	newPage->setHeight(attrs.valueAsDouble("PAGEHEIGHT"));
-
-	//14704: Double check the page size should not be Custom in case the size doesn't match a standard size
-	if (attrs.hasAttribute("Size"))
-	{
-		QString pageSize(attrs.valueAsString("Size"));
-		PageSize ps(pageSize);
-		if (!doubleIsEqual(ps.width(), newPage->width()) || !doubleIsEqual(ps.height(), newPage->height()))
-			newPage->setSize(CommonStrings::customPageSize);
-		else
-			newPage->setSize(pageSize);
-	}
-
 	newPage->setInitialHeight(newPage->height());
 	newPage->setInitialWidth(newPage->width());
 	newPage->initialMargins.setTop(qMax(0.0, attrs.valueAsDouble("BORDERTOP")));

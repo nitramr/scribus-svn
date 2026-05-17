@@ -42,6 +42,7 @@ for which a new license (GPL+exception) is in place.
 #include "latexhelpers.h"
 #include "langmgr.h"
 #include "localemgr.h"
+#include "manager/pagepreset_manager.h"
 #include "pagesize.h"
 #include "pagestructs.h"
 #include "pdfoptions.h"
@@ -326,9 +327,9 @@ void PrefsManager::initDefaults()
 		appPrefs.docSetupPrefs.language = "en_GB";
 	appPrefs.docSetupPrefs.pageSize = LocaleManager::instance().pageSizeForLocale(ScQApp->currGUILanguage());
 	appPrefs.docSetupPrefs.pageOrientation = 0;
-	PageSize defaultPageSize(appPrefs.docSetupPrefs.pageSize);
-	appPrefs.docSetupPrefs.pageWidth = defaultPageSize.width();
-	appPrefs.docSetupPrefs.pageHeight = defaultPageSize.height();
+	PageSizeInfo psi = PagePresetManager::instance().pageInfoByName(appPrefs.docSetupPrefs.pageSize);
+	appPrefs.docSetupPrefs.pageWidth = psi.width;
+	appPrefs.docSetupPrefs.pageHeight = psi.height;
 	appPrefs.docSetupPrefs.margins.set(40, 40, 40, 40);
 	appPrefs.docSetupPrefs.marginPreset = 0;
 	appPrefs.docSetupPrefs.bleeds.set(0, 0, 0, 0);
@@ -539,7 +540,7 @@ void PrefsManager::initDefaults()
 	appPrefs.imageCachePrefs.maxCacheEntries = 1000;
 	appPrefs.imageCachePrefs.compressionLevel = 1;
 	appPrefs.activePageSizes.clear();
-	appPrefs.activePageSizes = PageSize::defaultSizesList();
+	appPrefs.activePageSizes = PagePresetManager::defaultSizesList();
 
 	//Attribute setup
 	appPrefs.itemAttrPrefs.defaultItemAttributes.clear();
@@ -1384,8 +1385,8 @@ bool PrefsManager::writePref(const QString& filePath)
 	deDocumentSetup.setAttribute("UnitIndex", appPrefs.docSetupPrefs.docUnitIndex);
 	deDocumentSetup.setAttribute("PageSize", appPrefs.docSetupPrefs.pageSize);
 	deDocumentSetup.setAttribute("PageOrientation", appPrefs.docSetupPrefs.pageOrientation);
-	deDocumentSetup.setAttribute("PageWidth", ScCLocale::toQStringC(appPrefs.docSetupPrefs.pageWidth));
-	deDocumentSetup.setAttribute("PageHeight", ScCLocale::toQStringC(appPrefs.docSetupPrefs.pageHeight));
+	deDocumentSetup.setAttribute("PageWidth", appPrefs.docSetupPrefs.pageWidth);
+	deDocumentSetup.setAttribute("PageHeight", appPrefs.docSetupPrefs.pageHeight);
 	deDocumentSetup.setAttribute("MarginTop", ScCLocale::toQStringC(appPrefs.docSetupPrefs.margins.top()));
 	deDocumentSetup.setAttribute("MarginBottom", ScCLocale::toQStringC(appPrefs.docSetupPrefs.margins.bottom()));
 	deDocumentSetup.setAttribute("MarginLeft", ScCLocale::toQStringC(appPrefs.docSetupPrefs.margins.left()));
@@ -2085,11 +2086,11 @@ bool PrefsManager::readPref(const QString& filePath)
 			if (appPrefs.docSetupPrefs.language.isEmpty())
 				appPrefs.docSetupPrefs.language = "en_GB";
 			appPrefs.docSetupPrefs.docUnitIndex = dc.attribute("UnitIndex", "0").toInt();
-			PageSize ps( dc.attribute("PageSize", PageSize::defaultSizesList().at(1)) );
-			appPrefs.docSetupPrefs.pageSize = (ps.name() == CommonStrings::customPageSize ) ? PageSize::defaultSizesList().at(1) : ps.name();
+			PageSizeInfo psi = PagePresetManager::instance().pageInfoByName(dc.attribute("PageSize", PagePresetManager::defaultSizesList().at(1)));
+			appPrefs.docSetupPrefs.pageSize = (psi.id.isEmpty() || psi.id == CommonStrings::customPageSize ) ? CommonStrings::customPageSize : psi.id;
 			appPrefs.docSetupPrefs.pageOrientation = dc.attribute("PageOrientation", "0").toInt();
-			appPrefs.docSetupPrefs.pageWidth   = ScCLocale::toDoubleC(dc.attribute("PageWidth"), 595.0);
-			appPrefs.docSetupPrefs.pageHeight  = ScCLocale::toDoubleC(dc.attribute("PageHeight"), 842.0);
+			appPrefs.docSetupPrefs.pageWidth   = ScCLocale::toDoubleC(dc.attribute("PageWidth"), mm2pts(210));
+			appPrefs.docSetupPrefs.pageHeight  = ScCLocale::toDoubleC(dc.attribute("PageHeight"), mm2pts(297));
 			appPrefs.docSetupPrefs.margins.setTop(ScCLocale::toDoubleC(dc.attribute("MarginTop"), 9.0));
 			appPrefs.docSetupPrefs.margins.setBottom(ScCLocale::toDoubleC(dc.attribute("MarginBottom"), 40.0));
 			appPrefs.docSetupPrefs.margins.setLeft(ScCLocale::toDoubleC(dc.attribute("MarginLeft"), 9.0));
@@ -2822,12 +2823,12 @@ bool PrefsManager::readPref(const QString& filePath)
 			// check if page sizes existing
 			for (const auto& item : std::as_const(appPrefs.activePageSizes))
 			{
-				PageSize ps(item);
-				if (ps.name() != CommonStrings::customPageSize)
-					checkedPageSizes.append(ps.name());
+				PageSizeInfo psi = PagePresetManager::instance().pageInfoByName(item);
+				if (!psi.id.isEmpty() || psi.id != CommonStrings::customPageSize)
+					checkedPageSizes.append(psi.id);
 			}
 
-			appPrefs.activePageSizes = (checkedPageSizes.count() == 0) ? PageSize::defaultSizesList() : checkedPageSizes;
+			appPrefs.activePageSizes = (checkedPageSizes.count() == 0) ? PagePresetManager::defaultSizesList() : checkedPageSizes;
 
 		}
 		// experimental features

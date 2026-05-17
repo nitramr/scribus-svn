@@ -20,7 +20,7 @@ for which a new license (GPL+exception) is in place.
 #include <QComboBox>
 #include <QWidget>
 
-#include "pagesize.h"
+#include "manager/pagepreset_manager.h"
 
 class PageSizeSelector : public QWidget
 {
@@ -29,14 +29,14 @@ class PageSizeSelector : public QWidget
 public:
 	explicit PageSizeSelector(QWidget *parent = nullptr);
 
-	void setPageSize(QString name);
+	void setPageSize(double width, double height);
 	void setHasFormatSelector(bool isVisble );
 	void setHasCustom(bool hasCustom);
 	bool hasCustom() const { return m_hasCustom; };
 	bool hasFormatSelector() const { return m_hasFormatSelector; };
-	void setCurrentCategory(PageSizeInfo::Category category);
+	void setCurrentCategory(const QString& categoryId);
 
-	PageSizeInfo::Category category() const { return m_sizeCategory; };
+	const QString& category() const { return m_sizeCategory; };
 	QString pageSize() const { return m_sizeName; };
 	QString pageSizeTR() const { return m_trSizeName; };
 
@@ -46,15 +46,17 @@ private:
 
 	QString m_sizeName;
 	QString m_trSizeName;
-	PageSizeInfo::Category m_sizeCategory;
+	QSizeF m_size;
+	QString m_sizeCategory;
 	bool m_hasFormatSelector {true};
 	bool m_hasCustom {true};
 
-	void setFormat(PageSizeInfo::Category category, QString name);
+	void setup(PageSizeInfo psi);
+	void setFormat(const QString& category, QString name);
 
 signals:
 	void pageSizeChanged(QString);
-	void pageCategoryChanged(PageSizeInfo::Category);
+	void pageCategoryChanged(QString);
 
 private slots:
 	void categorySelected(int index);

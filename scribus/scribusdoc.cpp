@@ -56,6 +56,7 @@ for which a new license (GPL+exception) is in place.
 #include "filewatcher.h"
 #include "fpoint.h"
 #include "hyphenator.h"
+#include "manager/pagepreset_manager.h"
 #include "notesstyles.h"
 #include "numeration.h"
 #include "pageitem.h"
@@ -234,7 +235,7 @@ ScribusDoc::ScribusDoc() : UndoObject( tr("Document")), Observable<ScribusDoc>(n
 }
 
 
-ScribusDoc::ScribusDoc(const QString& docName, int unitindex, const PageSize& pagesize, const MarginStruct& margins, const DocPagesSetup& pagesSetup) : UndoObject( tr("Document")),
+ScribusDoc::ScribusDoc(const QString& docName, int unitindex, const PageSizeInfo& pagesize, const MarginStruct& margins, const DocPagesSetup& pagesSetup) : UndoObject( tr("Document")),
 	m_appPrefsData(PrefsManager::instance().appPrefs),
 	m_docPrefsData(PrefsManager::instance().appPrefs),
 	m_undoManager(UndoManager::instance()),
@@ -254,9 +255,9 @@ ScribusDoc::ScribusDoc(const QString& docName, int unitindex, const PageSize& pa
 	m_alignTransaction(nullptr)
 {
 	m_docPrefsData.docSetupPrefs.docUnitIndex = unitindex;
-	m_docPrefsData.docSetupPrefs.pageHeight = pagesize.height();
-	m_docPrefsData.docSetupPrefs.pageWidth = pagesize.width();
-	m_docPrefsData.docSetupPrefs.pageSize = pagesize.name();
+	m_docPrefsData.docSetupPrefs.pageHeight = pagesize.height;
+	m_docPrefsData.docSetupPrefs.pageWidth = pagesize.width;
+	m_docPrefsData.docSetupPrefs.pageSize = pagesize.id;
 	m_docPrefsData.docSetupPrefs.margins = margins;
 	maxCanvasCoordinate = FPoint(m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.displayPrefs.scratch.right(), m_docPrefsData.displayPrefs.scratch.top() + m_docPrefsData.displayPrefs.scratch.bottom());
 	setPageSetFirstPage(pagesSetup.pageArrangement, pagesSetup.firstPageLocation);
@@ -681,12 +682,13 @@ QList<PageItem*> *ScribusDoc::parentGroup(PageItem* item, QList<PageItem*> *list
 	return retList;
 }
 
-void ScribusDoc::setup(int unitIndex, int fp, int firstLeft, int orientation, int firstPageNumber, const QString& defaultPageSize, const QString& documentName, int bindingDirection)
+void ScribusDoc::setup(int unitIndex, int fp, int firstLeft, int orientation, int firstPageNumber, QSizeF pageSize, const QString& documentName, int bindingDirection)
 {
 	m_docPrefsData.docSetupPrefs.docUnitIndex = unitIndex;
 	setPageSetFirstPage(fp, firstLeft);
 	m_docPrefsData.docSetupPrefs.pageOrientation = orientation;
-	m_docPrefsData.docSetupPrefs.pageSize = defaultPageSize;
+	PageSizeInfo psi = PagePresetManager::instance().pageInfoByDimensions(pageSize.width(), pageSize.height());
+	m_docPrefsData.docSetupPrefs.pageSize = psi.id;
 	FirstPnum = firstPageNumber;
 	m_docPrefsData.docSetupPrefs.pagePositioning = fp;
 	m_docPrefsData.docSetupPrefs.bindingDirection = bindingDirection;

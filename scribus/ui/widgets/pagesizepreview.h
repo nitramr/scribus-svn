@@ -4,7 +4,7 @@
 #include <QWidget>
 
 #include "margins.h"
-#include "pagesize.h"
+#include "manager/pagepreset_manager.h"
 
 class PageSizePreview : public QWidget
 {
@@ -13,26 +13,27 @@ class PageSizePreview : public QWidget
 public:
 	explicit PageSizePreview(QWidget *parent = nullptr);
 
-	void setPageHeight(double height) { m_height = height; update(); };
+	void setPageHeight(double height)
+	{
+		PageSizeInfo psi = PagePresetManager::instance().pageInfoByDimensions(QSizeF(m_width, height));
+		m_name = psi.displayName;
+		m_height = height;
+		update();
+	};
 	void setPageWidth(double width) { m_width = width; update(); };
 	void setMargins(const MarginStruct& margins) { m_margins = margins; update(); };
 	void setBleeds(const MarginStruct& bleeds) { m_bleeds = bleeds; update(); };
-	void setPageName(const QString& name) {
-		PageSize ps(name);
-		m_name = ps.nameTR();
-		update();
-	};
 	void setLayout(int layout) { m_layout = layout; update(); };
 	void setFirstPage(int firstPage) { m_firstPage = firstPage; update(); };
-	void setPage(double height, double width, const MarginStruct& margins, const MarginStruct& bleeds, QString name, int layout, int firstPage)
+	void setPage(double height, double width, const MarginStruct& margins, const MarginStruct& bleeds, int layout, int firstPage)
 	{
-		PageSize ps(name);
+		PageSizeInfo psi = PagePresetManager::instance().pageInfoByDimensions(QSizeF(width, height));
 
 		m_height = height;
 		m_width = width;
 		m_margins = margins;
 		m_bleeds = bleeds;
-		m_name = ps.nameTR();
+		m_name = psi.displayName;
 		m_layout = layout;
 		m_firstPage = firstPage;
 		update();
