@@ -9061,8 +9061,11 @@ void ScribusDoc::itemSelection_DeleteTableRows()
 		table->removeRows(index, numRows);
 	}
 
-	m_View->stopGesture(); // FIXME: Don't use m_View.
-	table->adjustTable();
+	m_View->stopGesture();
+	{
+		UndoBlocker ub;
+		table->adjustTable();
+	}
 	table->update();
 
 	m_ScMW->updateTableMenuActions();
@@ -9119,8 +9122,11 @@ void ScribusDoc::itemSelection_DeleteTableColumns()
 		table->removeColumns(index, numColumns);
 	}
 
-	m_View->stopGesture(); // FIXME: Don't use m_View.
-	table->adjustTable();
+	m_View->stopGesture();
+	{
+		UndoBlocker ub;
+		table->adjustTable();
+	}
 	table->update();
 
 	m_ScMW->updateTableMenuActions();
@@ -9216,12 +9222,21 @@ void ScribusDoc::itemSelection_SetTableRowHeights()
 	if (!table)
 		return;
 
+	double rowHeight {PageItem_Table::MinimumRowHeight};
+	if (appMode == modeEditTable)
+	{
+		if (table->selectedCells().isEmpty())
+			rowHeight = table->rowHeight(table->activeCell().row());
+		else
+			rowHeight = table->rowHeight(table->selectedRows().values()[0]);
+	}
+
 	using TableRowHeightsDialogDeleter = QScopedPointerObjectDeleteLater<TableRowHeightsDialog>;
-	QScopedPointer<TableRowHeightsDialog, TableRowHeightsDialogDeleter> dialog(new TableRowHeightsDialog(this, m_ScMW));
+	QScopedPointer<TableRowHeightsDialog, TableRowHeightsDialogDeleter> dialog(new TableRowHeightsDialog(unitIndex(), rowHeight, m_ScMW));
 	if (dialog->exec() != QDialog::Accepted)
 		return;
+	rowHeight = dialog->rowHeight();
 
-	const qreal rowHeight = dialog->rowHeight();
 	QScopedValueRollback<bool> dontResizeRb(dontResize, true);
 
 	UndoTransaction activeTransaction;
@@ -9271,12 +9286,22 @@ void ScribusDoc::itemSelection_SetTableColumnWidths()
 	if (!table)
 		return;
 
+
+	double columnWidth {PageItem_Table::MinimumColumnWidth};
+	if (appMode == modeEditTable)
+	{
+		if (table->selectedCells().isEmpty())
+			columnWidth = table->columnWidth(table->activeCell().column());
+		else
+			columnWidth = table->columnWidth(table->selectedColumns().values()[0]);
+	}
+
 	using TableColumnWidthsDialogDeleter = QScopedPointerObjectDeleteLater<TableColumnWidthsDialog>;
-	QScopedPointer<TableColumnWidthsDialog, TableColumnWidthsDialogDeleter> dialog(new TableColumnWidthsDialog(this, m_ScMW));
+	QScopedPointer<TableColumnWidthsDialog, TableColumnWidthsDialogDeleter> dialog(new TableColumnWidthsDialog(unitIndex(), columnWidth, m_ScMW));
 	if (dialog->exec() != QDialog::Accepted)
 		return;
+	columnWidth = dialog->columnWidth();
 
-	const qreal columnWidth = dialog->columnWidth();
 	QScopedValueRollback<bool> dontResizeRb(dontResize, true);
 
 	UndoTransaction activeTransaction;
@@ -18033,6 +18058,8 @@ bool ScribusDoc::invalidateVariableTextFrames(const Mark* mrk, bool forceUpdate)
 //and update marks list in Marks Manager
 bool ScribusDoc::updateMarks(bool updateNotesMarks)
 {
+	if (masterPageMode())
+		return false;
 	if (updateNotesMarks && !notesList().isEmpty())
 	{
 		for (PageItem* item : std::as_const(DocItems))

@@ -52,7 +52,7 @@ struct SpellError
 * - Communication via signals/slots (thread-safe)
 * - Snapshots are immutable (safe to pass between threads)
 */
-class TextFrameSpellChecker : public QObject
+class SCRIBUS_API TextFrameSpellChecker : public QObject
 {
 	Q_OBJECT
 
@@ -331,7 +331,7 @@ class TextFrameSpellChecker : public QObject
 * This object lives in the worker thread and has its own event loop.
 * It receives check requests via signals and emits results back.
 */
-class SpellCheckerWorker : public QObject
+class SCRIBUS_API SpellCheckerWorker : public QObject
 {
 	Q_OBJECT
 
@@ -366,6 +366,24 @@ class SpellCheckerWorker : public QObject
 
 	private:
 		bool m_paused {false};
+};
+
+
+class SCRIBUS_API SpellCheckerBlocker
+{
+	public:
+		SpellCheckerBlocker()
+		{
+			TextFrameSpellChecker::instance()->pauseChecking();
+		}
+
+		~SpellCheckerBlocker()
+		{
+			TextFrameSpellChecker::instance()->resumeChecking();
+		}
+		// Prevent copying — a copied guard would double-pause/double-resume
+		SpellCheckerBlocker(const SpellCheckerBlocker&) = delete;
+		SpellCheckerBlocker& operator=(const SpellCheckerBlocker&) = delete;
 };
 
 #endif // TEXTFRAMESPELLCHECKER_H

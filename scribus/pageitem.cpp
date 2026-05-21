@@ -4631,7 +4631,7 @@ void PageItem::checkChanges(bool force)
 	}
 
 	// has the item been resized
-	if (force || ((oldWidth != m_width || oldHeight != m_height) && shouldCheck()))
+	if (force || ((!qFuzzyCompare(oldWidth, m_width) || !qFuzzyCompare(oldHeight, m_height)) && shouldCheck()))
 	{
 		resizeUndoAction();
 		spreadChanges = (textFlowMode() != TextFlowDisabled);
@@ -8694,7 +8694,7 @@ void PageItem::setSnapToPatchGrid(bool val)
 
 void PageItem::setGradientStart(double x, double y)
 {
-	if ((GrStartX == x) && (GrStartY == y))
+	if (doubleIsEqual(GrStartX, x) && doubleIsEqual(GrStartY, y))
 		return;
 	if (UndoManager::undoEnabled())
 	{
@@ -8712,7 +8712,7 @@ void PageItem::setGradientStart(double x, double y)
 
 void PageItem::setGradientEnd(double x, double y)
 {
-	if ((GrEndX == x) && (GrEndY == y))
+	if (doubleIsEqual(GrEndX, x) && doubleIsEqual(GrEndY, y))
 		return;
 	if (UndoManager::undoEnabled())
 	{

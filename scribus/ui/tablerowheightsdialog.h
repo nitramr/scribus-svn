@@ -11,7 +11,7 @@ for which a new license (GPL+exception) is in place.
 
 #include "ui_tablerowheightsdialog.h"
 
-class ScribusDoc;
+#include "units.h"
 
 /**
  * This is the dialog used when setting row heights on a table.
@@ -21,13 +21,14 @@ class TableRowHeightsDialog : public QDialog, private Ui::TableRowHeightsDialog
 	Q_OBJECT
 public:
 	/// Constructs a new dialog. The dialog will use the unit of @a doc.
-	explicit TableRowHeightsDialog(ScribusDoc* doc, QWidget* parent = nullptr);
+	explicit TableRowHeightsDialog(int unitIndex, double value, QWidget* parent = nullptr);
 
 	/// Returns the row height the user entered.
 	double rowHeight() const;
 
 private:
-	ScribusDoc* m_doc;
+	int m_unitIndex {SC_PT};
+	double m_value {0.0};
 };
 
 #endif // TABLEROWHEIGHTSDIALOG_H

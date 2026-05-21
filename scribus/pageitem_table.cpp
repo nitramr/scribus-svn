@@ -24,6 +24,7 @@ for which a new license (GPL+exception) is in place.
 #include "cellarea.h"
 #include "collapsedtablepainter.h"
 #include "pageitem.h"
+#include "pageitem_table.h"
 #include "pageitem_textframe.h"
 #include "scpainter.h"
 #include "scribusdoc.h"
@@ -32,8 +33,7 @@ for which a new license (GPL+exception) is in place.
 #include "tableutils.h"
 #include "undomanager.h"
 #include "undostate.h"
-
-#include "pageitem_table.h"
+#include "util_text.h"
 
 #ifdef WANT_DEBUG
 	#define ASSERT_VALID() assertValid(); qt_noop()
@@ -573,16 +573,6 @@ void PageItem_Table::insertRows(int index, int numRows)
 		cellRow.reserve(columns());
 		for (int col = 0; col < columns(); ++col)
 		{
-			// TableCell newCell(row, col, this);
-			// if (haveTemplate)
-			// {
-			// 	TableCell tpl = cellAt(templateRow, col);
-			// 	newCell.setLeftBorder(tpl.leftBorder());
-			// 	newCell.setRightBorder(tpl.rightBorder());
-			// 	newCell.setTopBorder(tpl.topBorder());
-			// 	newCell.setBottomBorder(tpl.bottomBorder());
-			// }
-			// cellRow.append(newCell);
 			cellRow.append(TableCell(row, col, this));
 		}
 		m_cellRows.insert(row, cellRow);
@@ -622,6 +612,19 @@ void PageItem_Table::removeRows(int index, int numRows)
 	if (!validRow(index) || numRows < 1 || numRows >= rows() || index + numRows > rows())
 		return;
 
+	// Snapshot before destroying anything. The snapshot reads from live
+	// state, so it must happen while everything is still intact.
+	if (UndoManager::undoEnabled())
+	{
+		auto *is = new ScItemState<TableRowsSnapshot>(
+			Um::TableRowRemove, QString(), Um::ITable);
+		is->set("TABLE_REMOVE_ROWS");
+		is->setItem(snapshotRows(index, numRows));
+		undoManager->action(this, is);
+	}
+
+	UndoManager::instance()->setUndoEnabled(false);
+
 	// Remove row heights, row positions and rows of cells.
 	double removedHeight = 0.0;
 	for (int i = 0; i < numRows; ++i)
@@ -649,23 +652,18 @@ void PageItem_Table::removeRows(int index, int numRows)
 			cell.moveUp(numRows);
 	}
 
-	// Update row spans.
 	updateSpans(index, numRows, RowsRemoved);
-
-	// Decrease number of rows.
 	m_rows -= numRows;
-
-	// Update cells. TODO: Not for entire table.
 	updateCells();
 
-	// Remove any invalid cells from selection.
 	QMutableSetIterator<TableCell> cellIt(m_selection);
 	while (cellIt.hasNext())
 		if (!cellIt.next().isValid())
 			cellIt.remove();
 
-	// Move to cell below.
 	moveTo(cellAt(qMin(index + 1, rows() - 1), m_activeColumn));
+
+	UndoManager::instance()->setUndoEnabled(true);
 
 	emit changed();
 
@@ -709,16 +707,6 @@ void PageItem_Table::insertColumns(int index, int numColumns)
 		// Insert a column of cells.
 		for (int row = 0; row < rows(); ++row)
 		{
-			// TableCell newCell(row, col, this);
-			// if (haveTemplate)
-			// {
-			// 	TableCell tpl = cellAt(row, templateCol);
-			// 	newCell.setLeftBorder(tpl.leftBorder());
-			// 	newCell.setRightBorder(tpl.rightBorder());
-			// 	newCell.setTopBorder(tpl.topBorder());
-			// 	newCell.setBottomBorder(tpl.bottomBorder());
-			// }
-			// m_cellRows[row].insert(col, newCell);
 			m_cellRows[row].insert(col, TableCell(row, col, this));
 		}
 	}
@@ -757,7 +745,17 @@ void PageItem_Table::removeColumns(int index, int numColumns)
 	if (!validColumn(index) || numColumns < 1 || numColumns >= columns() || index + numColumns > columns())
 		return;
 
-	// Remove column widths, column positions and columns of cells.
+	if (UndoManager::undoEnabled())
+	{
+		auto *is = new ScItemState<TableColumnsSnapshot>(
+			Um::TableColumnRemove, QString(), Um::ITable);
+		is->set("TABLE_REMOVE_COLUMNS");
+		is->setItem(snapshotColumns(index, numColumns));
+		undoManager->action(this, is);
+	}
+
+	UndoManager::instance()->setUndoEnabled(false);
+
 	double removedWidth = 0.0;
 	for (int i = 0; i < numColumns; ++i)
 	{
@@ -788,7 +786,7 @@ void PageItem_Table::removeColumns(int index, int numColumns)
 	// Decrease number of columns.
 	m_columns -= numColumns;
 
-	// Update cells. TODO: Not for entire table.
+	// Update cells.
 	updateCells();
 
 	// Remove any invalid cells from selection.
@@ -799,6 +797,8 @@ void PageItem_Table::removeColumns(int index, int numColumns)
 
 	// Move to cell to the right.
 	moveTo(cellAt(m_activeRow, qMin(m_activeColumn + 1, columns() - 1)));
+
+	UndoManager::instance()->setUndoEnabled(true);
 
 	emit changed();
 
@@ -1414,7 +1414,6 @@ void PageItem_Table::adjustFrameToTable()
 {
 	if (!m_Doc)
 		return;
-
 	m_Doc->sizeItem(effectiveWidth(), effectiveHeight(), this);
 }
 
@@ -2248,6 +2247,209 @@ void PageItem_Table::updateSpans(int index, int number, ChangeType changeType)
 	}
 }
 
+TableRowsSnapshot PageItem_Table::snapshotRows(int index, int numRows) const
+{
+	TableRowsSnapshot snap;
+	snap.index = index;
+	snap.numRows = numRows;
+	snap.numColumns = columns();
+	snap.frameWidth = width();
+	snap.frameHeight = height();
+	snap.rowHeights = m_rowHeights;
+	snap.cells.reserve(numRows * columns());
+
+	for (int r = 0; r < numRows; ++r)
+	{
+		const int row = index + r;
+
+		for (int col = 0; col < columns(); ++col)
+		{
+			TableCell cell = cellAt(row, col);
+			TableRowsSnapshot::CellSnapshot cs;
+			PageItem_TextFrame *tf = cell.textFrame();
+			if (tf)
+				cs.storyTextXml = saxedText(&tf->itemText);
+			cs.style = cell.styleName();
+			cs.fillColor = cell.fillColor();
+			cs.fillShade = cell.fillShade();
+			cs.leftBorder = cell.leftBorder();
+			cs.rightBorder = cell.rightBorder();
+			cs.topBorder = cell.topBorder();
+			cs.bottomBorder = cell.bottomBorder();
+			snap.cells.append(cs);
+		}
+	}
+
+	// Capture every CellArea that intersects the row range [index, index+numRows).
+	// We need the original areas, before updateSpans mutates them.
+	for (const CellArea& area : m_cellAreas)
+	{
+		const int areaTop = area.row();
+		const int areaBottom = area.row() + area.height() - 1;
+		const int removeTop = index;
+		const int removeBottom = index + numRows - 1;
+		if (areaBottom < removeTop || areaTop > removeBottom)
+			continue;
+		snap.areas.append(area);
+	}
+
+	return snap;
+}
+
+void PageItem_Table::restoreRowsFromSnapshot(const TableRowsSnapshot& snap)
+{
+	// Caller has already re-inserted snap.numRows blank rows at snap.index.
+	// We're called with undo disabled, so any setters here are quiet.
+
+	m_rowHeights = snap.rowHeights;
+
+	for (int r = 0; r < snap.numRows; ++r)
+	{
+		const int row = snap.index + r;
+
+		for (int col = 0; col < snap.numColumns; ++col)
+		{
+			TableCell cell = cellAt(row, col);
+			const auto& cs = snap.cells.at(r * snap.numColumns + col);
+
+			PageItem_TextFrame *tf = cell.textFrame();
+			if (tf && !cs.storyTextXml.isEmpty())
+			{
+				StoryText restored = desaxeString(m_Doc, cs.storyTextXml);
+				tf->itemText.clear();
+				tf->itemText.insert(0, restored, false);
+			}
+
+			cell.setStyle(cs.style);
+			cell.setFillColor(cs.fillColor);
+			cell.setFillShade(cs.fillShade);
+			cell.setLeftBorder(cs.leftBorder);
+			cell.setRightBorder(cs.rightBorder);
+			cell.setTopBorder(cs.topBorder);
+			cell.setBottomBorder(cs.bottomBorder);
+		}
+	}
+
+	// Recompute row positions from the now-correct row heights.
+	double pos = 0.0;
+	for (int row = 0; row < rows(); ++row)
+	{
+		m_rowPositions[row] = pos;
+		pos += m_rowHeights[row];
+	}
+
+	// Restore any merged areas that intersected the removed range.
+	// mergeCells preserves the top-left cell's content:
+	//   - if the merge's top-left was inside the removed range, we just
+	//     restored that cell's content from the snapshot above;
+	//   - if the merge's top-left was above the removed range, that content
+	//     was never destroyed and is still in the table.
+	for (const CellArea& area : snap.areas)
+		mergeCells(area.row(), area.column(), area.height(), area.width());
+
+	updateCells();
+}
+
+TableColumnsSnapshot PageItem_Table::snapshotColumns(int index, int numColumns) const
+{
+	TableColumnsSnapshot snap;
+	snap.index = index;
+	snap.numColumns = numColumns;
+	snap.numRows = rows();
+	snap.frameWidth = width();
+	snap.frameHeight = height();
+	snap.columnWidths = m_columnWidths;
+	snap.cells.reserve(rows() * numColumns);
+
+	for (int row = 0; row < rows(); ++row)
+	{
+		for (int c = 0; c < numColumns; ++c)
+		{
+			TableCell cell = cellAt(row, index + c);
+			TableColumnsSnapshot::CellSnapshot cs;
+			PageItem_TextFrame *tf = cell.textFrame();
+			if (tf)
+				cs.storyTextXml = saxedText(&tf->itemText);
+			cs.style = cell.styleName();
+			cs.fillColor = cell.fillColor();
+			cs.fillShade = cell.fillShade();
+			cs.leftBorder = cell.leftBorder();
+			cs.rightBorder = cell.rightBorder();
+			cs.topBorder = cell.topBorder();
+			cs.bottomBorder = cell.bottomBorder();
+			snap.cells.append(cs);
+		}
+	}
+
+	// Capture every CellArea that intersects the column range [index, index+numColumns).
+	// We need the original areas, before updateSpans mutates them.
+	for (const CellArea& area : m_cellAreas)
+	{
+		const int areaLeft = area.column();
+		const int areaRight = area.column() + area.width() - 1;
+		const int removeLeft = index;
+		const int removeRight = index + numColumns - 1;
+		if (areaRight < removeLeft || areaLeft > removeRight)
+			continue;
+		snap.areas.append(area);
+	}
+
+	return snap;
+}
+
+void PageItem_Table::restoreColumnsFromSnapshot(const TableColumnsSnapshot& snap)
+{
+	// Caller has already re-inserted snap.numColumns blank columns at snap.index.
+	// We're called with undo disabled, so any setters here are quiet.
+
+	m_columnWidths = snap.columnWidths;
+
+	for (int row = 0; row < snap.numRows; ++row)
+	{
+		for (int c = 0; c < snap.numColumns; ++c)
+		{
+			const int col = snap.index + c;
+			TableCell cell = cellAt(row, col);
+			const auto& cs = snap.cells.at(row * snap.numColumns + c);
+
+			PageItem_TextFrame *tf = cell.textFrame();
+			if (tf && !cs.storyTextXml.isEmpty())
+			{
+				StoryText restored = desaxeString(m_Doc, cs.storyTextXml);
+				tf->itemText.clear();
+				tf->itemText.insert(0, restored, false);
+			}
+
+			cell.setStyle(cs.style);
+			cell.setFillColor(cs.fillColor);
+			cell.setFillShade(cs.fillShade);
+			cell.setLeftBorder(cs.leftBorder);
+			cell.setRightBorder(cs.rightBorder);
+			cell.setTopBorder(cs.topBorder);
+			cell.setBottomBorder(cs.bottomBorder);
+		}
+	}
+
+	// Recompute column positions from the now-correct column widths.
+	double pos = 0.0;
+	for (int col = 0; col < columns(); ++col)
+	{
+		m_columnPositions[col] = pos;
+		pos += m_columnWidths[col];
+	}
+
+	// Restore any merged areas that intersected the removed range.
+	// mergeCells preserves the top-left cell's content:
+	//   - if the merge's top-left was inside the removed range, we just
+	//     restored that cell's content from the snapshot above;
+	//   - if the merge's top-left was above the removed range, that content
+	//     was never destroyed and is still in the table.
+	for (const CellArea& area : snap.areas)
+		mergeCells(area.row(), area.column(), area.height(), area.width());
+
+	updateCells();
+}
+
 void PageItem_Table::debug() const
 {
 	qDebug() << "-------------------------------------------------";
@@ -2460,6 +2662,16 @@ void PageItem_Table::restore(UndoState *state, bool isUndo)
 	else if (simpleState->contains("TABLE_INSERT_COLUMNS"))
 	{
 		restoreTableInsertColumns(simpleState, isUndo);
+		doUpdate = true;
+	}
+	else if (simpleState->contains("TABLE_REMOVE_ROWS"))
+	{
+		restoreTableRemoveRows(simpleState, isUndo);
+		doUpdate = true;
+	}
+	else if (simpleState->contains("TABLE_REMOVE_COLUMNS"))
+	{
+		restoreTableRemoveColumns(simpleState, isUndo);
 		doUpdate = true;
 	}
 	else
@@ -2885,4 +3097,58 @@ void PageItem_Table::restoreTableInsertColumns(SimpleState *state, bool isUndo)
 	updateClip();
 
 	UndoManager::instance()->setUndoEnabled(true);
+}
+
+// Note on undo-flag management: insertRows/insertColumns/removeRows/
+// removeColumns all set UndoEnabled to false during their body and then
+// unconditionally set it back to true at the end. To keep undo silenced
+// across multiple of these calls in a single restore, we re-disable
+// after each one.
+
+void PageItem_Table::restoreTableRemoveRows(SimpleState *state, bool isUndo)
+{
+	auto *is = dynamic_cast<ScItemState<TableRowsSnapshot>*>(state);
+	if (!is)
+		return;
+	const TableRowsSnapshot& snap = is->getItem();
+	QScopedValueRollback<bool> rb(m_Doc->dontResize, true);
+	UndoBlocker ub;
+
+	if (isUndo)
+	{
+		insertRows(snap.index, snap.numRows);
+		restoreRowsFromSnapshot(snap);
+		m_Doc->sizeItem(snap.frameWidth, snap.frameHeight, this);
+	}
+	else
+	{
+		removeRows(snap.index, snap.numRows);
+		adjustTable();
+	}
+
+	updateClip();
+}
+
+void PageItem_Table::restoreTableRemoveColumns(SimpleState *state, bool isUndo)
+{
+	auto *is = dynamic_cast<ScItemState<TableColumnsSnapshot>*>(state);
+	if (!is)
+		return;
+	const TableColumnsSnapshot& snap = is->getItem();
+	QScopedValueRollback<bool> rb(m_Doc->dontResize, true);
+	UndoBlocker ub;
+
+	if (isUndo)
+	{
+		insertColumns(snap.index, snap.numColumns);
+		restoreColumnsFromSnapshot(snap);
+		m_Doc->sizeItem(snap.frameWidth, snap.frameHeight, this);
+	}
+	else
+	{
+		removeColumns(snap.index, snap.numColumns);
+		adjustTable();
+	}
+
+	updateClip();
 }

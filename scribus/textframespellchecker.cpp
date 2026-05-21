@@ -267,7 +267,7 @@ void TextFrameSpellChecker::frameDeactivated(PageItem_TextFrame* frame)
 void TextFrameSpellChecker::frameTextChanged(PageItem_TextFrame* frame)
 {
 	// qDebug()<<Q_FUNC_INFO;
-	if (!frame || !m_enabled)
+	if (!frame || !m_enabled || m_paused)
 		return;
 	
 	// Mark as needing recheck

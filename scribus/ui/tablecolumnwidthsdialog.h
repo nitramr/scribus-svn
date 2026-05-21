@@ -11,8 +11,6 @@ for which a new license (GPL+exception) is in place.
 
 #include "ui_tablecolumnwidthsdialog.h"
 
-class ScribusDoc;
-
 /**
  * This is the dialog used when setting column widths on a table.
  */
@@ -21,13 +19,14 @@ class TableColumnWidthsDialog : public QDialog, private Ui::TableColumnWidthsDia
 	Q_OBJECT
 public:
 	/// Constructs a new dialog. The dialog will use the unit of @a doc.
-	explicit TableColumnWidthsDialog(ScribusDoc* doc, QWidget* parent = nullptr);
+	explicit TableColumnWidthsDialog(int unitIndex, double value, QWidget* parent = nullptr);
 
 	/// Returns the column width the user entered.
 	double columnWidth() const;
 
 private:
-	ScribusDoc* m_doc;
+	int m_unitIndex {SC_PT};
+	double m_value {0.0};
 };
 
 #endif // TABLECOLUMNWIDTHSDIALOG_H

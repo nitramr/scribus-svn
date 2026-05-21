@@ -139,38 +139,33 @@ void ScText_Shared::replaceCharStyleContextInParagraph(int pos, const StyleConte
 		value(i)->setContext(newContext);
 	}
 #ifndef NDEBUG // skip assertions if we aren't debugging
-	// we are done here but will do a sanity check:
-	// assert that all chars point to the following parstyle
-	QListIterator<ScText*> it( *this );
-	const StyleContext* lastContext = nullptr;
-	while ( it.hasNext() )
+	// Sanity check: verify that characters in the affected paragraph all
+	// point to the expected context. Only walk the affected paragraph
+	// rather than the whole story — the latter is O(n) per call, leading
+	// to O(n²) behaviour on large documents during load.
+	for (int i = pos - 1; i >= 0; --i)
 	{
-		ScText* elem = it.next();
-		assert( elem );
-		if ( elem->ch.isNull() ) 
+		ScText* elem = at(i);
+		assert(elem);
+		if (elem->ch == SpecialChars::PARSEP)
+			break;
+		if (elem->ch.isNull())
+			continue; // see code in removeParSep
+		assert(elem->context() == newContext);
+	}
+	if (pos < size())
+	{
+		ScText* elem = at(pos);
+		if (elem->ch == SpecialChars::PARSEP)
 		{
-			// nothing, see code in removeParSep
+			assert(elem->parstyle);
+			assert(newContext == elem->parstyle->charStyleContext());
 		}
-		else if (elem->ch == SpecialChars::PARSEP)
+		else if (!elem->ch.isNull())
 		{
-			assert( elem->parstyle );
-			if ( lastContext )
-			{
-				assert( lastContext == elem->parstyle->charStyleContext() );
-			}
-			lastContext = nullptr;
-		}
-		else if (lastContext == nullptr)
-		{
-			lastContext = elem->context();
-		}
-		else 
-		{
-			assert( lastContext == elem->context() );
+			assert(elem->context() == newContext);
 		}
 	}
-	if ( lastContext )
-		assert( lastContext == trailingStyle.charStyleContext() );
 #endif
 }
 

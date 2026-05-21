@@ -3479,7 +3479,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, const QRectF& cullingArea)
 		textLayout.render(&painter, this);
 
 		// Draw spell check underlines (only in edit mode)
-		if (TextFrameSpellChecker::instance()->isEnabled() &&
+		if (TextFrameSpellChecker::instance()->isEnabled() && !TextFrameSpellChecker::instance()->isPaused() &&
 			PrefsManager::instance().appPrefs.spellCheckPrefs.showMisspeltIndicator &&
 			 m_Doc->appMode == modeEdit && this == m_Doc->m_Selection->itemAt(0))
 		{

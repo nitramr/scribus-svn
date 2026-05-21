@@ -455,9 +455,9 @@ public:
 	static QString TableMergeCells;
 	static QString TableUnmergeCells;
 	static QString TableRowInsert;
-	static QString TableRowDelete;
+	static QString TableRowRemove;
 	static QString TableColumnInsert;
-	static QString TableColumnDelete;
+	static QString TableColumnRemove;
 	static QString SetFont;
 	static QString SetFontSize;
 	static QString SetFontWidth;

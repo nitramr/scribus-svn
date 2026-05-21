@@ -654,17 +654,10 @@ void GlyphBox::render(TextLayoutPainter *p) const
 		p->setStrokeColor(p->fillColor());
 		p->setStrokeWidth(lw);
 
-		double xoffs(0.0), yoffs(0.0);
-		if (m_glyphRun.glyphs().count() > 0)
-		{
-			const GlyphLayout& gl = m_glyphRun.glyphs().first();
-			xoffs = gl.xoffset;
-			yoffs = gl.yoffset;
-		}
 		if (charStyle.effects() & ScStyle_Subscript)
-			p->drawLine(QPointF(xoffs, yoffs - st), QPointF(xoffs + m_glyphRun.width(), yoffs - st));
+			p->drawLine(QPointF(0, 0 - st), QPointF( m_glyphRun.width(), 0 - st));
 		else
-			p->drawLine(QPointF(xoffs, -st), QPointF(xoffs + m_glyphRun.width(), -st));
+			p->drawLine(QPointF(0, 0 - st), QPointF( m_glyphRun.width(), 0 - st));
 
 		p->setStrokeWidth(sw);
 		p->setStrokeColor(sc);
@@ -740,14 +733,7 @@ void GlyphBox::render(TextLayoutPainter *p) const
 		p->setStrokeColor(p->fillColor());
 		p->setStrokeWidth(lw);
 
-		double xoffs(0.0), yoffs(0.0);
-		if (m_glyphRun.glyphs().count() > 0)
-		{
-			const GlyphLayout& gl = m_glyphRun.glyphs().first();
-			xoffs = gl.xoffset;
-			yoffs = gl.yoffset;
-		}
-		p->drawLine(QPointF(xoffs, yoffs - st), QPointF(xoffs + m_glyphRun.width(), yoffs - st));
+		p->drawLine(QPointF(0, 0 - st), QPointF(m_glyphRun.width(), 0 - st));
 
 		p->setStrokeWidth(sw);
 		p->setStrokeColor(sc);

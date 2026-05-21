@@ -6,25 +6,23 @@ to the COPYING file provided with the program. Following this notice may exist
 a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
+
 #include "pageitem_table.h"
-#include "scribusdoc.h"
 
 #include "tablerowheightsdialog.h"
 
-TableRowHeightsDialog::TableRowHeightsDialog(ScribusDoc* doc, QWidget *parent) : QDialog(parent),
-	m_doc(doc)
+TableRowHeightsDialog::TableRowHeightsDialog(int unitIndex, double value, QWidget *parent) : QDialog(parent)
 {
-	Q_ASSERT(m_doc);
-
 	setupUi(this);
 
-	tableRowHeight->setNewUnit(m_doc->unitIndex());
-	tableRowHeight->setMinimum(PageItem_Table::MinimumRowHeight * m_doc->unitRatio());
+	m_unitIndex = unitIndex;
+	tableRowHeight->setNewUnit(unitIndex);
+	double ur = unitGetRatioFromIndex(unitIndex);
+	tableRowHeight->setMinimum(PageItem_Table::MinimumRowHeight * ur);
+	tableRowHeight->setValue(value * ur);
 }
 
 double TableRowHeightsDialog::rowHeight() const
 {
-	Q_ASSERT(m_doc);
-
-	return tableRowHeight->getValue(m_doc->unitIndex());
+	return tableRowHeight->getValue(m_unitIndex);
 }

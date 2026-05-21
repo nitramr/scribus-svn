@@ -3384,6 +3384,7 @@ bool ScribusMainWindow::loadDoc(const QString& fileName)
 			return true;
 		}
 	}
+	SpellCheckerBlocker spellBlocker;
 	UndoBlocker undoBlocker;
 	if (!fileName.isEmpty())
 	{
@@ -4144,6 +4145,8 @@ bool ScribusMainWindow::slotFileSaveAs()
 
 bool ScribusMainWindow::DoFileSave(const QString& fileName, QString* savedFileName, uint formatID)
 {
+	SpellCheckerBlocker spellBlocker;
+	UndoBlocker undoBlocker;
 	ScCore->fileWatcher->forceScan();
 	ScCore->fileWatcher->stop();
 	doc->reorganiseFonts();

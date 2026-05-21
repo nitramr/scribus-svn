@@ -31,6 +31,56 @@ class ScribusDoc;
 class TablePainter;
 
 /**
+ * Snapshot of a contiguous range of rows for undo of row removal.
+ *
+ * Captures everything needed to reconstruct the destroyed cells: their text
+ * content (serialised via SaxXML), cell style name, fill colour/shade, and
+ * the four direct borders. Also captures any merged areas that intersected
+ * the removed range so merges can be restored on undo.
+ */
+struct TableRowsSnapshot
+{
+	struct CellSnapshot
+	{
+		QString     storyTextXml;
+		QString     style;
+		QString     fillColor;
+		double      fillShade { 100.0 };
+		TableBorder leftBorder;
+		TableBorder rightBorder;
+		TableBorder topBorder;
+		TableBorder bottomBorder;
+	};
+
+	int index { 0 };               // start of the removed range
+	int numRows { 0 };             // number of rows removed
+	int numColumns { 0 };          // columns() at snapshot time
+	QVector<double> rowHeights;    // full pre-removal m_rowHeights (length == rows() before removal)
+	QVector<CellSnapshot> cells;   // length == numRows * numColumns; indexed r*numColumns + c
+	QVector<CellArea> areas;       // original CellAreas that intersected the removed range
+	double frameWidth { 0.0 };
+	double frameHeight { 0.0 };
+};
+
+/**
+ * Snapshot of a contiguous range of columns for undo of column removal.
+ * Mirrors TableRowsSnapshot.
+ */
+struct TableColumnsSnapshot
+{
+	using CellSnapshot = TableRowsSnapshot::CellSnapshot;
+
+	int index { 0 };               // start of the removed range
+	int numColumns { 0 };          // number of columns removed
+	int numRows { 0 };             // rows() at snapshot time
+	QVector<double> columnWidths;  // full pre-removal m_columnWidths (length == columns() before removal)
+	QVector<CellSnapshot> cells;   // length == numRows * numColumns; indexed r*numColumns + c
+	QVector<CellArea> areas;       // original CellAreas that intersected the removed range
+	double frameWidth { 0.0 };
+	double frameHeight { 0.0 };
+};
+
+/**
  * The PageItem_Table class represents a table.
  * <p>
  * A table is a group of cells ordered into rows and columns. Each table contains at least
@@ -654,6 +704,18 @@ private:
 	 */
 	void updateSpans(int index, int number, ChangeType changeType);
 
+	/// Captures the state of rows [index, index+numRows) into a snapshot for undo.
+	TableRowsSnapshot snapshotRows(int index, int numRows) const;
+
+	/// Restores rows from a snapshot. Assumes the rows have been re-inserted blank.
+	void restoreRowsFromSnapshot(const TableRowsSnapshot& snap);
+
+	/// Captures the state of columns [index, index+numColumns) into a snapshot for undo.
+	TableColumnsSnapshot snapshotColumns(int index, int numColumns) const;
+
+	/// Restores columns from a snapshot. Assumes the columns have been re-inserted blank.
+	void restoreColumnsFromSnapshot(const TableColumnsSnapshot& snap);
+
 	/// Prints internal table information. For internal use.
 	void debug() const;
 
@@ -734,6 +796,12 @@ private:
 
 	// Undo/redo table column insert
 	void restoreTableInsertColumns(SimpleState *state, bool isUndo);
+
+	// Undo/redo table row removal
+	void restoreTableRemoveRows(SimpleState *state, bool isUndo);
+
+	// Undo/redo table column removal
+	void restoreTableRemoveColumns(SimpleState *state, bool isUndo);
 
 private:
 	//<<Data we need to save
