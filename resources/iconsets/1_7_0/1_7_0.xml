@@ -478,6 +478,8 @@ On Dark:  #e580ff; rgb(229, 128, 255); hsl(288, 100, 75)
 		<icon id="insert-table-rows" file="16/table-row-insert.svg" />		
 		<icon id="merge-table-cells" file="16/table-merge-cells.svg" />
 		<icon id="split-table-cells" file="16/table-split-cell.svg" />
+		<icon id="table-cell-style" file="16/table-cell-style.svg" />
+		<icon id="table-style" file="16/table-style.svg" />
 		
 		<!-- Text & Font-->
 		<icon id="character-capitals-all" file="16/character-capitals-all.svg" />

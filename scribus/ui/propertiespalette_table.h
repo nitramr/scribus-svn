@@ -68,6 +68,7 @@ public slots:
 	void updateFillControls();
 	void updateStyleControls();
 	void updatePaddingControls();
+	void toggleLabelVisibility(bool v);
 
 private slots:
 	void setTableStyle(const QString& name);

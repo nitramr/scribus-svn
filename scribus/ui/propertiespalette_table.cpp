@@ -40,8 +40,6 @@ PropertiesPalette_Table::PropertiesPalette_Table(QWidget* parent) : QWidget(pare
 	setSizePolicy( QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum));
 
 	iconSetChange();
-	labelTable->setBuddy(tableStyleCombo);
-	labelCells->setBuddy(cellStyleCombo);
 
 	MarginStruct distances;
 
@@ -49,6 +47,7 @@ PropertiesPalette_Table::PropertiesPalette_Table(QWidget* parent) : QWidget(pare
 	cellPaddingWidget->toggleLabelVisibility(false);
 
 	connect(ScQApp, SIGNAL(iconSetChanged()), this, SLOT(iconSetChange()));
+	connect(ScQApp, SIGNAL(labelVisibilityChanged(bool)), this, SLOT(toggleLabelVisibility(bool)));
 
 	connect(tableStyleCombo, SIGNAL(newStyle(QString)), this, SLOT(setTableStyle(QString)));
 	connect(cellStyleCombo, SIGNAL(newStyle(QString)), this, SLOT(setCellStyle(QString)));
@@ -62,6 +61,8 @@ void PropertiesPalette_Table::iconSetChange()
 	removeBorderLineButton->setIcon(iconManager.loadIcon("stroke-remove"));
 	buttonClearTableStyle->setIcon(iconManager.loadIcon("reset"));
 	buttonClearCellStyle->setIcon(iconManager.loadIcon("reset"));
+	labelTable->setPixmap(iconManager.loadPixmap("table-style"));
+	labelCells->setPixmap(iconManager.loadPixmap("table-cell-style"));
 }
 
 void PropertiesPalette_Table::handleUpdateRequest(int updateFlags)
@@ -248,6 +249,16 @@ void PropertiesPalette_Table::updatePaddingControls()
 	MarginStruct padding;
 	padding.set(cell.topPadding(), cell.leftPadding(), cell.bottomPadding(), cell.rightPadding());
 	cellPaddingWidget->setNewValues(padding);
+}
+
+void PropertiesPalette_Table::toggleLabelVisibility(bool v)
+{
+	borderLineColorLabel->setLabelVisibility(v);
+	borderLineShadeLabel->setLabelVisibility(v);
+	borderLineStyleLabel->setLabelVisibility(v);
+	borderLineWidthLabel->setLabelVisibility(v);
+	fillColorLabel->setLabelVisibility(v);
+	fillShadeLabel->setLabelVisibility(v);
 }
 
 void PropertiesPalette_Table::setTableStyle(const QString &name)
@@ -882,6 +893,19 @@ void PropertiesPalette_Table::updateBorders()
 void PropertiesPalette_Table::languageChange()
 {
 	retranslateUi(this);
+
+	scTableStyles->setText(tr("Styles"));
+	scTableFills->setText(tr("Fill"));
+	scTableBorders->setText(tr("Borders"));
+	scTableCellPadding->setText(tr("Cell Padding"));
+
+	borderLineColorLabel->setText(tr("C&olor"));
+	borderLineShadeLabel->setText(tr("S&hade"));
+	borderLineStyleLabel->setText(tr("&Type"));
+	borderLineWidthLabel->setText(tr("&Width"));
+	fillColorLabel->setText(tr("&Color"));
+	fillShadeLabel->setText(tr("&Shade"));
+
 }
 
 void PropertiesPalette_Table::unitChange()
