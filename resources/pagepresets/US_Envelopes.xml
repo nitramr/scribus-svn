@@ -45,17 +45,17 @@
         <page id="00033" unit="in" width="14.5" height="11.5" name="Catalog 14 1/2"/>
         <page id="00034" unit="in" width="15" height="10" name="Catalog 15"/>
         <page id="00035" unit="in" width="15.5" height="12" name="Catalog 15 1/2"/>
-        <page id="00036" unit="in" width="5.5" height="3.125" name="Commerical 5"/>
-        <page id="00037" unit="in" width="6" height="3.5" name="Commerical 6 1/4"/>
-        <page id="00038" unit="in" width="6.5" height="3.625" name="Commerical 6 3/4"/>
-        <page id="00039" unit="in" width="6.75" height="3.75" name="Commerical 7"/>
-        <page id="00040" unit="in" width="7.5" height="3.9375" name="Commerical 7 1/2"/>
-        <page id="00041" unit="in" width="8.625" height="3.625" name="Commerical 8 5/8"/>
-        <page id="00042" unit="in" width="8.875" height="3.875" name="Commerical 9"/>
-        <page id="00043" unit="in" width="9.5" height="4.125" name="Commerical 10" legacyNames="Comm10E"/>
-        <page id="00044" unit="in" width="10.375" height="4.5" name="Commerical 11"/>
-        <page id="00045" unit="in" width="11" height="4.75" name="Commerical 12"/>
-        <page id="00046" unit="in" width="11.5" height="5" name="Commerical 14"/>
+        <page id="00036" unit="in" width="5.5" height="3.125" name="Commercial 5"/>
+        <page id="00037" unit="in" width="6" height="3.5" name="Commercial 6 1/4"/>
+        <page id="00038" unit="in" width="6.5" height="3.625" name="Commercial 6 3/4"/>
+        <page id="00039" unit="in" width="6.75" height="3.75" name="Commercial 7"/>
+        <page id="00040" unit="in" width="7.5" height="3.9375" name="Commercial 7 1/2"/>
+        <page id="00041" unit="in" width="8.625" height="3.625" name="Commercial 8 5/8"/>
+        <page id="00042" unit="in" width="8.875" height="3.875" name="Commercial 9"/>
+        <page id="00043" unit="in" width="9.5" height="4.125" name="Commercial 10" legacyNames="Comm10E"/>
+        <page id="00044" unit="in" width="10.375" height="4.5" name="Commercial 11"/>
+        <page id="00045" unit="in" width="11" height="4.75" name="Commercial 12"/>
+        <page id="00046" unit="in" width="11.5" height="5" name="Commercial 14"/>
         <page id="00047" unit="in" width="6" height="6" name="Square 6"/>
         <page id="00048" unit="in" width="6.5" height="6.5" name="Square 6 1/2"/>
         <page id="00049" unit="in" width="7" height="7" name="Square 7"/>

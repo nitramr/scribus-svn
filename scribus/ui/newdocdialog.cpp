@@ -185,6 +185,11 @@ void NewDocDialog::createNewDocPage()
 
 	listPageFormats->setValues(QSizeF(pageWidth, pageHeight), m_orientation, pciPreferred.id, PageSizeList::NameAsc);
 
+	QString name;
+	if (listPageFormats->currentIndex().isValid())
+		name = listPageFormats->currentIndex().data().toString();
+	textPagePresetName->setText(name);
+
 	pageSizeSelector->setHasFormatSelector(false);
 	pageSizeSelector->setHasCustom(false);
 	pageSizeSelector->setPageSize(pageWidth, pageHeight);

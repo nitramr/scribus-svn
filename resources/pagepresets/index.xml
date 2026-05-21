@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<collections minVersion="1.7.2" version="1.7.2">
+<collections minVersion="1.7.4" version="1.7.4">
   <collection name="ISO_A_Paper.xml"/>
   <collection name="ISO_B_Paper.xml"/>
   <collection name="ISO_C_Envelope.xml"/>
