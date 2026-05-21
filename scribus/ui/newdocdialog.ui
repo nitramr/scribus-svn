@@ -500,7 +500,7 @@
                      <number>0</number>
                     </property>
                     <item>
-                     <layout class="QHBoxLayout" name="horizontalLayout_10">
+                     <layout class="QHBoxLayout" name="horizontalLayout_101">
                       <item>
                        <widget class="QToolButton" name="buttonSinglePage">
                         <property name="text">

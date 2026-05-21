@@ -436,6 +436,8 @@ public:
 	static QString CellFillColor;
 	static QString CellFillShade;
 	static QString CellStyle;
+	static QString TableDistributeColumns;
+	static QString TableDistributeRows;
 	static QString TableFillColor;
 	static QString TableFillColorRst;
 	static QString TableFillShade;

@@ -650,6 +650,8 @@ void UndoManager::languageChange()
 	UndoManager::CellFillColor      = tr("Set cell fill color");
 	UndoManager::CellFillShade      = tr("Set cell fill shade");
 	UndoManager::CellStyle          = tr("Set cell style");
+	UndoManager::TableDistributeColumns = tr("Distribute table columns");
+	UndoManager::TableDistributeRows = tr("Distribute table rows");
 	UndoManager::TableFillColor     = tr("Set table fill color");
 	UndoManager::TableFillColorRst  = tr("Reset table fill color");
 	UndoManager::TableFillShade     = tr("Set table fill shade");
@@ -1023,6 +1025,8 @@ QString UndoManager::CellBorders        = "";
 QString UndoManager::CellFillColor      = "";
 QString UndoManager::CellFillShade      = "";
 QString UndoManager::CellStyle          = "";
+QString UndoManager::TableDistributeColumns = "";
+QString UndoManager::TableDistributeRows = "";
 QString UndoManager::TableFillColor     = "";
 QString UndoManager::TableFillColorRst  = "";
 QString UndoManager::TableFillShade     = "";
