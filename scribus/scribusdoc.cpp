@@ -8964,9 +8964,19 @@ void ScribusDoc::itemSelection_InsertTableRows()
 		index = appMode == modeEditTable ? cell.row() + cell.rowSpan() : table->rows();
 
 	// Insert the rows.
-	table->insertRows(index, dialog->numberOfRows());
-	table->clearSelection();
-	table->adjustTable();
+	if (index == table->rows())
+	{
+		// Inserting after the last row: append and grow the table rather
+		// than rescaling existing rows to a fixed size.
+		table->appendRows(dialog->numberOfRows());
+		table->clearSelection();
+	}
+	else
+	{
+		table->insertRows(index, dialog->numberOfRows());
+		table->clearSelection();
+		table->adjustTable();
+	}
 	table->update();
 
 	m_ScMW->updateTableMenuActions();
@@ -9002,9 +9012,19 @@ void ScribusDoc::itemSelection_InsertTableColumns()
 		index = appMode == modeEditTable ? cell.column() + cell.columnSpan() : table->columns();
 
 	// Insert the columns.
-	table->insertColumns(index, dialog->numberOfColumns());
-	table->clearSelection();
-	table->adjustTable();
+	if (index == table->columns())
+	{
+		// Inserting after the last column: append and grow the table rather
+		// than rescaling existing columns to a fixed size.
+		table->appendColumns(dialog->numberOfColumns());
+		table->clearSelection();
+	}
+	else
+	{
+		table->insertColumns(index, dialog->numberOfColumns());
+		table->clearSelection();
+		table->adjustTable();
+	}
 	table->update();
 
 	m_ScMW->updateTableMenuActions();

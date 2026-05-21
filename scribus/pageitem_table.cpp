@@ -605,6 +605,38 @@ void PageItem_Table::insertRows(int index, int numRows)
 	ASSERT_VALID();
 }
 
+void PageItem_Table::appendRows(int numRows)
+{
+	ASSERT_VALID();
+
+	if (numRows < 1)
+		return;
+
+	const int index = rows();
+
+	if (UndoManager::undoEnabled())
+	{
+		SimpleState *ss = new SimpleState(Um::TableRowInsert, QString(), Um::ITable);
+		ss->set("TABLE_APPEND_ROWS");
+		ss->set("INDEX", index);
+		ss->set("NUM_ROWS", numRows);
+		ss->set("OLD_WIDTH", width());
+		ss->set("OLD_HEIGHT", height());
+		undoManager->action(this, ss);
+	}
+
+	UndoBlocker ub;
+
+	// New rows inherit the last row's height (insertRows uses the row at
+	// index-1). Grow the frame to fit rather than rescaling existing rows.
+	insertRows(index, numRows);
+	adjustFrameToTable();
+
+	emit changed();
+
+	ASSERT_VALID();
+}
+
 void PageItem_Table::removeRows(int index, int numRows)
 {
 	ASSERT_VALID();
@@ -732,6 +764,39 @@ void PageItem_Table::insertColumns(int index, int numColumns)
 	// Update cells. TODO: Not for entire table.
 	updateCells();
 	UndoManager::instance()->setUndoEnabled(true);
+
+	emit changed();
+
+	ASSERT_VALID();
+}
+
+void PageItem_Table::appendColumns(int numColumns)
+{
+	ASSERT_VALID();
+
+	if (numColumns < 1)
+		return;
+
+	const int index = columns();
+
+	if (UndoManager::undoEnabled())
+	{
+		SimpleState *ss = new SimpleState(Um::TableColumnInsert, QString(), Um::ITable);
+		ss->set("TABLE_APPEND_COLUMNS");
+		ss->set("INDEX", index);
+		ss->set("NUM_COLUMNS", numColumns);
+		ss->set("OLD_WIDTH", width());
+		ss->set("OLD_HEIGHT", height());
+		undoManager->action(this, ss);
+	}
+
+	UndoBlocker ub;
+
+	// New columns inherit the last column's width (insertColumns uses the
+	// column at index-1). Grow the frame to fit rather than rescaling
+	// existing columns.
+	insertColumns(index, numColumns);
+	adjustFrameToTable();
 
 	emit changed();
 
@@ -2664,6 +2729,16 @@ void PageItem_Table::restore(UndoState *state, bool isUndo)
 		restoreTableInsertColumns(simpleState, isUndo);
 		doUpdate = true;
 	}
+	else if (simpleState->contains("TABLE_APPEND_ROWS"))
+	{
+		restoreTableAppendRows(simpleState, isUndo);
+		doUpdate = true;
+	}
+	else if (simpleState->contains("TABLE_APPEND_COLUMNS"))
+	{
+		restoreTableAppendColumns(simpleState, isUndo);
+		doUpdate = true;
+	}
 	else if (simpleState->contains("TABLE_REMOVE_ROWS"))
 	{
 		restoreTableRemoveRows(simpleState, isUndo);
@@ -3097,6 +3172,61 @@ void PageItem_Table::restoreTableInsertColumns(SimpleState *state, bool isUndo)
 	updateClip();
 
 	UndoManager::instance()->setUndoEnabled(true);
+}
+
+void PageItem_Table::restoreTableAppendRows(SimpleState *state, bool isUndo)
+{
+	const int index = state->getInt("INDEX");
+	const int numRows = state->getInt("NUM_ROWS");
+	const double oldWidth = state->getDouble("OLD_WIDTH");
+	const double oldHeight = state->getDouble("OLD_HEIGHT");
+
+	UndoBlocker ub;
+
+	if (isUndo)
+	{
+		// Remove the appended rows and shrink the frame back to its
+		// pre-append size.
+		removeRows(index, numRows);
+		setWidthHeight(oldWidth, oldHeight);
+	}
+	else
+	{
+		// Re-append the rows (at the last row's height) and grow the frame
+		// to fit — mirroring appendRows, not the squash-to-fit adjustTable.
+		insertRows(index, numRows);
+		adjustFrameToTable();
+	}
+
+	updateClip();
+}
+
+void PageItem_Table::restoreTableAppendColumns(SimpleState *state, bool isUndo)
+{
+	const int index = state->getInt("INDEX");
+	const int numColumns = state->getInt("NUM_COLUMNS");
+	const double oldWidth = state->getDouble("OLD_WIDTH");
+	const double oldHeight = state->getDouble("OLD_HEIGHT");
+
+	UndoBlocker ub;
+
+	if (isUndo)
+	{
+		// Remove the appended columns and shrink the frame back to its
+		// pre-append size.
+		removeColumns(index, numColumns);
+		setWidthHeight(oldWidth, oldHeight);
+	}
+	else
+	{
+		// Re-append the columns (at the last column's width) and grow the
+		// frame to fit — mirroring appendColumns, not the squash-to-fit
+		// adjustTable.
+		insertColumns(index, numColumns);
+		adjustFrameToTable();
+	}
+
+	updateClip();
 }
 
 // Note on undo-flag management: insertRows/insertColumns/removeRows/

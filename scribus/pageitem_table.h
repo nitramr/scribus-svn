@@ -216,6 +216,14 @@ public:
 	void insertRows(int index, int numRows);
 
 	/**
+	 * Appends @a numRows rows to the end of the table, each at the height of
+	 * the current last row, and grows the frame to fit. Unlike insertRows
+	 * followed by adjustTable(), this does not rescale existing rows — the
+	 * table grows rather than keeping a fixed size.
+	 */
+	void appendRows(int numRows);
+
+	/**
 	 * Removes @a numRows rows from the table, starting with the row at @a index.
 	 *
 	 * If the specified range falls outside the table or the number of rows is
@@ -284,6 +292,14 @@ public:
 	 * this method does nothing.
 	 */
 	void insertColumns(int index, int numColumns);
+
+	/**
+	 * Appends @a numColumns columns to the end of the table, each at the width
+	 * of the current last column, and grows the frame to fit. Unlike
+	 * insertColumns followed by adjustTable(), this does not rescale existing
+	 * columns — the table grows rather than keeping a fixed size.
+	 */
+	void appendColumns(int numColumns);
 
 	/**
 	 * Removes @a numColumns columns from the table, starting with the column at @a index.
@@ -796,6 +812,12 @@ private:
 
 	// Undo/redo table column insert
 	void restoreTableInsertColumns(SimpleState *state, bool isUndo);
+
+	/// Restores from a TABLE_APPEND_ROWS undo state.
+	void restoreTableAppendRows(SimpleState *state, bool isUndo);
+
+	/// Restores from a TABLE_APPEND_COLUMNS undo state.
+	void restoreTableAppendColumns(SimpleState *state, bool isUndo);
 
 	// Undo/redo table row removal
 	void restoreTableRemoveRows(SimpleState *state, bool isUndo);

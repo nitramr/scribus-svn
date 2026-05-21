@@ -113,8 +113,7 @@ void CanvasMode_EditTable::keyPressEvent(QKeyEvent* event)
 				(active.column() + active.columnSpan() - 1 == m_table->columns() - 1);
 		if (atLastCell)
 		{
-			m_table->insertRows(m_table->rows(), 1);
-			m_table->adjustTable();
+			m_table->appendRows(1);
 			updateCanvas();
 		}
 		navigateCells(Qt::Key_Right);
