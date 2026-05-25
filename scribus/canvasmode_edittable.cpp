@@ -29,6 +29,7 @@ for which a new license (GPL+exception) is in place.
 #include "selection.h"
 #include "tablehandle.h"
 #include "ui/contextmenu.h"
+#include "ui/hruler.h"
 #include "undomanager.h"
 
 CanvasMode_EditTable::CanvasMode_EditTable(ScribusView* view) : CanvasMode(view),
@@ -65,12 +66,17 @@ void CanvasMode_EditTable::activate(bool fromGesture)
 	if (fromGesture)
 		m_view->setCursor(Qt::ArrowCursor);
 
-	m_lastCursorPos = -1;
+	PageItem_TextFrame* tf = m_table->activeCell().textFrame();
+	m_lastCursorPos = tf ? tf->itemText.cursorPosition() : -1;
 	m_blinkTime.start();
 	m_canvasUpdateTimer->start(200);
 	makeLongTextCursorBlink();
 
 	m_view->m_ScMW->updateTableMenuActions();
+
+	// Set up the horizontal ruler for the active cell on entry. HaveNewSel
+	// runs while appMode is still modeNormal and so cannot do this itself.
+	updateTextEditUIForActiveCell();
 }
 
 void CanvasMode_EditTable::deactivate(bool forGesture)
@@ -92,6 +98,8 @@ void CanvasMode_EditTable::keyPressEvent(QKeyEvent* event)
 		PageItem_TextFrame* activeFrame = m_table->activeCell().textFrame();
 		activeFrame->itemText.deselectAll();
 		activeFrame->HasSel = false;
+		m_view->horizRuler->textMode(false);
+		m_view->horizRuler->update();
 		m_view->requestMode(modeNormal);
 		return;
 	}
@@ -100,9 +108,23 @@ void CanvasMode_EditTable::keyPressEvent(QKeyEvent* event)
 	const Qt::KeyboardModifiers mods = event->modifiers();
 	// Arrow keys may carry KeypadModifier on macOS and some Linux layouts; mask it out before modifier comparisons.
 	const Qt::KeyboardModifiers effMods = mods & ~Qt::KeypadModifier;
-	const bool isArrow = (key == Qt::Key_Left  || key == Qt::Key_Right
-						  || key == Qt::Key_Up    || key == Qt::Key_Down);
+	const bool isArrow = (key == Qt::Key_Left  || key == Qt::Key_Right || key == Qt::Key_Up    || key == Qt::Key_Down);
 
+	// Insert a literal tab into the active cell instead of navigating.
+	// On macOS, Qt maps Cmd to ControlModifier and Cmd+Tab is the system
+	// app switcher, so use Option (Alt). Elsewhere Alt+Tab is the window
+	// switcher, so use Ctrl.
+#if defined(Q_OS_MACOS)
+	const Qt::KeyboardModifiers insertTabMod = Qt::AltModifier;
+#else
+	const Qt::KeyboardModifiers insertTabMod = Qt::ControlModifier;
+#endif
+	if (key == Qt::Key_Tab && effMods == insertTabMod)
+	{
+		bool repeat;
+		m_table->activeCell().textFrame()->handleModeEditKey(event, repeat);
+	}
+	else
 	// Tab / Shift+Tab: move to next/previous cell. Tab in the last cell
 	// appends a new row, matching Word/Writer.
 	if (key == Qt::Key_Tab && effMods == Qt::NoModifier)
@@ -298,6 +320,8 @@ void CanvasMode_EditTable::mousePressEvent(QMouseEvent* event)
 				m_view->slotSetCurs(globalPos.x(), globalPos.y());
 				m_lastCursorPos = m_table->activeCell().textFrame()->itemText.cursorPosition();
 				m_view->m_ScMW->setTBvals(m_table->activeCell().textFrame());
+				m_view->horizRuler->setItem(m_table->activeCell().textFrame());
+				m_view->horizRuler->update();
 				makeLongTextCursorBlink();
 				updateCanvas(true);
 				break;
@@ -495,9 +519,11 @@ void CanvasMode_EditTable::handleMouseDrag(QMouseEvent* event)
 	TableCell activeCell = m_table->activeCell();
 	PageItem_TextFrame* activeFrame = activeCell.textFrame();
 
+	bool rangeSelecting = false;
+
 	if ((!hitCell.isValid() || hitCell == activeCell) && m_lastCursorPos != -1)
 	{
-		// Select text in active cell text frame.
+		// Drag within the active cell: select text in the cell's text frame.
 		activeFrame->itemText.deselectAll();
 		activeFrame->HasSel = false;
 
@@ -515,23 +541,35 @@ void CanvasMode_EditTable::handleMouseDrag(QMouseEvent* event)
 		}
 		else
 		{
+			// Active cell changed mid-drag: start cell range selection.
 			m_lastCursorPos = -1;
 			m_cellSelectGesture->setup(m_table, activeCell);
 			m_view->startGesture(m_cellSelectGesture);
+			rangeSelecting = true;
 		}
-		m_view->m_ScMW->setTBvals(newActiveFrame);
 	}
 	else
 	{
-		/*
-		 * Mouse moved into another cell, so deselect all text and start
-		 * cell selection gesture.
-		 */
+		// Drag moved into another cell: start cell range selection.
 		activeFrame->itemText.deselectAll();
 		activeFrame->HasSel = false;
 
 		m_cellSelectGesture->setup(m_table, activeCell);
 		m_view->startGesture(m_cellSelectGesture);
+		rangeSelecting = true;
+	}
+
+	// The ruler shows tab/indent markers only while editing within a single
+	// cell. Clear it when a cell range selection is starting; otherwise keep
+	// it on the active cell.
+	if (rangeSelecting)
+	{
+		m_view->horizRuler->textMode(false);
+		m_view->horizRuler->update();
+	}
+	else
+	{
+		updateTextEditUIForActiveCell();
 	}
 
 	updateCanvas(true);
@@ -623,6 +661,8 @@ void CanvasMode_EditTable::navigateCells(int key)
 	tf->itemText.deselectAll();
 	tf->HasSel = false;
 	tf->itemText.setCursorPosition((key == Qt::Key_Left || key == Qt::Key_Up) ? tf->itemText.length() : 0);
+
+	updateTextEditUIForActiveCell();
 }
 
 void CanvasMode_EditTable::extendCellSelection(int key)
@@ -664,6 +704,8 @@ void CanvasMode_EditTable::extendCellSelection(int key)
 
 	m_table->clearSelection();
 	m_table->selectCells(m_selectionAnchorRow, m_selectionAnchorColumn, m_table->activeCell().row(), m_table->activeCell().column());
+	m_view->horizRuler->textMode(false);
+	m_view->horizRuler->update();
 }
 
 bool CanvasMode_EditTable::cursorAtCellBoundary(int key) const
@@ -717,4 +759,15 @@ bool CanvasMode_EditTable::tryRowWrap(int key, int beforeRow, int beforeCol)
 		return true;
 	}
 	return false;
+}
+
+void CanvasMode_EditTable::updateTextEditUIForActiveCell()
+{
+	PageItem_TextFrame* frame = m_table->activeCell().textFrame();
+	if (!frame)
+		return;
+
+	m_view->m_ScMW->setTBvals(frame);
+	m_view->horizRuler->setItem(frame);
+	m_view->horizRuler->update();
 }

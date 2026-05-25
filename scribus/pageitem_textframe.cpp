@@ -3903,30 +3903,30 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 
 	switch (kk)
 	{
-	case Qt::Key_PageDown:
-	case Qt::Key_PageUp:
-	case Qt::Key_End:
-	case Qt::Key_Home:
-	case Qt::Key_Right:
-	case Qt::Key_Left:
-	case Qt::Key_Up:
-	case Qt::Key_Down:
-		if ( (buttonModifiers & Qt::ShiftModifier) == 0 )
-			deselectAll();
-		if (UndoManager::undoEnabled())
-		{
-			SimpleState *ss = dynamic_cast<SimpleState*>(undoManager->getLastUndo());
-			if (ss)
-				ss->set("ETEA", QString(""));
-			else
+		case Qt::Key_PageDown:
+		case Qt::Key_PageUp:
+		case Qt::Key_End:
+		case Qt::Key_Home:
+		case Qt::Key_Right:
+		case Qt::Key_Left:
+		case Qt::Key_Up:
+		case Qt::Key_Down:
+			if ( (buttonModifiers & Qt::ShiftModifier) == 0 )
+				deselectAll();
+			if (UndoManager::undoEnabled())
 			{
-				TransactionState *ts = dynamic_cast<TransactionState*>(undoManager->getLastUndo());
-				if (ts)
-					ss = dynamic_cast<SimpleState*>(ts->last());
+				SimpleState *ss = dynamic_cast<SimpleState*>(undoManager->getLastUndo());
 				if (ss)
 					ss->set("ETEA", QString(""));
+				else
+				{
+					TransactionState *ts = dynamic_cast<TransactionState*>(undoManager->getLastUndo());
+					if (ts)
+						ss = dynamic_cast<SimpleState*>(ts->last());
+					if (ss)
+						ss->set("ETEA", QString(""));
+				}
 			}
-		}
 	}
 
 	if (unicodeTextEditMode)

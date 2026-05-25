@@ -275,6 +275,11 @@ void CanvasMode_Normal::mouseDoubleClickEvent(QMouseEvent *m)
 		}
 		else if (currItem->isTable())
 		{
+			PageItem_Table* table = currItem->asTable();
+			FPoint tp = m_canvas->globalToCanvas(m->globalPosition());
+			TableCell clickedCell = table->cellAt(QPointF(tp.x(), tp.y()));
+			if (clickedCell.isValid())
+				table->moveTo(clickedCell);
 			m_view->requestMode(modeEditTable);
 			m_view->slotSetCurs(globalPos.x(), globalPos.y());
 			m_ScMW->setTBvals(currItem);
@@ -976,6 +981,7 @@ void CanvasMode_Normal::mousePressEvent(QMouseEvent *m)
 			TableHandle handle = table->hitTest(canvasPoint, threshold);
 			if (handle.type() == TableHandle::CellSelect)
 			{
+				table->moveTo(table->cellAt(canvasPoint));
 				m_view->requestMode(modeEditTable);
 				m_view->slotSetCurs(globalPos.x(), globalPos.y());
 				m_ScMW->setTBvals(currItem);

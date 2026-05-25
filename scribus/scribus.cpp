@@ -2736,6 +2736,8 @@ void ScribusMainWindow::HaveNewSel()
 			PageItem *cellItem = currItem->asTable()->activeCell().textFrame();
 			setTBvals(cellItem);
 			appModeHelper->enableTextActions(true, cellItem->currentCharStyle().font().scName());
+			view->horizRuler->setItem(cellItem);
+			view->horizRuler->update();
 		}
 		break;
 	case PageItem::PathText: //Path Text

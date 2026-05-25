@@ -1356,6 +1356,9 @@
     <ClCompile Include="..\..\..\scribus\manager\dock_manager.cpp">
       <Filter>Source Files\manager</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\scribus\manager\pagepreset_manager.cpp">
+      <Filter>Source Files\manager</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\scribus\manager\widget_manager.cpp">
       <Filter>Source Files\manager</Filter>
     </ClCompile>
@@ -3647,6 +3650,9 @@
       <Filter>Source Files</Filter>
     </moc>
     <moc Include="..\..\..\scribus\manager\dock_manager.h">
+      <Filter>Source Files\manager</Filter>
+    </moc>
+    <moc Include="..\..\..\scribus\manager\pagepreset_manager.h">
       <Filter>Source Files\manager</Filter>
     </moc>
     <moc Include="..\..\..\scribus\manager\widget_manager.h">

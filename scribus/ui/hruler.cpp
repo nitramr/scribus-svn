@@ -866,6 +866,12 @@ void Hruler::setItem(PageItem * item)
 {
 	m_currItem = item;
 	QTransform mm = m_currItem->getTransform();
+	// A table cell's text frame stores a table-relative position, and
+	// getTransform() does not move to the table for it (it is not a
+	// group child). Compose the table's transform so the ruler origin
+	// lands at the cell's true page position.
+	if (m_currItem->isTableCell() && m_currItem->Parent)
+		mm = mm * m_currItem->Parent->getTransform();
 	QPointF itPos = mm.map(QPointF(0, m_currItem->yPos()));
 	m_itemScale = mm.m11();
 	m_itemPos = itPos.x();

@@ -215,15 +215,15 @@ void PagePresetManager::loadAllPresets(const QString &indexFilePath, PageSizeTyp
 
 			if (tagName == u"collections")
 			{
-				const auto minVer = xml.attributes().value(u"minVersion");
+				const auto minVer = xml.attributes().value("minVersion");
 				if (!hasValidVersion(minVer.toString()))
 					qWarning() << "The index file is newer than the current version:" << indexFilePath;
 			}
 			else if (tagName == u"collection")
 			{
-				const auto fileNameView = xml.attributes().value(u"name");
+				auto fileNameView = xml.attributes().value("name").toString();
 				if (!fileNameView.isEmpty())
-					parseCollectionFile(basePath % fileNameView, type);
+					parseCollectionFile(basePath + fileNameView, type);
 			}
 			else if (tagName == u"separator")
 			{
@@ -265,14 +265,14 @@ void PagePresetManager::parseCollectionFile(const QString &filePath, PageSizeTyp
 			if (tagName == u"collection")
 			{
 				const auto &attrs = xml.attributes();
-				if (!hasValidVersion(attrs.value(u"minVersion").toString()))
+				if (!hasValidVersion(attrs.value("minVersion").toString()))
 				{
 					qWarning() << "Skipped newer version preset:" << filePath;
 					return;
 				}
 
-				currentMeta.id = attrs.value(u"id").toString();
-				currentMeta.name = attrs.value(u"name").toString();
+				currentMeta.id = attrs.value("id").toString();
+				currentMeta.name = attrs.value("name").toString();
 				currentMeta.displayName = currentMeta.name;
 
 				m_categoryOrderList.append(currentMeta.id);
@@ -312,34 +312,34 @@ void PagePresetManager::parseCollectionFile(const QString &filePath, PageSizeTyp
 				PageSizeInfo info;
 				const auto &attrs = xml.attributes();
 
-				info.id = currentMeta.id % u'_' % attrs.value(u"id");
-				info.width = attrs.value(u"width").toDouble();
-				info.height = attrs.value(u"height").toDouble();
+				info.id = currentMeta.id + u'_' + attrs.value("id").toString();
+				info.width = attrs.value("width").toDouble();
+				info.height = attrs.value("height").toDouble();
 				info.categoryId = currentMeta.id;
-				info.name = attrs.value(u"name").toString();
+				info.name = attrs.value("name").toString();
 				info.displayName = info.name;
-				info.pageUnitIndex = unitIndexFromString(attrs.value(u"unit").toString());
+				info.pageUnitIndex = unitIndexFromString(attrs.value("unit").toString());
 				info.type = type;
 
-				const auto layoutVal = attrs.value(u"layout");
+				const auto layoutVal = attrs.value("layout");
 				if (!layoutVal.isEmpty())
-					info.layout = attrs.value(u"layout").toInt();
+					info.layout = attrs.value("layout").toInt();
 				// else
 				// 	info.layout = prefsManager.appPrefs.docSetupPrefs.pagePositioning;
 
-				const auto bindingDirectionVal = attrs.value(u"bindingDirection");
+				const auto bindingDirectionVal = attrs.value("bindingDirection");
 				if (!bindingDirectionVal.isEmpty())
-					info.bindingDirection = attrs.value(u"bindingDirection").toInt();
+					info.bindingDirection = attrs.value("bindingDirection").toInt();
 				// else
 				// 	info.bindingDirection = prefsManager.appPrefs.docSetupPrefs.bindingDirection;
 
-				const auto firstPageVal = attrs.value(u"firstPage");
+				const auto firstPageVal = attrs.value("firstPage");
 				if (!firstPageVal.isEmpty())
-					info.firstPage = attrs.value(u"firstPage").toInt();
+					info.firstPage = attrs.value("firstPage").toInt();
 				// else
 				//  info.firstPage = prefsManager.appPrefs.docSetupPrefs.pagePositioning;
 
-				const auto legacyVal = attrs.value(u"legacyNames");
+				const auto legacyVal = attrs.value("legacyNames");
 				if (!legacyVal.isEmpty())
 					info.lagacyNames = legacyVal.toString().split(u';');
 
@@ -362,13 +362,13 @@ void PagePresetManager::parseCollectionFile(const QString &filePath, PageSizeTyp
 						{
 							const auto &attrs = xml.attributes();
 							MarginStruct margins;
-							margins.setLeft(value2pts(attrs.value(u"left").toDouble(), info.pageUnitIndex));
-							margins.setTop(value2pts(attrs.value(u"top").toDouble(), info.pageUnitIndex));
-							margins.setRight(value2pts(attrs.value(u"right").toDouble(), info.pageUnitIndex));
-							margins.setBottom(value2pts(attrs.value(u"bottom").toDouble(), info.pageUnitIndex));
+							margins.setLeft(value2pts(attrs.value("left").toDouble(), info.pageUnitIndex));
+							margins.setTop(value2pts(attrs.value("top").toDouble(), info.pageUnitIndex));
+							margins.setRight(value2pts(attrs.value("right").toDouble(), info.pageUnitIndex));
+							margins.setBottom(value2pts(attrs.value("bottom").toDouble(), info.pageUnitIndex));
 
 							info.margins = margins;
-							info.marginPreset = attrs.value(u"preset").toInt();
+							info.marginPreset = attrs.value("preset").toInt();
 
 							xml.skipCurrentElement();
 						}
@@ -376,10 +376,10 @@ void PagePresetManager::parseCollectionFile(const QString &filePath, PageSizeTyp
 						{
 							const auto &attrs = xml.attributes();
 							MarginStruct margins;
-							margins.setLeft(value2pts(attrs.value(u"left").toDouble(), info.pageUnitIndex));
-							margins.setTop(value2pts(attrs.value(u"top").toDouble(), info.pageUnitIndex));
-							margins.setRight(value2pts(attrs.value(u"right").toDouble(), info.pageUnitIndex));
-							margins.setBottom(value2pts(attrs.value(u"bottom").toDouble(), info.pageUnitIndex));
+							margins.setLeft(value2pts(attrs.value("left").toDouble(), info.pageUnitIndex));
+							margins.setTop(value2pts(attrs.value("top").toDouble(), info.pageUnitIndex));
+							margins.setRight(value2pts(attrs.value("right").toDouble(), info.pageUnitIndex));
+							margins.setBottom(value2pts(attrs.value("bottom").toDouble(), info.pageUnitIndex));
 
 							info.bleeds = margins;
 
@@ -389,8 +389,8 @@ void PagePresetManager::parseCollectionFile(const QString &filePath, PageSizeTyp
 						{
 							const auto &attrs = xml.attributes();
 							QList<double> values;
-							values.append(attrs.value(u"columns").toInt());
-							values.append(value2pts(attrs.value(u"gap").toDouble(), info.pageUnitIndex));
+							values.append(attrs.value("columns").toInt());
+							values.append(value2pts(attrs.value("gap").toDouble(), info.pageUnitIndex));
 
 							info.textFrame = values;
 
@@ -448,7 +448,7 @@ LocalizedStringsMap PagePresetManager::parseNamesBlock(QXmlStreamReader &xml)
 		{
 			if (xml.name() == u"name")
 			{
-				const auto langView = xml.attributes().value(u"lang").toString();
+				const auto langView = xml.attributes().value("lang").toString();
 				if (!langView.isEmpty())
 				{
 					QString val = xml.readElementText();

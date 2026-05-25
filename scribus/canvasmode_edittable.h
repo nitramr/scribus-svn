@@ -82,6 +82,8 @@ private:
 	void extendCellSelection(int key);
 	bool cursorAtCellBoundary(int key) const;
 	bool tryRowWrap(int key, int beforeRow, int beforeCol);
+	/// Refreshes the text toolbar and horizontal ruler for the active cell.
+	void updateTextEditUIForActiveCell();
 
 private:
 	/// Table being edited.

@@ -5,6 +5,7 @@
 	<Import Project="iconsets\install.targets" />
 	<Import Project="keysets\install.targets" />
 	<Import Project="loremipsum\install.targets" />
+	<Import Project="pagepresets\install.targets" />
 	<Import Project="profiles\install.targets" />
 	<Import Project="swatches\install.targets" />
 	<Import Project="templates\install.targets" />

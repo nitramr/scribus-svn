@@ -9287,7 +9287,20 @@ void ScribusDoc::itemSelection_SetTableRowHeights()
 		for (int row = 0; row < table->rows(); ++row)
 			table->resizeRow(row, rowHeight / unitRatio());
 	}
-	table->adjustTable();
+	// If every row was resized, there is no sibling row to absorb the change,
+	// so adjustTable() would rescale them back to the current frame height and
+	// revert the edit. In that case grow/shrink the frame to the new table
+	// height instead. Otherwise keep the table size fixed and let adjustTable()
+	// redistribute.
+	bool allRowsResized =
+		(appMode != modeEditTable) ||                                                           // "all columns" branch
+		(table->selectedCells().isEmpty() && table->activeCell().rowSpan() == table->rows()) || // active span covers all
+		(!table->selectedCells().isEmpty() && table->selectedRows().count() == table->rows());  // selection covers all
+
+	if (allRowsResized)
+		table->adjustFrameToTable();
+	else
+		table->adjustTable();
 	table->update();
 	if (activeTransaction)
 		activeTransaction.commit();
@@ -9354,7 +9367,19 @@ void ScribusDoc::itemSelection_SetTableColumnWidths()
 			table->resizeColumn(column, columnWidth / unitRatio());
 	}
 
-	table->adjustTable();
+	// If every column was resized, there is no sibling column to absorb the
+	// change, so adjustTable() would just rescale them back to the current
+	// frame width and revert the edit. In that case grow/shrink the frame to
+	// the new table width instead. Otherwise keep the table size fixed and
+	// let adjustTable() redistribute.
+	bool allColumnsResized = (appMode != modeEditTable) ||                                            // "all columns" branch
+		(table->selectedCells().isEmpty() && table->activeCell().columnSpan() == table->columns()) || // active span covers all
+		(!table->selectedCells().isEmpty() && table->selectedColumns().count() == table->columns());  // selection covers all
+
+	if (allColumnsResized)
+		table->adjustFrameToTable();
+	else
+		table->adjustTable();
 	table->update();
 	if (activeTransaction)
 		activeTransaction.commit();

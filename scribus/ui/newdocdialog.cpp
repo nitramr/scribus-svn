@@ -126,7 +126,7 @@ NewDocDialog::NewDocDialog(QWidget* parent, const QStringList& recentDocs, bool 
 	connect(buttonBindingDirection, &QToolButton::toggled, this, &NewDocDialog::setBindingDirection);
 	connect(unitOfMeasureComboBox, &QComboBox::activated, this, &NewDocDialog::setUnit);
 	connect(Distance, &ScrSpinBox::valueChanged, this, &NewDocDialog::setDistance);
-	connect(autoTextFrame, &QCheckBox::checkStateChanged, this, &NewDocDialog::handleAutoFrame);
+	connect(autoTextFrame, &QCheckBox::stateChanged, this, &NewDocDialog::handleAutoFrame);
 	connect(listPageFormats, &PageSizeList::clicked, this, &NewDocDialog::changePageSize);
 	connect(listPageFormats, &PageSizeList::changedCategories, this, &NewDocDialog::updateCategorySelector);
 	connect(pageSizeSelector, &PageSizeSelector::pageCategoryChanged, this, &NewDocDialog::changeCategory);
@@ -494,7 +494,7 @@ void NewDocDialog::savePagePreset()
 	pci.author = tr("User");
 	pci.license = tr("Copyright by user");
 	pci.name = tr("User");
-	pci.filePath = presetUserFolder % u"user.xml";
+	pci.filePath = presetUserFolder + "user.xml";
 
 	PagePresetManager::instance().createOrUpdateCollection(pci.filePath, pci, uuid);
 
