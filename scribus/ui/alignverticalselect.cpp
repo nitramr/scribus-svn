@@ -16,25 +16,28 @@ for which a new license (GPL+exception) is in place.
 
 AlignVerticalSelect::AlignVerticalSelect(QWidget* parent) : FormWidget(parent)
 {
-	buttonGroup = new QButtonGroup(this);
+	buttonGroup = new ScButtonGroup(this);
 	buttonGroup->setExclusive(true);
 
-	TextT = new QToolButton( this );
+	TextT = new ScToolButton( this );
 	TextT->setCheckable( true );
 	TextT->setChecked( true );
 	buttonGroup->addButton(TextT, 0);
 
-	TextC = new QToolButton( this );
+	TextC = new ScToolButton( this );
 	TextC->setCheckable( true );
 	buttonGroup->addButton(TextC, 1);
 
-	TextB = new QToolButton( this );
+	TextB = new ScToolButton( this );
 	TextB->setCheckable( true );
 	buttonGroup->addButton(TextB, 2);
 
 	addWidget(TextT);
 	addWidget(TextC);
 	addWidget(TextB);
+
+	// Modifiy layout spacing. Layout is created by addWidget()
+	layout()->setSpacing(0);
 
 	iconSetChange();
 	languageChange();

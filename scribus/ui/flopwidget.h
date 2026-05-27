@@ -9,7 +9,9 @@ for which a new license (GPL+exception) is in place.
 
 
 #include <QButtonGroup>
+#include <QHBoxLayout>
 #include <QToolButton>
+#include "ui/widgets/buttongroup.h"
 #include "ui/widgets/form_widget.h"
 
 class ScribusDoc;
@@ -31,11 +33,11 @@ public:
 	FlopWidget(QWidget* parent);
 	~FlopWidget() {};
 
-	QButtonGroup *flopGroup;
-	QToolButton *flopRealHeight = {nullptr};
-	QToolButton *flopFontAscent = {nullptr};
-	QToolButton *flopLineSpacing = {nullptr};
-	QToolButton *flopBaselineGrid = {nullptr};
+	ScButtonGroup *flopGroup;
+	ScToolButton *flopRealHeight = {nullptr};
+	ScToolButton *flopFontAscent = {nullptr};
+	ScToolButton *flopLineSpacing = {nullptr};
+	ScToolButton *flopBaselineGrid = {nullptr};
 
 protected:
 

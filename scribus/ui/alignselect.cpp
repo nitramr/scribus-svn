@@ -16,26 +16,26 @@ for which a new license (GPL+exception) is in place.
 
 AlignSelect::AlignSelect(QWidget* parent) : FormWidget(parent)
 {
-	buttonGroup = new QButtonGroup(this);
+	buttonGroup = new ScButtonGroup(this);
 
-	TextL = new QToolButton( this );
+	TextL = new ScToolButton( this );
 	TextL->setCheckable( true );
 	TextL->setChecked( true );
 	buttonGroup->addButton(TextL, 0);
 
-	TextC = new QToolButton( this );
+	TextC = new ScToolButton( this );
 	TextC->setCheckable( true );
 	buttonGroup->addButton(TextC, 1);
 
-	TextR = new QToolButton( this );
+	TextR = new ScToolButton( this );
 	TextR->setCheckable( true );
 	buttonGroup->addButton(TextR, 2);
 
-	TextB = new QToolButton( this );
+	TextB = new ScToolButton( this );
 	TextB->setCheckable( true );
 	buttonGroup->addButton(TextB, 3);
 
-	TextF = new QToolButton( this );
+	TextF = new ScToolButton( this );
 	TextF->setCheckable( true );
 	buttonGroup->addButton(TextF, 4);
 
@@ -44,6 +44,9 @@ AlignSelect::AlignSelect(QWidget* parent) : FormWidget(parent)
 	addWidget(TextR);
 	addWidget(TextB);
 	addWidget(TextF);
+
+	// Modifiy layout spacing. Layout is created by addWidget()
+	layout()->setSpacing(0);
 
 	iconSetChange();
 	languageChange();

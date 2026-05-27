@@ -19,11 +19,12 @@
 #include <QColor>
 #include <QToolButton>
 #include <QVariantAnimation>
+#include "ui/widgets/buttongroup.h"
 
 class QPaintEvent;
 class QWidget;
 
-class PulsingToolButton : public QToolButton
+class PulsingToolButton : public ScToolButton
 {
 	Q_OBJECT
 

@@ -21,6 +21,7 @@ public:
 	static ScribusProxyStyle* instance();
 
 	QRect subControlRect(QStyle::ComplexControl cc, const QStyleOptionComplex *opt, QStyle::SubControl sc, const QWidget *widget = nullptr) const override;
+	void drawControl(QStyle::ControlElement el, const QStyleOption *opt, QPainter *painter, const QWidget *widget = nullptr) const override;
 	void drawComplexControl(QStyle::ComplexControl cc, const QStyleOptionComplex *opt, QPainter *painter, const QWidget *widget) const override;
 
 protected:

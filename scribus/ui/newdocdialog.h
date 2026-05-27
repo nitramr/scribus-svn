@@ -34,6 +34,7 @@ class QSpinBox;
 #include "scribusstructs.h"
 #include "ui/customfdialog.h"
 #include "ui/nftwidget.h"
+#include "ui/widgets/buttongroup.h"
 
 #include "ui_newdocdialog.h"
 
@@ -121,8 +122,8 @@ private slots:
 protected:
 	PrefsManager& prefsManager;
 	QStringList recentDocList;
-	QButtonGroup* pageOrientationButtons;
-	QButtonGroup* pageLayoutButtons;
+	ScButtonGroup* pageOrientationButtons;
+	ScButtonGroup* pageLayoutButtons;
 
 	double m_unitRatio { 1.0 };
 	int m_orientation { 0 };

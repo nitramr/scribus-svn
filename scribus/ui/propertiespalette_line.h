@@ -12,6 +12,7 @@ for which a new license (GPL+exception) is in place.
 #include <QListWidgetItem>
 #include "scribusapi.h"
 #include "scguardedptr.h"
+#include "ui/widgets/buttongroup.h"
 #include "units.h"
 
 class ArrowChooser;
@@ -43,8 +44,8 @@ protected:
 	PageItem *m_item {nullptr};
 	ScribusMainWindow* m_ScMW {nullptr};
 	ScGuardedPtr<ScribusDoc> m_doc;
-	QButtonGroup *buttonsCaps;
-	QButtonGroup *buttonsJoins;
+	ScButtonGroup *buttonsCaps;
+	ScButtonGroup *buttonsJoins;
 	LineMarkerSelector *lineMarkerSelectorStart;
 	LineMarkerSelector *lineMarkerSelectorEnd;
 

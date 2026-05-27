@@ -38,11 +38,18 @@ PropertiesPalette_Shape::PropertiesPalette_Shape( QWidget* parent)
 	iconSetChange();
 	languageChange();
 
+	ScButtonGroup * bgFlow = new ScButtonGroup();
+	bgFlow->addButton(textFlowDisabled);
+	bgFlow->addButton(textFlowUsesBoundingBox);
+	bgFlow->addButton(textFlowUsesContourLine);
+	bgFlow->addButton(textFlowUsesFrameShape);
+	bgFlow->addButton(textFlowUsesImageClipping);
+
 	connect(ScQApp, SIGNAL(iconSetChanged()), this, SLOT(iconSetChange()));
 	connect(ScQApp, SIGNAL(localeChanged()), this, SLOT(localeChange()));
 	connect(ScQApp, SIGNAL(labelVisibilityChanged(bool)), this, SLOT(toggleLabelVisibility(bool)));
 
-	connect(textFlowBtnGroup, SIGNAL(idClicked(int)), this, SLOT(handleTextFlow()));
+	connect(bgFlow, SIGNAL(idClicked(int)), this, SLOT(handleTextFlow()));
 	connect(editShape, SIGNAL(clicked()) , this, SLOT(handleShapeEdit()));
 	connect(roundRect, SIGNAL(valueChanged(double)) , this, SLOT(handleCornerRadius()));
 	connect(customShape, SIGNAL(FormSel(int,int,qreal*)), this, SLOT(handleNewShape(int,int,qreal*)));

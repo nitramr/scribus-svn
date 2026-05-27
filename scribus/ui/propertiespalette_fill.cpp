@@ -8,6 +8,7 @@
 #include "selection.h"
 #include "undomanager.h"
 #include "ui/colorpicker/colorpicker.h"
+#include "ui/widgets/buttongroup.h"
 
 PropertiesPalette_Fill::PropertiesPalette_Fill(QWidget *parent) :
 	QWidget(parent)
@@ -22,6 +23,10 @@ PropertiesPalette_Fill::PropertiesPalette_Fill(QWidget *parent) :
 	buttonFillMask->setMenuContextType(ColorButton::Floating);
 
 	undoManager = UndoManager::instance();
+
+	ScButtonGroup * fillRuleGroup = new ScButtonGroup();
+	fillRuleGroup->addButton(evenOdd);
+	fillRuleGroup->addButton(nonZero);
 
 	iconSetChange();
 	languageChange();

@@ -75,17 +75,18 @@ AlignDistributePalette::AlignDistributePalette(QWidget* parent) : DockPanelBase(
 	//set up scrspinboxes
 	ad->distributeDistSpinBox->setValues(-10000.0, 10000.0, 2, 0.0);
 
-	groupReference = new QButtonGroup();
+	groupReference = new ScButtonGroup();
 
 	groupReference->addButton(ad->buttonReferenceFirst, 0);
+	groupReference->addButton(ad->buttonReferenceSelection, 5);
 	groupReference->addButton(ad->buttonReferenceLast, 1);
 	groupReference->addButton(ad->buttonReferencePage, 2);
 	groupReference->addButton(ad->buttonReferenceMargins, 3);
 	groupReference->addButton(ad->buttonReferenceGuide, 4);
-	groupReference->addButton(ad->buttonReferenceSelection, 5);
+
 	ad->buttonReferenceFirst->setChecked(true);
 
-	groupMode = new QButtonGroup();
+	groupMode = new ScButtonGroup();
 	groupMode->addButton(ad->buttonModeMove, 0);
 	groupMode->addButton(ad->buttonModeResize, 1);
 	ad->buttonModeMove->setChecked(true);

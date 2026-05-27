@@ -32,10 +32,11 @@ for which a new license (GPL+exception) is in place.
 
 class QEvent;
 
+#include "docks/dock_panelbase.h"
 #include "scribusapi.h"
 #include "scribusdoc.h"
 #include "ui/scdockpalette.h"
-#include "docks/dock_panelbase.h"
+#include "ui/widgets/buttongroup.h"
 
 class QComboBox;
 class QLabel;
@@ -81,8 +82,8 @@ public slots:
 protected:
 	ScribusView *currView { nullptr };
 	AlignDistribute * ad {nullptr};
-	QButtonGroup* groupReference;
-	QButtonGroup* groupMode;
+	ScButtonGroup* groupReference;
+	ScButtonGroup* groupMode;
 
 	void changeEvent(QEvent *e) override;
 	

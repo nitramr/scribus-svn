@@ -154,12 +154,12 @@ void NewDocDialog::createNewDocPage()
 	comboSortSizes->addItem( tr("Size Desc"), PageSizeList::DimensionDesc);
 	comboSortSizes->setCurrentIndex(0);
 
-	pageOrientationButtons = new QButtonGroup();
+	pageOrientationButtons = new ScButtonGroup();
 	pageOrientationButtons->addButton(buttonVertical, 0);
 	pageOrientationButtons->addButton(buttonHorizontal, 1);
 	pageOrientationButtons->button(m_orientation)->setChecked(true);
 
-	pageLayoutButtons = new QButtonGroup();
+	pageLayoutButtons = new ScButtonGroup();
 	pageLayoutButtons->addButton(buttonSinglePage, 0);
 	pageLayoutButtons->addButton(buttonDoublePageLeft, 1);
 	pageLayoutButtons->addButton(buttonDoublePageRight, 2);

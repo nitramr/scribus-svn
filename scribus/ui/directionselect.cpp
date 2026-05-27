@@ -15,23 +15,31 @@ for which a new license (GPL+exception) is in place.
 
 DirectionSelect::DirectionSelect(QWidget* parent) : FormWidget(parent)
 {
-	buttonGroup = new QButtonGroup(this);
+	buttonGroup = new ScButtonGroup(this);
 
-	LTR = new QToolButton( this );
+	QHBoxLayout* lay = new QHBoxLayout();
+	lay->setContentsMargins(0, 0, 0, 0);
+	lay->setSpacing(0);
+	lay->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding));
+	setLayout(lay);
+
+	LTR = new ScToolButton( this );
 	LTR->setCheckable( true );
 	LTR->setChecked( true );
 	addWidget( LTR );
 	buttonGroup->addButton(LTR, 0);
 
-	RTL = new QToolButton( this );
+	RTL = new ScToolButton( this );
 	RTL->setCheckable( true );
 	addWidget( RTL );
 	buttonGroup->addButton(RTL, 1);
 
-	resize(minimumSizeHint());
+	lay->addSpacerItem(new QSpacerItem(0, 0, QSizePolicy::Expanding));
 
 	iconSetChange();
 	languageChange();
+
+	resize(minimumSizeHint());
 
 	connect(ScQApp, SIGNAL(iconSetChanged()), this, SLOT(iconSetChange()));
 	connect(buttonGroup, SIGNAL(idClicked(int)), this, SLOT(setTypeStyle(int)));

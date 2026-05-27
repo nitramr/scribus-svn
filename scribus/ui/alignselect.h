@@ -14,6 +14,7 @@ for which a new license (GPL+exception) is in place.
 class QEvent;
 
 #include "scribusapi.h"
+#include "ui/widgets/buttongroup.h"
 #include "ui/widgets/form_widget.h"
 
 class SCRIBUS_API AlignSelect : public FormWidget
@@ -30,12 +31,12 @@ public:
 	int selectedId() const;
 
 	int selected { 0 };
-	QButtonGroup* buttonGroup { nullptr };
-	QToolButton* TextL { nullptr };
-	QToolButton* TextR { nullptr };
-	QToolButton* TextC { nullptr };
-	QToolButton* TextB { nullptr };
-	QToolButton* TextF { nullptr };
+	ScButtonGroup* buttonGroup { nullptr };
+	ScToolButton* TextL { nullptr };
+	ScToolButton* TextR { nullptr };
+	ScToolButton* TextC { nullptr };
+	ScToolButton* TextB { nullptr };
+	ScToolButton* TextF { nullptr };
 
 public slots:
 	void iconSetChange();

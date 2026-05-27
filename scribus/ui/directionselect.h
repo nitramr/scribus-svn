@@ -16,6 +16,7 @@ for which a new license (GPL+exception) is in place.
 class QEvent;
 
 #include "scribusapi.h"
+#include "ui/widgets/buttongroup.h"
 #include "ui/widgets/form_widget.h"
 
 class SCRIBUS_API DirectionSelect : public FormWidget
@@ -30,9 +31,9 @@ class SCRIBUS_API DirectionSelect : public FormWidget
 		int getStyle();
 		int selectedId();
 
-		QButtonGroup* buttonGroup { nullptr };
-		QToolButton* RTL { nullptr };
-		QToolButton* LTR { nullptr };
+		ScButtonGroup* buttonGroup { nullptr };
+		ScToolButton* RTL { nullptr };
+		ScToolButton* LTR { nullptr };
 
 	public slots:
 		void iconSetChange();

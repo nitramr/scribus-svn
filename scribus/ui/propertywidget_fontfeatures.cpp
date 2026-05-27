@@ -18,6 +18,7 @@ for which a new license (GPL+exception) is in place.
 #include "selection.h"
 
 #include "fonts/fontfeatures.h"
+#include "ui/widgets/buttongroup.h"
 
 
 PropertyWidget_FontFeatures::PropertyWidget_FontFeatures(QWidget* parent) : QFrame(parent)
@@ -833,7 +834,7 @@ void PropertyWidget_FontFeatures::initWidgets()
 	OrdinalCheck->installEventFilter(this);
 	SlashedZeroCheck->installEventFilter(this);
 
-	QButtonGroup * groupCapitals = new QButtonGroup();
+	ScButtonGroup * groupCapitals = new ScButtonGroup();
 	groupCapitals->setExclusive(true);
 	groupCapitals->addButton(NormalCapRadio);
 	groupCapitals->addButton(SmallRadio);
@@ -845,19 +846,26 @@ void PropertyWidget_FontFeatures::initWidgets()
 	groupCapitals->addButton(UnicaseRadio);
 	groupCapitals->addButton(TitlingRadio);
 
-	QButtonGroup * groupFractions = new QButtonGroup();
+	ScButtonGroup * groupPosition = new ScButtonGroup();
+	groupPosition->setExclusive(true);
+	groupPosition->addButton(DefaultPosRadio);
+	groupPosition->addButton(SubscriptRadio);
+	groupPosition->addButton(SuperscriptRadio);
+	groupPosition->addButton(OrdinalCheck);
+
+	ScButtonGroup * groupFractions = new ScButtonGroup();
 	groupFractions->setExclusive(true);
 	groupFractions->addButton(DefaultFractionsRadio);
 	groupFractions->addButton(DiagonalRadio);
 	groupFractions->addButton(StackedRadio);
 
-	QButtonGroup * groupNumeralStyle = new QButtonGroup();
+	ScButtonGroup * groupNumeralStyle = new ScButtonGroup();
 	groupNumeralStyle->setExclusive(true);
 	groupNumeralStyle->addButton(DefaultStyleRadio);
 	groupNumeralStyle->addButton(LiningRadio);
 	groupNumeralStyle->addButton(OldStyleRadio);
 
-	QButtonGroup * groupNumeralWidth = new QButtonGroup();
+	ScButtonGroup * groupNumeralWidth = new ScButtonGroup();
 	groupNumeralWidth->setExclusive(true);
 	groupNumeralWidth->addButton(DefaultWidthRadio);
 	groupNumeralWidth->addButton(ProportionalRadio);
@@ -868,33 +876,16 @@ void PropertyWidget_FontFeatures::initWidgets()
 	ContextualCheck->setChecked(true);
 	DiscretionaryCheck->setChecked(false);
 	HistoricalCheck->setChecked(false);
-	
+
 	NormalCapRadio->setChecked(true);
-	// SmallRadio->setChecked(false);
-	// SmallFromCRadio->setChecked(false);
-	// AllSmallCapsRadio->setChecked(false);
-	// PetiteRadio->setChecked(false);
-	// PetiteCapRadio->setChecked(false);
-	// AllPetiteCapsRadio->setChecked(false);
-	// UnicaseRadio->setChecked(false);
-	// TitlingRadio->setChecked(false);
 
 	DefaultStyleRadio->setChecked(true);
-	// LiningRadio->setChecked(false);
-	// OldStyleRadio->setChecked(false);
 
 	DefaultWidthRadio->setChecked(true);
-	// ProportionalRadio->setChecked(false);
-	// TabularRadio->setChecked(false);
-	
+
 	DefaultFractionsRadio->setChecked(true);
-	// DiagonalRadio->setChecked(false);
-	// StackedRadio->setChecked(false);
 
 	DefaultPosRadio->setChecked(true);
-	// SubscriptRadio->setChecked(false);
-	// SuperscriptRadio->setChecked(false);
-	// OrdinalCheck->setChecked(false);
 
 	SlashedZeroCheck->setChecked(false);
 

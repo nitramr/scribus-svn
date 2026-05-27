@@ -11,22 +11,22 @@ for which a new license (GPL+exception) is in place.
 #include "scribusapp.h"
 
 FlopWidget::FlopWidget(QWidget* parent) : FormWidget(parent)
-{	
+{
 
-	flopRealHeight = new QToolButton();
+	flopRealHeight = new ScToolButton();
 	flopRealHeight->setCheckable(true);
 	flopRealHeight->setChecked(true);	
-	flopFontAscent = new QToolButton();
+	flopFontAscent = new ScToolButton();
 	flopFontAscent->setCheckable(true);
-	flopLineSpacing = new QToolButton();
+	flopLineSpacing = new ScToolButton();
 	flopLineSpacing->setCheckable(true);
-	flopBaselineGrid = new QToolButton();
+	flopBaselineGrid = new ScToolButton();
 	flopBaselineGrid->setCheckable(true);
 
-	flopGroup = new QButtonGroup();
+	flopGroup = new ScButtonGroup();
 	flopGroup->setExclusive(true);
-	flopGroup->addButton(flopRealHeight,  RealHeightID);
 	flopGroup->addButton(flopFontAscent,  FontAscentID);
+	flopGroup->addButton(flopRealHeight,  RealHeightID);
 	flopGroup->addButton(flopLineSpacing, LineSpacingID);
 	flopGroup->addButton(flopBaselineGrid, BaselineGridID);
 
@@ -34,6 +34,9 @@ FlopWidget::FlopWidget(QWidget* parent) : FormWidget(parent)
 	addWidget(flopRealHeight);
 	addWidget(flopLineSpacing);
 	addWidget(flopBaselineGrid);
+
+	// Modifiy layout spacing. Layout is created by addWidget()
+	layout()->setSpacing(0);
 
 	iconSetChange();
 	languageChange();

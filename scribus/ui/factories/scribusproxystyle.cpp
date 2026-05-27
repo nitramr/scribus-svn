@@ -18,6 +18,7 @@
 
 #include "prefsmanager.h"
 #include "scribus.h"
+#include "ui/widgets/buttongroup.h"
 #include "ui/widgets/color_slider.h"
 #include "util_gui.h"
 
@@ -66,12 +67,86 @@ ScribusProxyStyle* ScribusProxyStyle::instance()
 	return static_cast<ScribusProxyStyle*>(qApp->style());
 }
 
+void ScribusProxyStyle::drawControl(ControlElement ce, const QStyleOption *option, QPainter *painter, const QWidget *widget) const
+{
+	switch (ce)
+	{
+	case QStyle::ControlElement::CE_ToolButtonLabel:
+	{
+		QStyleOptionToolButton soButton = *qstyleoption_cast<const QStyleOptionToolButton *>(option);
+		const ScToolButton *wdg = qobject_cast<const ScToolButton *>(widget);
+
+		if (wdg)
+		{
+			QRect rect = soButton.rect;
+			int t = widget->rect().top() + 4;
+			int b = widget->rect().bottom() - 4;
+			int r = widget->rect().right();
+
+			switch (wdg->position())
+			{
+			case ScToolButton::Right:
+				soButton.rect.adjust(0, 0, rect.width() / 2, 0);
+				break;
+			case ScToolButton::Left:
+				soButton.rect.adjust(-rect.width() / 2, 0, 0, 0);
+				painter->setPen(option->palette.color(QPalette::Mid));
+				painter->drawLine(r, t, r, b);
+				break;
+			case ScToolButton::Center:
+				soButton.rect.adjust(-rect.width() / 2, 0, rect.width() / 2, 0);
+				painter->setPen(option->palette.color(QPalette::Mid));
+				painter->drawLine(r, t, r, b);
+				break;
+			default:
+				// do nothing
+				break;
+			}
+
+			return QProxyStyle::drawControl(ce, &soButton, painter, widget);
+		}
+	}
+		break;
+	default:
+		break;
+	}
+
+	return QProxyStyle::drawControl(ce, option, painter, widget);
+}
+
 QRect ScribusProxyStyle::subControlRect(ComplexControl cc, const QStyleOptionComplex *option, SubControl sc, const QWidget *widget) const
 {
 	QRect rect = QProxyStyle::subControlRect(cc, option, sc, widget);
 
 	switch (cc)
 	{
+	case QStyle::ComplexControl::CC_ToolButton:
+	{
+		const QStyleOptionToolButton *soButton = qstyleoption_cast<const QStyleOptionToolButton *>(option);
+		const ScToolButton *wdg = qobject_cast<const ScToolButton *>(widget);
+
+		if (soButton && wdg)
+		{
+			switch (wdg->position())
+			{
+			case ScToolButton::Left:
+				rect.adjust(0, 0, rect.width(), 0);
+				break;
+			case ScToolButton::Center:
+				rect.adjust(-rect.width() / 2, 0, rect.width() / 2, 0);
+				break;
+			case ScToolButton::Right:
+				rect.adjust(-rect.width(), 0, 0, 0);
+				break;
+			default:
+				// do nothing
+				break;
+			}
+
+			return visualRect(soButton->direction, soButton->rect, rect);
+		}
+	}
+	break;
 	case QStyle::ComplexControl::CC_Slider:
 	{
 		const QStyleOptionSlider *soSlider = qstyleoption_cast<const QStyleOptionSlider *>(option);
@@ -225,6 +300,7 @@ void ScribusProxyStyle::drawComplexControl(ComplexControl cc, const QStyleOption
 	}
 
 	QProxyStyle::drawComplexControl(cc, opt, painter, widget);
+
 }
 
 bool ScribusProxyStyle::eventFilter(QObject *object, QEvent *event)

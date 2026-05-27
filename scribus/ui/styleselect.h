@@ -21,6 +21,7 @@ class QEvent;
 
 #include "scrspinbox.h"
 #include "scribusapi.h"
+#include "ui/widgets/buttongroup.h"
 
 class SCRIBUS_API StrikeValues : public QFrame
 {
@@ -128,12 +129,12 @@ signals:
 
 protected:
 	QHBoxLayout* ssLayout { nullptr };
-	QToolButton* underlineButton { nullptr };
-	QToolButton* underlineWordButton { nullptr };
-	QToolButton* subscriptButton { nullptr };
-	QToolButton* superscriptButton { nullptr };
-	QToolButton* smallcapsButton { nullptr };
-	QToolButton* allcapsButton { nullptr };
+	ScToolButton* underlineButton { nullptr };
+	ScToolButton* underlineWordButton { nullptr };
+	ScToolButton* subscriptButton { nullptr };
+	ScToolButton* superscriptButton { nullptr };
+	ScToolButton* smallcapsButton { nullptr };
+	ScToolButton* allcapsButton { nullptr };
 	QToolButton* strikeoutButton { nullptr };
 	QToolButton* outlineButton { nullptr };
 	QToolButton* shadowButton { nullptr };

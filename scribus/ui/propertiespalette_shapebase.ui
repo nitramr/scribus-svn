@@ -54,10 +54,10 @@
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+        <enum>Qt::Orientation::Horizontal</enum>
        </property>
        <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
+        <enum>QSizePolicy::Policy::Fixed</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -93,7 +93,7 @@
      <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+        <enum>Qt::Orientation::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -122,7 +122,7 @@
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <property name="spacing">
-         <number>4</number>
+         <number>0</number>
         </property>
         <property name="leftMargin">
          <number>0</number>
@@ -137,7 +137,7 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QToolButton" name="textFlowDisabled">
+         <widget class="ScToolButton" name="textFlowDisabled">
           <property name="toolTip">
            <string>Text flow around frame disabled</string>
           </property>
@@ -148,34 +148,12 @@
            <bool>true</bool>
           </property>
           <property name="toolButtonStyle">
-           <enum>Qt::ToolButtonIconOnly</enum>
+           <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">textFlowBtnGroup</string>
-          </attribute>
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="textFlowUsesFrameShape">
-          <property name="toolTip">
-           <string>Text flow around frame shape</string>
-          </property>
-          <property name="checkable">
-           <bool>true</bool>
-          </property>
-          <property name="autoExclusive">
-           <bool>true</bool>
-          </property>
-          <property name="toolButtonStyle">
-           <enum>Qt::ToolButtonIconOnly</enum>
-          </property>
-          <attribute name="buttonGroup">
-           <string notr="true">textFlowBtnGroup</string>
-          </attribute>
-         </widget>
-        </item>
-        <item>
-         <widget class="QToolButton" name="textFlowUsesBoundingBox">
+         <widget class="ScToolButton" name="textFlowUsesBoundingBox">
           <property name="toolTip">
            <string>Text flow around bounding box</string>
           </property>
@@ -186,15 +164,28 @@
            <bool>true</bool>
           </property>
           <property name="toolButtonStyle">
-           <enum>Qt::ToolButtonIconOnly</enum>
+           <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">textFlowBtnGroup</string>
-          </attribute>
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="textFlowUsesContourLine">
+         <widget class="ScToolButton" name="textFlowUsesFrameShape">
+          <property name="toolTip">
+           <string>Text flow around frame shape</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="autoExclusive">
+           <bool>true</bool>
+          </property>
+          <property name="toolButtonStyle">
+           <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="ScToolButton" name="textFlowUsesContourLine">
           <property name="toolTip">
            <string>Text flow around contour line</string>
           </property>
@@ -205,15 +196,12 @@
            <bool>true</bool>
           </property>
           <property name="toolButtonStyle">
-           <enum>Qt::ToolButtonIconOnly</enum>
+           <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">textFlowBtnGroup</string>
-          </attribute>
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="textFlowUsesImageClipping">
+         <widget class="ScToolButton" name="textFlowUsesImageClipping">
           <property name="toolTip">
            <string>Text flow around image clip path</string>
           </property>
@@ -224,11 +212,8 @@
            <bool>true</bool>
           </property>
           <property name="toolButtonStyle">
-           <enum>Qt::ToolButtonIconOnly</enum>
+           <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
           </property>
-          <attribute name="buttonGroup">
-           <string notr="true">textFlowBtnGroup</string>
-          </attribute>
          </widget>
         </item>
        </layout>
@@ -237,7 +222,7 @@
      <item>
       <spacer name="horizontalSpacer_4">
        <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+        <enum>Qt::Orientation::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -252,7 +237,7 @@
    <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
-      <enum>Qt::Vertical</enum>
+      <enum>Qt::Orientation::Vertical</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>
@@ -272,9 +257,14 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>ScToolButton</class>
+   <extends>QToolButton</extends>
+   <header>ui/widgets/buttongroup.h</header>
+  </customwidget>
+  <customwidget>
    <class>ScrSpinBox</class>
    <extends>QDoubleSpinBox</extends>
-   <header>ui/scrspinbox.h</header>
+   <header location="global">ui/scrspinbox.h</header>
   </customwidget>
   <customwidget>
    <class>Autoforms</class>
@@ -284,7 +274,4 @@
  </customwidgets>
  <resources/>
  <connections/>
- <buttongroups>
-  <buttongroup name="textFlowBtnGroup"/>
- </buttongroups>
 </ui>

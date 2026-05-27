@@ -63,7 +63,7 @@
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <property name="spacing">
-             <number>4</number>
+             <number>0</number>
             </property>
             <property name="leftMargin">
              <number>0</number>
@@ -78,7 +78,7 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QToolButton" name="buttonReferenceFirst">
+             <widget class="ScToolButton" name="buttonReferenceFirst">
               <property name="text">
                <string/>
               </property>
@@ -88,7 +88,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="buttonReferenceSelection">
+             <widget class="ScToolButton" name="buttonReferenceSelection">
               <property name="text">
                <string/>
               </property>
@@ -98,7 +98,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="buttonReferenceLast">
+             <widget class="ScToolButton" name="buttonReferenceLast">
               <property name="text">
                <string/>
               </property>
@@ -108,7 +108,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="buttonReferencePage">
+             <widget class="ScToolButton" name="buttonReferencePage">
               <property name="text">
                <string/>
               </property>
@@ -118,7 +118,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="buttonReferenceMargins">
+             <widget class="ScToolButton" name="buttonReferenceMargins">
               <property name="text">
                <string/>
               </property>
@@ -147,7 +147,7 @@
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_12">
             <property name="spacing">
-             <number>4</number>
+             <number>0</number>
             </property>
             <property name="leftMargin">
              <number>0</number>
@@ -162,7 +162,7 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="QToolButton" name="buttonModeMove">
+             <widget class="ScToolButton" name="buttonModeMove">
               <property name="text">
                <string/>
               </property>
@@ -172,7 +172,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="buttonModeResize">
+             <widget class="ScToolButton" name="buttonModeResize">
               <property name="text">
                <string/>
               </property>
@@ -648,9 +648,14 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>ScToolButton</class>
+   <extends>QToolButton</extends>
+   <header>ui/widgets/buttongroup.h</header>
+  </customwidget>
+  <customwidget>
    <class>ScrSpinBox</class>
    <extends>QDoubleSpinBox</extends>
-   <header>ui/scrspinbox.h</header>
+   <header location="global">ui/scrspinbox.h</header>
   </customwidget>
   <customwidget>
    <class>PulsingToolButton</class>

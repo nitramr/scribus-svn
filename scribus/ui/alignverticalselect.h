@@ -14,6 +14,7 @@ for which a new license (GPL+exception) is in place.
 class QEvent;
 
 #include "scribusapi.h"
+#include "ui/widgets/buttongroup.h"
 #include "ui/widgets/form_widget.h"
 
 class SCRIBUS_API AlignVerticalSelect : public FormWidget
@@ -28,10 +29,10 @@ public:
 	void setStyle(int s);
 	int getStyle() const;
 
-	QButtonGroup* buttonGroup { nullptr };
-	QToolButton* TextT { nullptr };
-	QToolButton* TextC { nullptr };
-	QToolButton* TextB { nullptr };
+	ScButtonGroup* buttonGroup { nullptr };
+	ScToolButton* TextT { nullptr };
+	ScToolButton* TextC { nullptr };
+	ScToolButton* TextB { nullptr };
 
 public slots:
 	void iconSetChange();

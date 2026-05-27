@@ -384,7 +384,7 @@
                    </property>
                    <layout class="QHBoxLayout" name="horizontalLayout_4">
                     <property name="spacing">
-                     <number>4</number>
+                     <number>0</number>
                     </property>
                     <property name="leftMargin">
                      <number>0</number>
@@ -412,7 +412,7 @@
                      </spacer>
                     </item>
                     <item>
-                     <widget class="QToolButton" name="buttonVertical">
+                     <widget class="ScToolButton" name="buttonVertical">
                       <property name="text">
                        <string/>
                       </property>
@@ -428,7 +428,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QToolButton" name="buttonHorizontal">
+                     <widget class="ScToolButton" name="buttonHorizontal">
                       <property name="text">
                        <string/>
                       </property>
@@ -501,8 +501,11 @@
                     </property>
                     <item>
                      <layout class="QHBoxLayout" name="horizontalLayout_101">
+                      <property name="spacing">
+                       <number>0</number>
+                      </property>
                       <item>
-                       <widget class="QToolButton" name="buttonSinglePage">
+                       <widget class="ScToolButton" name="buttonSinglePage">
                         <property name="text">
                          <string/>
                         </property>
@@ -512,7 +515,7 @@
                        </widget>
                       </item>
                       <item>
-                       <widget class="QToolButton" name="buttonDoublePageLeft">
+                       <widget class="ScToolButton" name="buttonDoublePageLeft">
                         <property name="text">
                          <string/>
                         </property>
@@ -522,7 +525,7 @@
                        </widget>
                       </item>
                       <item>
-                       <widget class="QToolButton" name="buttonDoublePageRight">
+                       <widget class="ScToolButton" name="buttonDoublePageRight">
                         <property name="text">
                          <string/>
                         </property>
@@ -530,6 +533,19 @@
                          <bool>true</bool>
                         </property>
                        </widget>
+                      </item>
+                      <item>
+                       <spacer name="horizontalSpacer_11">
+                        <property name="orientation">
+                         <enum>Qt::Orientation::Horizontal</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>4</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                       </spacer>
                       </item>
                       <item>
                        <widget class="QToolButton" name="buttonBindingDirection">
@@ -889,9 +905,14 @@
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>ScToolButton</class>
+   <extends>QToolButton</extends>
+   <header>ui/widgets/buttongroup.h</header>
+  </customwidget>
+  <customwidget>
    <class>ScrSpinBox</class>
    <extends>QDoubleSpinBox</extends>
-   <header>ui/scrspinbox.h</header>
+   <header location="global">ui/scrspinbox.h</header>
   </customwidget>
   <customwidget>
    <class>NewMarginWidget</class>

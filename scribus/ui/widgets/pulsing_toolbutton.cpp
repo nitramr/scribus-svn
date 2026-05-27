@@ -14,7 +14,7 @@
 #include <QWidget>
 
 PulsingToolButton::PulsingToolButton(QWidget *parent):
-	QToolButton(parent)
+	ScToolButton(parent)
 {
 }
 
@@ -22,7 +22,7 @@ void PulsingToolButton::paintEvent(QPaintEvent* event)
 {
 	if (m_transition == nullptr)
 	{
-		QToolButton::paintEvent(event);
+		ScToolButton::paintEvent(event);
 		return;
 	}
 

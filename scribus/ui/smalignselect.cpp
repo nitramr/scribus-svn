@@ -4,6 +4,7 @@ to the COPYING file provided with the program. Following this notice may exist
 a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
+#include <QLayoutItem>
 #include <QToolTip>
 #include "smalignselect.h"
 #include "iconmanager.h"
@@ -12,6 +13,9 @@ for which a new license (GPL+exception) is in place.
 SMAlignSelect::SMAlignSelect(QWidget *parent)
 	: AlignSelect(parent)
 {
+	QSpacerItem * spacer = new QSpacerItem(4, 0, QSizePolicy::Fixed);
+	layout()->addItem(spacer);
+
 	parentButton = new QToolButton(this);
 	parentButton->setText( "");
 	parentButton->setToolTip( tr("Use parent style's alignment instead of overriding it"));

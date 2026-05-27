@@ -6,6 +6,7 @@ for which a new license (GPL+exception) is in place.
 */
 
 #include <QEvent>
+#include <QButtonGroup>
 
 #include "iconmanager.h"
 #include "scribusapp.h"
@@ -130,7 +131,7 @@ void ShadowValues::languageChange()
 StyleSelect::StyleSelect(QWidget* parent) : QWidget(parent)
 {
 	ssLayout = new QHBoxLayout(this);
-	ssLayout->setSpacing(4);
+	ssLayout->setSpacing(0);
 	ssLayout->setContentsMargins(0, 0, 0, 0);
 
 	UnderlineVal = new UnderlineValues( nullptr );
@@ -138,18 +139,26 @@ StyleSelect::StyleSelect(QWidget* parent) : QWidget(parent)
 	UnderlineValAct = new QWidgetAction(this);
 	UnderlineValAct->setDefaultWidget(UnderlineVal);
 	UnderlinePop->addAction(UnderlineValAct);
-	underlineButton = new QToolButton( this );
+	underlineButton = new ScToolButton( this );
 	underlineButton->setText( "" );
 	underlineButton->setCheckable( true );
 	underlineButton->setMenu(UnderlinePop);
 	underlineButton->setPopupMode(QToolButton::DelayedPopup);
 	ssLayout->addWidget( underlineButton );
-	underlineWordButton = new QToolButton( this );
+	underlineWordButton = new ScToolButton( this );
 	underlineWordButton->setText( "" );
 	underlineWordButton->setCheckable( true );
 	underlineWordButton->setMenu(UnderlinePop);
 	underlineWordButton->setPopupMode(QToolButton::DelayedPopup);
-	ssLayout->addWidget( underlineWordButton );	
+	ssLayout->addWidget( underlineWordButton );
+
+	ScButtonGroup *bgUnderline = new ScButtonGroup();
+	bgUnderline->setExclusive(false);
+	bgUnderline->addButton(underlineButton);
+	bgUnderline->addButton(underlineWordButton);
+
+	ssLayout->addSpacing(4);
+
 	StrikeVal = new StrikeValues( nullptr );
 	StrikePop = new QMenu();
 	StrikeValAct = new QWidgetAction(this);
@@ -162,29 +171,39 @@ StyleSelect::StyleSelect(QWidget* parent) : QWidget(parent)
 	strikeoutButton->setPopupMode(QToolButton::DelayedPopup);
 	ssLayout->addWidget( strikeoutButton );
 
-	ssLayout->addSpacing(12);
+	ssLayout->addSpacing(16);
 
-	subscriptButton = new QToolButton( this );
+	subscriptButton = new ScToolButton( this );
 	subscriptButton->setText( "" );
 	subscriptButton->setCheckable( true );
 	ssLayout->addWidget( subscriptButton );
-	superscriptButton = new QToolButton( this );
+	superscriptButton = new ScToolButton( this );
 	superscriptButton->setText( "" );
 	superscriptButton->setCheckable( true );
 	ssLayout->addWidget( superscriptButton );
 
-	ssLayout->addSpacing(12);
+	ScButtonGroup *bgSub = new ScButtonGroup();
+	bgSub->setExclusive(false);
+	bgSub->addButton(subscriptButton);
+	bgSub->addButton(superscriptButton);
 
-	allcapsButton = new QToolButton( this );
+	ssLayout->addSpacing(16);
+
+	allcapsButton = new ScToolButton( this );
 	allcapsButton->setText("");
 	allcapsButton->setCheckable( true );
 	ssLayout->addWidget( allcapsButton );
-	smallcapsButton = new QToolButton( this );
+	smallcapsButton = new ScToolButton( this );
 	smallcapsButton->setText("");
 	smallcapsButton->setCheckable( true );
 	ssLayout->addWidget( smallcapsButton );
 
-	ssLayout->addSpacing(12);
+	ScButtonGroup *bgCaps = new ScButtonGroup();
+	bgCaps->setExclusive(false);
+	bgCaps->addButton(allcapsButton);
+	bgCaps->addButton(smallcapsButton);
+
+	ssLayout->addSpacing(16);
 
 	OutlineVal = new OutlineValues( nullptr );
 	OutlinePop = new QMenu();
@@ -197,6 +216,8 @@ StyleSelect::StyleSelect(QWidget* parent) : QWidget(parent)
 	outlineButton->setMenu(OutlinePop);
 	outlineButton->setPopupMode(QToolButton::DelayedPopup);
 	ssLayout->addWidget( outlineButton );
+
+	ssLayout->addSpacing(4);
 
 	ShadowVal = new ShadowValues( nullptr );
 	ShadowPop = new QMenu();

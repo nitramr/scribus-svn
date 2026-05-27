@@ -44,10 +44,10 @@
      <item row="11" column="1">
       <layout class="QHBoxLayout" name="horizontalLayout_6">
        <property name="spacing">
-        <number>4</number>
+        <number>0</number>
        </property>
        <item>
-        <widget class="QToolButton" name="DefaultWidthRadio">
+        <widget class="ScToolButton" name="DefaultWidthRadio">
          <property name="toolTip">
           <string>Default numbers width</string>
          </property>
@@ -66,7 +66,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="ProportionalRadio">
+        <widget class="ScToolButton" name="ProportionalRadio">
          <property name="toolTip">
           <string>Proportional Figures (pnum)</string>
          </property>
@@ -82,7 +82,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="TabularRadio">
+        <widget class="ScToolButton" name="TabularRadio">
          <property name="toolTip">
           <string>Tabular Figures (tnum)</string>
          </property>
@@ -135,10 +135,10 @@
      <item row="8" column="1">
       <layout class="QHBoxLayout" name="horizontalLayout_9">
        <property name="spacing">
-        <number>4</number>
+        <number>0</number>
        </property>
        <item>
-        <widget class="QToolButton" name="DefaultPosRadio">
+        <widget class="ScToolButton" name="DefaultPosRadio">
          <property name="toolTip">
           <string>Normal position</string>
          </property>
@@ -157,7 +157,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="SubscriptRadio">
+        <widget class="ScToolButton" name="SubscriptRadio">
          <property name="toolTip">
           <string>Subscript (subs)</string>
          </property>
@@ -173,7 +173,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="SuperscriptRadio">
+        <widget class="ScToolButton" name="SuperscriptRadio">
          <property name="toolTip">
           <string>Superscript (sups)</string>
          </property>
@@ -189,7 +189,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="OrdinalCheck">
+        <widget class="ScToolButton" name="OrdinalCheck">
          <property name="toolTip">
           <string>Ordinals (ordn)</string>
          </property>
@@ -406,10 +406,10 @@
      <item row="7" column="1">
       <layout class="QHBoxLayout" name="horizontalLayout_4">
        <property name="spacing">
-        <number>4</number>
+        <number>0</number>
        </property>
        <item>
-        <widget class="QToolButton" name="NormalCapRadio">
+        <widget class="ScToolButton" name="NormalCapRadio">
          <property name="toolTip">
           <string>Normal capitals</string>
          </property>
@@ -428,7 +428,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="SmallRadio">
+        <widget class="ScToolButton" name="SmallRadio">
          <property name="toolTip">
           <string>Small capitals (smcp)</string>
          </property>
@@ -444,7 +444,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="SmallFromCRadio">
+        <widget class="ScToolButton" name="SmallFromCRadio">
          <property name="toolTip">
           <string>Small capitals from capitals (c2sc)</string>
          </property>
@@ -460,7 +460,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="AllSmallCapsRadio">
+        <widget class="ScToolButton" name="AllSmallCapsRadio">
          <property name="toolTip">
           <string>All Small Caps (c2sc + smcp)</string>
          </property>
@@ -476,7 +476,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="PetiteRadio">
+        <widget class="ScToolButton" name="PetiteRadio">
          <property name="toolTip">
           <string>Petite capitals (pcap)</string>
          </property>
@@ -492,7 +492,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="PetiteCapRadio">
+        <widget class="ScToolButton" name="PetiteCapRadio">
          <property name="toolTip">
           <string>Petite capitals from capitals (c2pc)</string>
          </property>
@@ -508,7 +508,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="AllPetiteCapsRadio">
+        <widget class="ScToolButton" name="AllPetiteCapsRadio">
          <property name="toolTip">
           <string>All Petite Caps (c2pc + pcap)</string>
          </property>
@@ -524,7 +524,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="UnicaseRadio">
+        <widget class="ScToolButton" name="UnicaseRadio">
          <property name="toolTip">
           <string>Unicase (unic)</string>
          </property>
@@ -540,7 +540,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="TitlingRadio">
+        <widget class="ScToolButton" name="TitlingRadio">
          <property name="toolTip">
           <string>Titling (titl)</string>
          </property>
@@ -622,10 +622,10 @@
      <item row="12" column="1">
       <layout class="QHBoxLayout" name="horizontalLayout_8">
        <property name="spacing">
-        <number>4</number>
+        <number>0</number>
        </property>
        <item>
-        <widget class="QToolButton" name="DefaultFractionsRadio">
+        <widget class="ScToolButton" name="DefaultFractionsRadio">
          <property name="toolTip">
           <string>No fractions</string>
          </property>
@@ -644,7 +644,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="DiagonalRadio">
+        <widget class="ScToolButton" name="DiagonalRadio">
          <property name="toolTip">
           <string>Fractions (frac)</string>
          </property>
@@ -660,7 +660,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="StackedRadio">
+        <widget class="ScToolButton" name="StackedRadio">
          <property name="toolTip">
           <string>Alternative Fractions (afrc)</string>
          </property>
@@ -745,10 +745,10 @@
      <item row="10" column="1">
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <property name="spacing">
-        <number>4</number>
+        <number>0</number>
        </property>
        <item>
-        <widget class="QToolButton" name="DefaultStyleRadio">
+        <widget class="ScToolButton" name="DefaultStyleRadio">
          <property name="toolTip">
           <string>Default numbers style</string>
          </property>
@@ -767,7 +767,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="LiningRadio">
+        <widget class="ScToolButton" name="LiningRadio">
          <property name="toolTip">
           <string>Lining Figures (lnum)</string>
          </property>
@@ -783,7 +783,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="OldStyleRadio">
+        <widget class="ScToolButton" name="OldStyleRadio">
          <property name="toolTip">
           <string>Oldstyle Figures (onum)</string>
          </property>
@@ -1122,6 +1122,11 @@
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>ScToolButton</class>
+   <extends>QToolButton</extends>
+   <header>ui/widgets/buttongroup.h</header>
+  </customwidget>
   <customwidget>
    <class>Switch</class>
    <extends>QToolButton</extends>
