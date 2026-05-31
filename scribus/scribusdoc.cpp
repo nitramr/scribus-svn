@@ -1579,6 +1579,18 @@ void ScribusDoc::redefineTableStyles(const StyleSet<TableStyle>& newStyles, bool
 			replaceTableStyles(deletion);
 	}
 	m_docTableStyles.invalidate();
+
+	// Register synthetic conditional cell styles for all tables BEFORE
+	// refreshing, so updateCells() resolves them with the styles present.
+	auto syncItems = [](const QList<PageItem*>& items)
+	{
+		for (PageItem *item : items)
+			if (item && item->isTable())
+				item->asTable()->syncConditionalStylesToContext();
+	};
+	syncItems(DocItems);
+	syncItems(MasterItems);
+	invalidateCellStyles();
 	refreshTableItems();
 }
 
@@ -9293,7 +9305,7 @@ void ScribusDoc::itemSelection_SetTableRowHeights()
 	// height instead. Otherwise keep the table size fixed and let adjustTable()
 	// redistribute.
 	bool allRowsResized =
-		(appMode != modeEditTable) ||                                                           // "all columns" branch
+		(appMode != modeEditTable) ||                                                           // "all rows" branch
 		(table->selectedCells().isEmpty() && table->activeCell().rowSpan() == table->rows()) || // active span covers all
 		(!table->selectedCells().isEmpty() && table->selectedRows().count() == table->rows());  // selection covers all
 
@@ -14427,25 +14439,6 @@ void ScribusDoc::multipleDuplicateByPage(const ItemMultipleDuplicateData& dialog
 	tooltip = tr("Copied %1 item(s) on %2 page(s)").arg(selection.count()).arg(pages.size());
 }
 
-void ScribusDoc::refreshTableItems()
-{
-	auto refresh = [](const QList<PageItem*>& items)
-	{
-		for (PageItem *item : items)
-		{
-			if (item && item->isTable())
-			{
-				PageItem_Table *table = item->asTable();
-				table->adjustTable();
-				table->updateClip();
-				table->update();
-			}
-		}
-	};
-	refresh(DocItems);
-	refresh(MasterItems);
-}
-
 
 void ScribusDoc::itemSelection_ApplyImageEffects(const ScImageEffectList& newEffectList, Selection* customSelection)
 {
@@ -19021,6 +19014,7 @@ void ScribusDoc::invalidateMasterFrames(const NotesStyle *nStyle)
 		toInvalidate.takeFirst()->invalid = true;
 }
 
+
 PageItem_NoteFrame *ScribusDoc::endNoteFrame(const NotesStyle *nStyle, PageItem_TextFrame *master)
 {
 	if (nStyle->range() == NSRdocument)
@@ -19084,4 +19078,53 @@ void ScribusDoc::ResetFormFields()
 
 	changed();
 	regionsChanged()->update(QRect());
+}
+
+
+void ScribusDoc::refreshTableItems()
+{
+	auto refresh = [](const QList<PageItem*>& items)
+	{
+		for (PageItem *item : items)
+		{
+			if (item && item->isTable())
+			{
+				PageItem_Table *table = item->asTable();
+				table->adjustTable();
+				table->updateClip();
+				table->update();
+			}
+		}
+	};
+	refresh(DocItems);
+	refresh(MasterItems);
+}
+
+void ScribusDoc::registerSyntheticCellStyle(const CellStyle& style)
+{
+	// Lightweight insert/update of a (synthetic) cell style without the
+	// invalidate-and-refresh cascade that redefineCellStyles triggers. Used
+	// by table conditional-formatting sync, which runs during refresh and
+	// must not re-enter it.
+	int idx = m_docCellStyles.find(style.name());
+	if (idx >= 0)
+		m_docCellStyles[idx] = style;   // update in place
+	else
+		m_docCellStyles.create(style);  // add new
+}
+
+
+void ScribusDoc::syncAllTableConditionalStyles()
+{
+	auto sync = [](const QList<PageItem*>& items)
+	{
+		for (PageItem *item : items)
+		{
+			if (item && item->isTable())
+				item->asTable()->syncConditionalStylesToContext();
+		}
+	};
+	sync(DocItems);
+	sync(MasterItems);
+	refreshTableItems();
 }

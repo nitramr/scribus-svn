@@ -69,6 +69,7 @@ void SMTableStyleWidget::setDoc(ScribusDoc* doc)
 		return;
 
 	fillFillColorCombo(m_Doc->PageColors);
+	paragraphStyleComboBox->setDoc(m_Doc);
 	connect(m_Doc->scMW(), SIGNAL(UpdateRequest(int)), this , SLOT(handleUpdateRequest(int)));
 }
 
@@ -79,21 +80,22 @@ void SMTableStyleWidget::show(TableStyle *tableStyle, QList<TableStyle> &tableSt
 		return;
 	parentCombo->setEnabled(!tableStyle->isDefaultStyle());
 	const TableStyle *parent = dynamic_cast<const TableStyle*>(tableStyle->parentStyle());
-	bool hasParent =  tableStyle->hasParent() && parent != nullptr && parent->hasName() && tableStyle->parent() != "";
-	if (hasParent)
-	{
-		fillColor->setCurrentText(tableStyle->fillColor(), tableStyle->isInhFillColor());
-		fillColor->setParentText(parent->fillColor());
-		fillShade->setValue(qRound(tableStyle->fillShade()), tableStyle->isInhFillShade());
-		fillShade->setParentValue(qRound(parent->fillShade()));
-	}
-	else
-	{
-		fillColor->setCurrentText(tableStyle->fillColor());
-		fillShade->setValue(qRound(tableStyle->fillShade()));
-	}
+	bool hasParent = tableStyle->hasParent() && parent != nullptr && parent->hasName() && tableStyle->parent() != "";
+
+	rebuildAreaCombo(tableStyle);
+	showFillForCurrentArea(tableStyle);
+	showParagraphStyleForCurrentArea(tableStyle);
 
 	setBorders(tableStyle->leftBorder(), tableStyle->rightBorder(), tableStyle->topBorder(), tableStyle->bottomBorder());
+
+	int headerRowCount = tableStyle->headerRows();
+	int totalRowCount = tableStyle->totalRows();
+	setSpin(headerRowsSpinBox, headerRowCount);
+	setSpin(totalRowsSpinBox, totalRowCount);
+	setCheck(bandedRowsCheckBox, tableStyle->bandedRows());
+	setCheck(bandedColumnsCheckBox, tableStyle->bandedColumns());
+	setCheck(firstColumnCheckBox, tableStyle->firstColumn());
+	setCheck(lastColumnCheckBox, tableStyle->lastColumn());
 
 	parentCombo->clear();
 	parentCombo->addItem( tableStyle->isDefaultStyle()? tr("A default style cannot be assigned a parent style") : "");
@@ -372,6 +374,14 @@ void SMTableStyleWidget::on_borderLineStyle_activated(int style)
 	emit bordersChanged(sideSelector->selection(), m_currentBorder);
 }
 
+void SMTableStyleWidget::on_conditionalAreaComboBox_currentIndexChanged(int index)
+{
+	if (index < 0)
+		return;
+	m_currentArea = static_cast<TableArea>(conditionalAreaComboBox->itemData(index).toInt());
+	emit conditionalAreaChanged(m_currentArea);
+}
+
 void SMTableStyleWidget::mirrorCurrentBorderToSelectedSides()
 {
 	TableSides sides = sideSelector->selection();
@@ -421,3 +431,105 @@ QColor SMTableStyleWidget::getColor(const QString& colorName, int shade) const
 		return QColor();
 	return ScColorEngine::getDisplayColor(m_Doc->PageColors.value(colorName), m_Doc, shade);
 }
+
+void SMTableStyleWidget::setCheck(QCheckBox* cb, bool v)
+{
+	bool b = cb->blockSignals(true);
+	cb->setChecked(v);
+	cb->blockSignals(b);
+}
+
+void SMTableStyleWidget::setSpin(QSpinBox* sb, int v, bool enabled)
+{
+	bool b = sb->blockSignals(true);
+	sb->setValue(v);
+	sb->setEnabled(enabled);
+	sb->blockSignals(b);
+}
+
+void SMTableStyleWidget::rebuildAreaCombo(TableStyle* tableStyle)
+{
+	bool b = conditionalAreaComboBox->blockSignals(true);
+	conditionalAreaComboBox->clear();
+	// Whole Table is always available (the style's own fill/borders).
+	conditionalAreaComboBox->addItem(tr("Whole Table"), static_cast<int>(TableArea::WholeTable));
+	if (tableStyle->headerRows() > 0)
+		conditionalAreaComboBox->addItem(tr("Header Row"), static_cast<int>(TableArea::HeaderRow));
+	if (tableStyle->totalRows() > 0)
+		conditionalAreaComboBox->addItem(tr("Total Row"), static_cast<int>(TableArea::TotalRow));
+	if (tableStyle->bandedRows())
+	{
+		conditionalAreaComboBox->addItem(tr("Banded Row (odd)"), static_cast<int>(TableArea::BandedRowOdd));
+		conditionalAreaComboBox->addItem(tr("Banded Row (even)"), static_cast<int>(TableArea::BandedRowEven));
+	}
+	if (tableStyle->bandedColumns())
+	{
+		conditionalAreaComboBox->addItem(tr("Banded Column (odd)"), static_cast<int>(TableArea::BandedColOdd));
+		conditionalAreaComboBox->addItem(tr("Banded Column (even)"), static_cast<int>(TableArea::BandedColEven));
+	}
+	if (tableStyle->firstColumn())
+		conditionalAreaComboBox->addItem(tr("First Column"), static_cast<int>(TableArea::FirstColumn));
+	if (tableStyle->lastColumn())
+		conditionalAreaComboBox->addItem(tr("Last Column"), static_cast<int>(TableArea::LastColumn));
+	if (tableStyle->headerRows() > 0 && tableStyle->firstColumn())
+		conditionalAreaComboBox->addItem(tr("Top Left Cell"), static_cast<int>(TableArea::TopLeftCell));
+	if (tableStyle->headerRows() > 0 && tableStyle->lastColumn())
+		conditionalAreaComboBox->addItem(tr("Top Right Cell"), static_cast<int>(TableArea::TopRightCell));
+	if (tableStyle->totalRows() > 0 && tableStyle->firstColumn())
+		conditionalAreaComboBox->addItem(tr("Bottom Left Cell"), static_cast<int>(TableArea::BottomLeftCell));
+	if (tableStyle->totalRows() > 0 && tableStyle->lastColumn())
+		conditionalAreaComboBox->addItem(tr("Bottom Right Cell"), static_cast<int>(TableArea::BottomRightCell));
+	// Restore selection to current area if still present, else Whole Table.
+	int idx = conditionalAreaComboBox->findData(static_cast<int>(m_currentArea));
+	if (idx < 0)
+	{
+		idx = 0;
+		m_currentArea = TableArea::WholeTable;
+	}
+	conditionalAreaComboBox->setCurrentIndex(idx);
+	conditionalAreaComboBox->blockSignals(b);
+}
+
+void SMTableStyleWidget::showFillForCurrentArea(TableStyle *tableStyle)
+{
+	// Whole Table edits the style's own fill (with parent-inheritance UI).
+	if (m_currentArea == TableArea::WholeTable)
+	{
+		const TableStyle *parent = dynamic_cast<const TableStyle*>(tableStyle->parentStyle());
+		bool hasParent = tableStyle->hasParent() && parent && parent->hasName() && tableStyle->parent() != "";
+		if (hasParent)
+		{
+			fillColor->setCurrentText(tableStyle->fillColor(), tableStyle->isInhFillColor());
+			fillColor->setParentText(parent->fillColor());
+			fillShade->setValue(qRound(tableStyle->fillShade()), tableStyle->isInhFillShade());
+			fillShade->setParentValue(qRound(parent->fillShade()));
+		}
+		else
+		{
+			fillColor->setCurrentText(tableStyle->fillColor());
+			fillShade->setValue(qRound(tableStyle->fillShade()));
+		}
+		return;
+	}
+
+	// A conditional area edits its own anonymous CellStyle -- no parent UI.
+	CellStyle cs = tableStyle->conditionalStyle(m_currentArea);
+	fillColor->setCurrentText(cs.fillColor(), false);
+	fillColor->setParentText(QString());
+	fillShade->setValue(qRound(cs.fillShade()), false);
+	fillShade->setParentValue(0);
+}
+
+void SMTableStyleWidget::showParagraphStyleForCurrentArea(TableStyle *tableStyle)
+{
+	QString psName;
+	if (m_currentArea == TableArea::WholeTable)
+		psName = tableStyle->paragraphStyleName();
+	else
+		psName = tableStyle->conditionalStyle(m_currentArea).paragraphStyleName();
+	bool b = paragraphStyleComboBox->blockSignals(true);
+	paragraphStyleComboBox->setStyle(psName);
+	paragraphStyleComboBox->blockSignals(b);
+}
+
+

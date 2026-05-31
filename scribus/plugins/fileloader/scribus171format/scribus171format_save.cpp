@@ -1016,8 +1016,14 @@ void Scribus171Format::writeCellStyles(ScXmlStreamWriter& docu) const
 	QList<int> styleList = m_Doc->getSortedCellStyleList();
 	for (int i = 0; i < styleList.count(); ++i)
 	{
+		const CellStyle& style = m_Doc->cellStyles()[styleList[i]];
+		// Skip synthetic conditional cell styles -- they are runtime-only
+		// bridges, regenerated from each table style's <Conditional> children
+		// on load via syncConditionalStylesToContext().
+		if (style.name().startsWith(QLatin1String("__cond_")))
+			continue;
 		docu.writeStartElement("CellStyle");
-		putCellStyle(docu, m_Doc->cellStyles()[styleList[i]]);
+		putCellStyle(docu, style);
 		docu.writeEndElement();
 	}
 }
@@ -1034,6 +1040,22 @@ void Scribus171Format::putTableStyle(ScXmlStreamWriter &docu, const TableStyle &
 		docu.writeAttribute("FillColor", style.fillColor());
 	if (!style.isInhFillShade())
 		docu.writeAttribute("FillShade", style.fillShade());
+	if (!style.isInhParagraphStyleName())
+		docu.writeAttribute("ParagraphStyleName", style.paragraphStyleName());
+	// Config attributes -- must precede child elements.
+	if (style.headerRows() != 0)
+		docu.writeAttribute("HeaderRows", style.headerRows());
+	if (style.totalRows() != 0)
+		docu.writeAttribute("TotalRows", style.totalRows());
+	if (style.bandedRows())
+		docu.writeAttribute("BandedRows", QString::number(1));
+	if (style.bandedColumns())
+		docu.writeAttribute("BandedColumns", QString::number(1));
+	if (style.firstColumn())
+		docu.writeAttribute("FirstColumn", QString::number(1));
+	if (style.lastColumn())
+		docu.writeAttribute("LastColumn", QString::number(1));
+
 	if (!style.isInhLeftBorder())
 	{
 		const TableBorder& tbLeft = style.leftBorder();
@@ -1094,9 +1116,24 @@ void Scribus171Format::putTableStyle(ScXmlStreamWriter &docu, const TableStyle &
 		}
 		docu.writeEndElement();
 	}
+
+	// Conditional child styles.
+	const QHash<TableArea, CellStyle>& conds = style.conditionalStyles();
+	for (auto it = conds.constBegin(); it != conds.constEnd(); ++it)
+	{
+		docu.writeStartElement("Conditional");
+		docu.writeAttribute("Type", tableAreaToString(it.key()));
+		putCellStyleBody(docu, it.value());
+		docu.writeEndElement();
+	}
 }
 
 void Scribus171Format::putCellStyle(ScXmlStreamWriter &docu, const CellStyle &style) const
+{
+	putCellStyleBody(docu, style);
+}
+
+void Scribus171Format::putCellStyleBody(ScXmlStreamWriter &docu, const CellStyle &style) const
 {
 	if (!style.name().isEmpty() )
 		docu.writeAttribute("Name", style.name());
@@ -1108,6 +1145,8 @@ void Scribus171Format::putCellStyle(ScXmlStreamWriter &docu, const CellStyle &st
 		docu.writeAttribute("FillColor", style.fillColor());
 	if (!style.isInhFillShade())
 		docu.writeAttribute("FillShade", style.fillShade());
+	if (!style.isInhParagraphStyleName())
+		docu.writeAttribute("ParagraphStyleName", style.paragraphStyleName());
 	if (!style.isInhLeftPadding())
 		docu.writeAttribute("LeftPadding",style.leftPadding());
 	if (!style.isInhRightPadding())
@@ -2520,9 +2559,9 @@ void Scribus171Format::WriteObjects(ScribusDoc *doc, ScXmlStreamWriter& docu, co
 					CellStyle cs;
 					if (!cstyle.isEmpty())
 						cs = cell.style();
-					if ((cstyle.isEmpty()) || ((!cstyle.isEmpty()) && ( !cs.isInhFillColor())))
+					if (!cell.style().isInhFillColor())
 						docu.writeAttribute("FillColor", cell.fillColor());
-					if ((cstyle.isEmpty()) || ((!cstyle.isEmpty()) && ( !cs.isInhFillShade())))
+					if (!cell.style().isInhFillShade())
 						docu.writeAttribute("FillShade", cell.fillShade());
 					if ((cstyle.isEmpty()) || ((!cstyle.isEmpty()) && ( !cs.isInhLeftPadding())))
 						docu.writeAttribute("LeftPadding",cell.leftPadding());

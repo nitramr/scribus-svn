@@ -22,6 +22,7 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem.h"
 #include "scribusapi.h"
 #include "scribusstructs.h"
+#include "styles/tablearea.h"
 #include "styles/tablestyle.h"
 #include "tablecell.h"
 #include "tablehandle.h"
@@ -584,6 +585,14 @@ public:
 	/// Returns the style name of this table.
 	QString styleName() const;
 
+	/**
+	 * Returns the structural area the cell at @a row, @a column occupies, used
+	 * to select its conditional cell style. Derived live from the table
+	 * geometry and the header/total/banding settings, so it follows row and
+	 * column insertion and removal automatically.
+	 */
+	TableArea areaAt(int row, int column) const;
+
 	/// Updates the position and size of all cell text frames for this table.
 	void updateCells() { updateCells(0, 0, rows() - 1, columns() - 1); }
 
@@ -644,6 +653,11 @@ public:
 	/** @brief Perform undo/redo action */
 	void restore(UndoState *state, bool isUndo) override;
 
+	/// Mirrors the table style's conditional map into the document cell style
+	/// context as synthetic named styles, so the name-based parent splice can
+	/// resolve them. Call after the conditional configuration changes.
+	void syncConditionalStylesToContext();
+
 signals:
 	/// This signal is emitted whenever the table changes.
 	void changed();
@@ -676,6 +690,15 @@ private:
 	 * Should be called once, and once only, during table construction.
 	 */
 	void initialize(int numRows, int numColumns);
+
+	/**
+	 * Returns the name of the (synthetic) conditional cell style for @a area,
+	 * or an empty string if the table style defines no conditional for it.
+	 */
+	QString areaStyleName(TableArea area) const;
+
+	/// Returns the synthetic context name used for @a area's conditional style.
+	QString conditionalSyntheticName(TableArea area) const;
 
 	/// Activates the cell @a cell, or the cell at row 0, column 0 if @a cell is invalid.
 	void activateCell(const TableCell& cell);

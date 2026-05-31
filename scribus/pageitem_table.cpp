@@ -28,6 +28,7 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem_textframe.h"
 #include "scpainter.h"
 #include "scribusdoc.h"
+#include "styles/styleset.h"
 #include "styles/tablestyle.h"
 #include "tablehandle.h"
 #include "tableutils.h"
@@ -1923,9 +1924,9 @@ void PageItem_Table::setStyle(const QString& style)
 		ss->set("NEW_STYLE", style);
 		undoManager->action(this, ss);
 	}
-
 	doc()->dontResize = true;
 	m_style.setParent(style);
+	syncConditionalStylesToContext();
 	updateCells();
 	doc()->dontResize = false;
 	emit changed();
@@ -1944,6 +1945,7 @@ void PageItem_Table::unsetStyle()
 
 	doc()->dontResize = true;
 	m_style.setParent("");
+	syncConditionalStylesToContext();
 	updateCells();
 	doc()->dontResize = false;
 	emit changed();
@@ -1973,6 +1975,94 @@ QString PageItem_Table::styleName() const
 {
 	return m_style.parent();
 }
+
+TableArea PageItem_Table::areaAt(int row, int column) const
+{
+	const int headerRows = m_style.headerRows();
+	const int totalRows = m_style.totalRows();
+
+	const int lastRowIndex = rows() - 1;
+	const int lastColIndex = columns() - 1;
+
+	const bool headerRow = (row < headerRows);
+	const bool totalRow  = (totalRows > 0) && (row > lastRowIndex - totalRows);
+	const bool firstCol  = m_style.firstColumn() && (column == 0);
+	const bool lastCol   = m_style.lastColumn() && (column == lastColIndex);
+
+	// Corners — highest priority.
+	if (headerRow && firstCol)
+		return TableArea::TopLeftCell;
+	if (headerRow && lastCol)
+		return TableArea::TopRightCell;
+	if (totalRow && firstCol)
+		return TableArea::BottomLeftCell;
+	if (totalRow && lastCol)
+		return TableArea::BottomRightCell;
+
+	// Edges.
+	if (lastCol)
+		return TableArea::LastColumn;
+	if (firstCol)
+		return TableArea::FirstColumn;
+	if (totalRow)
+		return TableArea::TotalRow;
+	if (headerRow)
+		return TableArea::HeaderRow;
+
+	// Banding — count body rows/columns past the header so the first body row/column is the
+	// odd band regardless of how many header rows/columns precede it.
+	if (m_style.bandedRows())
+	{
+		const int bodyRow = row - headerRows;
+		const TableArea rowArea = (bodyRow % 2 == 0)
+				? TableArea::BandedRowOdd : TableArea::BandedRowEven;
+		// If row banding is enabled but the resolved row-band fill is None,
+		// and column banding is also on, fall through to column banding.
+		// Matches Word's layered behaviour.
+		if (m_style.bandedColumns() && m_style.conditionalStyleResolved(rowArea).fillColor() == CommonStrings::None)
+		{
+			const int bodyCol = column - (m_style.firstColumn() ? 1 : 0);
+			return (bodyCol % 2 == 0) ? TableArea::BandedColOdd : TableArea::BandedColEven;
+		}
+		return rowArea;
+	}
+	if (m_style.bandedColumns())
+	{
+		const int bodyCol = column - (m_style.firstColumn() ? 1 : 0);
+		return (bodyCol % 2 == 0) ? TableArea::BandedColOdd : TableArea::BandedColEven;
+	}
+
+	return TableArea::WholeTable;
+}
+
+QString PageItem_Table::areaStyleName(TableArea area) const
+{
+	if (!m_style.hasConditionalStyleResolved(area))
+		return QString();
+	return conditionalSyntheticName(area);
+}
+
+QString PageItem_Table::conditionalSyntheticName(TableArea area) const
+{
+	// Synthetic, non-user-visible name. Keyed on the owning table style's name
+	// so that all tables using the same style share one set of synthetic
+	// conditional cell styles (rather than one set per table instance, which
+	// proliferates). The conditionals live on the named parent style, so for a
+	// direct (unnamed) m_style we key on its parent's name. Only a direct style
+	// with no parent at all falls back to the item pointer.
+	//
+	// NOTE: this synthetic-name bridge reuses the existing name-based parent
+	// resolution. Switching to a by-proxy parent (so a user-assigned cell style
+	// can sit between the cell and the conditional) is a potential later step.
+	QString owner = m_style.name();
+	if (owner.isEmpty())
+		owner = m_style.parent();
+	if (owner.isEmpty())
+		owner = QString::number(reinterpret_cast<quintptr>(this), 16);
+	return QStringLiteral("__cond_") + owner + QStringLiteral("_") + tableAreaToString(area);
+}
+
+
 
 void PageItem_Table::handleStyleChanged()
 {
@@ -2055,6 +2145,14 @@ void PageItem_Table::initialize(int numRows, int numColumns)
 
 	// Internal style is in document-wide style context.
 	m_style.setContext(&m_Doc->tableStyles());
+
+	// A new table inherits its fill/shade from its table style rather than the
+	// construction fill parameter. Parent to the default style and reset the
+	// base-class-pinned fill so the style drives styling.
+	if (m_style.parent().isEmpty())
+		m_style.setParent(CommonStrings::DefaultTableStyle);
+	m_style.resetFillColor();
+	m_style.resetFillShade();
 
 	// Reserve space in lists.
 	m_cellRows.reserve(numRows);
@@ -2258,6 +2356,19 @@ void PageItem_Table::updateCells(int startRow, int startColumn, int endRow, int 
 
 	if (!validCell(startRow, startColumn) || !validCell(endRow, endColumn))
 		return; // Invalid area.
+
+	// Re-derive each cell's structural area and splice the matching conditional
+	// style as its transient parent. Done here, before the content pass, so
+	// that row/column insertion and removal (which all route through
+	// updateCells) reflow conditional styling automatically.
+	for (int row = 0; row < m_rows; ++row)
+	{
+		for (int column = 0; column < m_columns; ++column)
+		{
+			QString an = areaStyleName(areaAt(row, column));
+			m_cellRows[row][column].applyAreaStyle(an);
+		}
+	}
 
 	foreach (const QList<TableCell>& cellRow, m_cellRows)
 		foreach (TableCell cell, cellRow)
@@ -2771,6 +2882,24 @@ void PageItem_Table::restore(UndoState *state, bool isUndo)
 		if (state->transactionCode == 0 || state->transactionCode == 2)
 			this->update();
 	}
+}
+
+void PageItem_Table::syncConditionalStylesToContext()
+{
+	const QList<TableArea> areas = m_style.conditionalAreasResolved();
+	for (TableArea area : areas)
+	{
+		CellStyle cs = m_style.conditionalStyleResolved(area);
+		for (TableArea area : areas)
+		{
+			CellStyle cs = m_style.conditionalStyleResolved(area);
+			cs.setName(conditionalSyntheticName(area));
+			m_Doc->registerSyntheticCellStyle(cs);
+		}
+		cs.setName(conditionalSyntheticName(area));
+		m_Doc->registerSyntheticCellStyle(cs);
+	}
+	m_Doc->invalidateCellStyles();
 }
 
 void PageItem_Table::restoreCellBorders(SimpleState *state, bool isUndo)

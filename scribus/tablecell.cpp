@@ -14,6 +14,7 @@ for which a new license (GPL+exception) is in place.
 #include "commonstrings.h"
 #include "pageitem_table.h"
 #include "pageitem_textframe.h"
+#include "styles/paragraphstyle.h"
 #include "scribusdoc.h"
 #include "tableutils.h"
 
@@ -123,8 +124,39 @@ void TableCell::setBottomPadding(double padding)
 
 void TableCell::setStyle(const QString& style)
 {
+	d->userStyleName = style;
 	d->style.setParent(style);
 	d->table->updateCells();
+}
+
+void TableCell::applyAreaStyle(const QString& areaStyleName)
+{
+	// Transient reparent driven by the table's area resolution. Never saved:
+	// styleName() still reports userStyleName. An empty area name means the
+	// cell has no conditional area, so fall back to the user's chosen style.
+	const QString& parent = areaStyleName.isEmpty() ? d->userStyleName : areaStyleName;
+	if (d->style.parent() != parent)
+		d->style.setParent(parent);
+
+	// Resolve the paragraph style: prefer the area's conditional cell style,
+	// fall back to the table style's own paragraph style (the WholeTable
+	// default). Empty means leave the frame default untouched.
+	if (!d->table)
+		return;
+	QString psName(d->style.paragraphStyleName());
+	if (psName.isEmpty())
+		psName = d->table->style().paragraphStyleName();
+	if (psName != d->appliedParagraphStyleName)
+	{
+		d->appliedParagraphStyleName = psName;
+		if (!psName.isEmpty() && d->table->doc())
+		{
+			ParagraphStyle ps;
+			ps.setParent(psName);
+			ps.setContext(&d->table->doc()->paragraphStyles());
+			d->textFrame->itemText.setDefaultStyle(ps);
+		}
+	}
 }
 
 void TableCell::unsetDirectFormatting()
