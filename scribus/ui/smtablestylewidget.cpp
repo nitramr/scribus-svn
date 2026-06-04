@@ -57,6 +57,8 @@ void SMTableStyleWidget::handleUpdateRequest(int updateFlags)
 		return;
 	if (updateFlags & reqColorsUpdate)
 		fillFillColorCombo(m_Doc->PageColors);
+	if (updateFlags & reqTextStylesUpdate)
+		paragraphStyleComboBox->updateStyleList();
 }
 
 void SMTableStyleWidget::setDoc(ScribusDoc* doc)
@@ -86,7 +88,7 @@ void SMTableStyleWidget::show(TableStyle *tableStyle, QList<TableStyle> &tableSt
 	showFillForCurrentArea(tableStyle);
 	showParagraphStyleForCurrentArea(tableStyle);
 
-	setBorders(tableStyle->leftBorder(), tableStyle->rightBorder(), tableStyle->topBorder(), tableStyle->bottomBorder());
+	showBordersForCurrentArea(tableStyle);
 
 	int headerRowCount = tableStyle->headerRows();
 	int totalRowCount = tableStyle->totalRows();
@@ -188,6 +190,7 @@ void SMTableStyleWidget::setBorders(const TableBorder& left, const TableBorder& 
 	m_rightBorder = right;
 	m_topBorder = top;
 	m_bottomBorder = bottom;
+
 	on_sideSelector_selectionChanged();
 }
 
@@ -230,6 +233,7 @@ void SMTableStyleWidget::on_sideSelector_selectionChanged()
 
 	// Refresh the border-line list to show the border on the currently-selected sides.
 	State borderState = Unset;
+
 	m_currentBorder = TableBorder();
 
 	auto considerSide = [&](TableSide side, const TableBorder& border)
@@ -253,7 +257,7 @@ void SMTableStyleWidget::on_sideSelector_selectionChanged()
 
 	const bool enable = (borderState != Unset);
 	addBorderLineButton->setEnabled(enable);
-	removeBorderLineButton->setEnabled(enable);
+	removeBorderLineButton->setEnabled(borderState != Unset);
 	borderLineList->setEnabled(enable);
 
 	if (borderState == TriState)
@@ -407,7 +411,7 @@ void SMTableStyleWidget::updateBorderLineList()
 			borderLineList->addItem(new QListWidgetItem(text, borderLineList));
 		}
 	}
-	removeBorderLineButton->setEnabled(borderLineList->count() > 1);
+	removeBorderLineButton->setEnabled(borderLineList->count() > 0);
 }
 
 void SMTableStyleWidget::updateBorderLineListItem()
@@ -453,6 +457,7 @@ void SMTableStyleWidget::rebuildAreaCombo(TableStyle* tableStyle)
 	conditionalAreaComboBox->clear();
 	// Whole Table is always available (the style's own fill/borders).
 	conditionalAreaComboBox->addItem(tr("Whole Table"), static_cast<int>(TableArea::WholeTable));
+	conditionalAreaComboBox->addItem(tr("Body Cell"), static_cast<int>(TableArea::BodyCell));
 	if (tableStyle->headerRows() > 0)
 		conditionalAreaComboBox->addItem(tr("Header Row"), static_cast<int>(TableArea::HeaderRow));
 	if (tableStyle->totalRows() > 0)
@@ -518,6 +523,19 @@ void SMTableStyleWidget::showFillForCurrentArea(TableStyle *tableStyle)
 	fillColor->setParentText(QString());
 	fillShade->setValue(qRound(cs.fillShade()), false);
 	fillShade->setParentValue(0);
+}
+
+void SMTableStyleWidget::showBordersForCurrentArea(TableStyle *tableStyle)
+{
+	if (m_currentArea == TableArea::WholeTable)
+	{
+		setBorders(tableStyle->leftBorder(), tableStyle->rightBorder(), tableStyle->topBorder(), tableStyle->bottomBorder());
+	}
+	else
+	{
+		CellStyle cs = tableStyle->conditionalStyle(m_currentArea);
+		setBorders(cs.leftBorder(), cs.rightBorder(), cs.topBorder(), cs.bottomBorder());
+	}
 }
 
 void SMTableStyleWidget::showParagraphStyleForCurrentArea(TableStyle *tableStyle)

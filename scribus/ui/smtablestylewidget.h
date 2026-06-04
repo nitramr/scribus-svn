@@ -72,6 +72,7 @@ class SMTableStyleWidget : public QWidget, public Ui::SMTableStyleWidget
 		TableArea currentArea() const { return m_currentArea; }
 		void rebuildAreaCombo(TableStyle *tableStyle);
 		void showFillForCurrentArea(TableStyle *tableStyle);
+		void showBordersForCurrentArea(TableStyle *tableStyle);
 		void showParagraphStyleForCurrentArea(TableStyle *tableStyle);
 
 	signals:

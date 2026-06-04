@@ -19,6 +19,7 @@ for which a new license (GPL+exception) is in place.
 enum class TableArea
 {
 	WholeTable,
+	BodyCell,
 	HeaderRow,
 	TotalRow,
 	FirstColumn,
@@ -47,6 +48,8 @@ inline QString tableAreaToString(TableArea area)
 {
 	switch (area)
 	{
+		case TableArea::BodyCell:
+			return QStringLiteral("BodyCell");
 		case TableArea::HeaderRow:
 			return QStringLiteral("HeaderRow");
 		case TableArea::TotalRow:
@@ -83,6 +86,8 @@ inline QString tableAreaToString(TableArea area)
  */
 inline TableArea tableAreaFromString(const QString& s)
 {
+	if (s == QLatin1String("BodyCell"))
+		return TableArea::BodyCell;
 	if (s == QLatin1String("HeaderRow"))
 		return TableArea::HeaderRow;
 	if (s == QLatin1String("TotalRow"))

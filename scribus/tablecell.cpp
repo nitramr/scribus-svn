@@ -138,25 +138,27 @@ void TableCell::applyAreaStyle(const QString& areaStyleName)
 	if (d->style.parent() != parent)
 		d->style.setParent(parent);
 
-	// Resolve the paragraph style: prefer the area's conditional cell style,
-	// fall back to the table style's own paragraph style (the WholeTable
-	// default). Empty means leave the frame default untouched.
-	if (!d->table)
+	if (!d->table || !d->table->doc())
 		return;
+
+	// The cell's resolved paragraph style for its area. Empty means the area
+	// uses "[Default Paragraph Style]" -- apply the default, matching how a
+	// text frame behaves when the default sentinel is chosen. We mirror the
+	// document's own convention (itemSelection_SetNamedParagraphStyle) by
+	// parenting to DefaultParagraphStyle rather than to an empty string.
 	QString psName(d->style.paragraphStyleName());
-	if (psName.isEmpty())
-		psName = d->table->style().paragraphStyleName();
-	if (psName != d->appliedParagraphStyleName)
-	{
-		d->appliedParagraphStyleName = psName;
-		if (!psName.isEmpty() && d->table->doc())
-		{
-			ParagraphStyle ps;
-			ps.setParent(psName);
-			ps.setContext(&d->table->doc()->paragraphStyles());
-			d->textFrame->itemText.setDefaultStyle(ps);
-		}
-	}
+	QString parentToApply = psName.isEmpty() ? CommonStrings::DefaultParagraphStyle : psName;
+
+	// Skip redundant re-application on relayout.
+	if (parentToApply == d->appliedParagraphStyleName)
+		return;
+
+	d->appliedParagraphStyleName = parentToApply;
+
+	ParagraphStyle ps;
+	ps.setParent(parentToApply);
+	ps.setContext(&d->table->doc()->paragraphStyles());
+	d->textFrame->itemText.setDefaultStyle(ps);
 }
 
 void TableCell::unsetDirectFormatting()

@@ -2032,7 +2032,7 @@ TableArea PageItem_Table::areaAt(int row, int column) const
 		return (bodyCol % 2 == 0) ? TableArea::BandedColOdd : TableArea::BandedColEven;
 	}
 
-	return TableArea::WholeTable;
+	return TableArea::BodyCell;
 }
 
 QString PageItem_Table::areaStyleName(TableArea area) const

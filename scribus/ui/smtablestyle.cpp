@@ -559,16 +559,33 @@ void SMTableStyle::slotParentChanged(const QString &parent)
 
 void SMTableStyle::slotBordersChanged(TableSides sides, const TableBorder &border)
 {
+	TableArea area = m_page->currentArea();
 	for (int i = 0; i < m_selection.count(); ++i)
 	{
-		if (sides & TableSide::Left)
-			m_selection[i]->setLeftBorder(border);
-		if (sides & TableSide::Right)
-			m_selection[i]->setRightBorder(border);
-		if (sides & TableSide::Top)
-			m_selection[i]->setTopBorder(border);
-		if (sides & TableSide::Bottom)
-			m_selection[i]->setBottomBorder(border);
+		if (area == TableArea::WholeTable)
+		{
+			if (sides & TableSide::Left)
+				m_selection[i]->setLeftBorder(border);
+			if (sides & TableSide::Right)
+				m_selection[i]->setRightBorder(border);
+			if (sides & TableSide::Top)
+				m_selection[i]->setTopBorder(border);
+			if (sides & TableSide::Bottom)
+				m_selection[i]->setBottomBorder(border);
+		}
+		else
+		{
+			CellStyle cs = m_selection[i]->conditionalStyle(area);
+			if (sides & TableSide::Left)
+				cs.setLeftBorder(border);
+			if (sides & TableSide::Right)
+				cs.setRightBorder(border);
+			if (sides & TableSide::Top)
+				cs.setTopBorder(border);
+			if (sides & TableSide::Bottom)
+				cs.setBottomBorder(border);
+			m_selection[i]->setConditionalStyle(area, cs);
+		}
 	}
 	if (!m_selectionIsDirty)
 	{
@@ -668,6 +685,7 @@ void SMTableStyle::slotAreaChanged(TableArea area)
 	{
 		m_page->showFillForCurrentArea(m_selection[0]);
 		m_page->showParagraphStyleForCurrentArea(m_selection[0]);
+		m_page->showBordersForCurrentArea(m_selection[0]);
 	}
 }
 
