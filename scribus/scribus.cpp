@@ -2200,6 +2200,8 @@ ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double top
 				Cpfad = csm.paletteFileFromName(m_prefsManager.appPrefs.colorPrefs.DColorSet);
 			if (!Cpfad.isEmpty())
 				csm.loadPalette(Cpfad, doc, colorList, gradientsList, patternsList, false);
+			else
+				colorList = m_prefsManager.appPrefs.colorPrefs.DColors;
 			doc->PageColors = colorList;
 			doc->docGradients = gradientsList;
 			doc->docPatterns = patternsList;
