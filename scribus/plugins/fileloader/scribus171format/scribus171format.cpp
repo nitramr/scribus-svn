@@ -174,7 +174,10 @@ bool Scribus171Format::paletteSupported(QIODevice* /* file */, const QString & f
 		loadRawBytes(fileName, docBytes, 1024);
 	}
 
-	int startElemPos = docBytes.indexOf("<SCRIBUSCOLORS");
+	int startElemPos = docBytes.indexOf("<ScribusColors");
+	//Remove uppercase in 1.8 format
+	if (startElemPos == -1)
+		startElemPos = docBytes.indexOf("<SCRIBUSCOLORS");
 	return (startElemPos >= 0);
 }
 
@@ -3814,6 +3817,7 @@ void Scribus171Format::readTableStyle(ScribusDoc *doc, ScXmlStreamReader& reader
 		newStyle.setDefaultStyle(true);
 	else
 		newStyle.setDefaultStyle(false);
+
 	//Remove uppercase in 1.8 format
 	QString parentStyle;
 	if (attrs.hasAttribute("Parent"))
@@ -3826,6 +3830,85 @@ void Scribus171Format::readTableStyle(ScribusDoc *doc, ScXmlStreamReader& reader
 		newStyle.setFillColor(attrs.valueAsString("FillColor"));
 	if (attrs.hasAttribute("FillShade"))
 		newStyle.setFillShade(attrs.valueAsDouble("FillShade"));
+	if (attrs.hasAttribute("ParagraphStyleName"))
+		newStyle.setParagraphStyleName(attrs.valueAsString("ParagraphStyleName"));
+
+	// Conditional (table-area) formatting configuration.
+	if (attrs.hasAttribute("HeaderRows"))
+		newStyle.setHeaderRows(attrs.valueAsInt("HeaderRows", 0));
+	if (attrs.hasAttribute("TotalRows"))
+		newStyle.setTotalRows(attrs.valueAsInt("TotalRows", 0));
+	if (attrs.hasAttribute("BandedRows"))
+		newStyle.setBandedRows(attrs.valueAsInt("BandedRows", 0) != 0);
+	if (attrs.hasAttribute("BandedColumns"))
+		newStyle.setBandedColumns(attrs.valueAsInt("BandedColumns", 0) != 0);
+	if (attrs.hasAttribute("FirstColumn"))
+		newStyle.setFirstColumn(attrs.valueAsInt("FirstColumn", 0) != 0);
+	if (attrs.hasAttribute("LastColumn"))
+		newStyle.setLastColumn(attrs.valueAsInt("LastColumn", 0) != 0);
+
+	QString tagName(reader.nameAsString());
+	while (!reader.atEnd() && !reader.hasError())
+	{
+		reader.readNext();
+		if (reader.isEndElement() && reader.name() == tagName)
+			break;
+		if (!reader.isStartElement())
+			continue;
+		if (reader.name() == QLatin1String("TableBorderLeft"))
+		{
+			TableBorder border;
+			readTableBorderLines(doc, reader, border);
+			newStyle.setLeftBorder(border);
+		}
+		else if (reader.name() == QLatin1String("TableBorderRight"))
+		{
+			TableBorder border;
+			readTableBorderLines(doc, reader, border);
+			newStyle.setRightBorder(border);
+		}
+		else if (reader.name() == QLatin1String("TableBorderTop"))
+		{
+			TableBorder border;
+			readTableBorderLines(doc, reader, border);
+			newStyle.setTopBorder(border);
+		}
+		else if (reader.name() == QLatin1String("TableBorderBottom"))
+		{
+			TableBorder border;
+			readTableBorderLines(doc, reader, border);
+			newStyle.setBottomBorder(border);
+		}
+		else if (reader.name() == QLatin1String("Conditional"))
+		{
+			ScXmlStreamAttributes cattrs = reader.scAttributes();
+			TableArea area = tableAreaFromString(cattrs.valueAsString("Type", "WholeTable"));
+			CellStyle cond;
+			readConditionalCellStyle(doc, reader, cattrs, cond);
+			newStyle.setConditionalStyle(area, cond);
+		}
+		else
+			reader.skipCurrentElement();
+	}
+}
+
+void Scribus171Format::readConditionalCellStyle(ScribusDoc *doc, ScXmlStreamReader& reader, const ScXmlStreamAttributes& attrs, CellStyle& newStyle) const
+{
+	newStyle.erase();
+	if (attrs.hasAttribute("FillColor"))
+		newStyle.setFillColor(attrs.valueAsString("FillColor"));
+	if (attrs.hasAttribute("FillShade"))
+		newStyle.setFillShade(attrs.valueAsDouble("FillShade"));
+	if (attrs.hasAttribute("LeftPadding"))
+		newStyle.setLeftPadding(attrs.valueAsDouble("LeftPadding", 0.0));
+	if (attrs.hasAttribute("ParagraphStyleName"))
+		newStyle.setParagraphStyleName(attrs.valueAsString("ParagraphStyleName"));
+	if (attrs.hasAttribute("RightPadding"))
+		newStyle.setRightPadding(attrs.valueAsDouble("RightPadding", 0.0));
+	if (attrs.hasAttribute("TopPadding"))
+		newStyle.setTopPadding(attrs.valueAsDouble("TopPadding", 0.0));
+	if (attrs.hasAttribute("BottomPadding"))
+		newStyle.setBottomPadding(attrs.valueAsDouble("BottomPadding", 0.0));
 
 	QString tagName(reader.nameAsString());
 	while (!reader.atEnd() && !reader.hasError())
@@ -3918,6 +4001,8 @@ void Scribus171Format::readCellStyle(ScribusDoc *doc, ScXmlStreamReader& reader,
 		newStyle.setFillColor(attrs.valueAsString("FillColor"));
 	if (attrs.hasAttribute("FillShade"))
 		newStyle.setFillShade(attrs.valueAsDouble("FillShade"));
+	if (attrs.hasAttribute("ParagraphStyleName"))
+		newStyle.setParagraphStyleName(attrs.valueAsString("ParagraphStyleName"));
 	if (attrs.hasAttribute("LeftPadding"))
 		newStyle.setLeftPadding(attrs.valueAsDouble("LeftPadding", 0.0));
 	if (attrs.hasAttribute("RightPadding"))

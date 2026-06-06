@@ -105,7 +105,7 @@ void Prefs_PreflightVerifier::putProfile()
 	if (!checkerProfiles.contains(currentProfile))
 		return;
 
-	auto checkerProfile = checkerProfiles.value(currentProfile);
+	auto& checkerProfile = checkerProfiles[currentProfile];
 	checkerProfile.ignoreErrors = ignoreAllErrorsCheckBox->isChecked();
 	checkerProfile.autoCheck = autoCheckBeforePrintExportCheckBox->isChecked();
 	checkerProfile.checkGlyphs = checkMissingGlyphsCheckBox->isChecked();

@@ -7,6 +7,8 @@ a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
 
+#include <QCheckBox>
+#include <QSpinBox>
 #include <QTabWidget>
 #include <QMessageBox>
 
@@ -206,6 +208,7 @@ void SMTableStyle::apply()
 
 	m_doc->redefineTableStyles(m_cachedStyles, false);
 	m_doc->replaceTableStyles(replacement);
+	m_doc->syncAllTableConditionalStyles();
 
 	m_deleted.clear(); // Deletion done at this point.
 
@@ -428,6 +431,14 @@ void SMTableStyle::setupConnections()
 	connect(m_page->fillShade, SIGNAL(clicked()), this, SLOT(slotFillShade()));
 	connect(m_page->parentCombo, SIGNAL(currentTextChanged(QString)), this, SLOT(slotParentChanged(QString)));
 	connect(m_page, SIGNAL(bordersChanged(TableSides, TableBorder)), this, SLOT(slotBordersChanged(TableSides, TableBorder)));
+	connect(m_page->headerRowsSpinBox, SIGNAL(valueChanged(int)), this, SLOT(slotHeaderRows()));
+	connect(m_page->totalRowsSpinBox, SIGNAL(valueChanged(int)), this, SLOT(slotTotalRows()));
+	connect(m_page->bandedRowsCheckBox, SIGNAL(toggled(bool)), this, SLOT(slotBandedRows()));
+	connect(m_page->bandedColumnsCheckBox, SIGNAL(toggled(bool)), this, SLOT(slotBandedColumns()));
+	connect(m_page->firstColumnCheckBox, SIGNAL(toggled(bool)), this, SLOT(slotFirstColumn()));
+	connect(m_page->lastColumnCheckBox, SIGNAL(toggled(bool)), this, SLOT(slotLastColumn()));
+	connect(m_page, SIGNAL(conditionalAreaChanged(TableArea)), this, SLOT(slotAreaChanged(TableArea)));
+	connect(m_page->paragraphStyleComboBox, SIGNAL(newStyle(QString)), this, SLOT(slotParagraphStyle(QString)));
 }
 
 void SMTableStyle::removeConnections()
@@ -438,21 +449,35 @@ void SMTableStyle::removeConnections()
 	disconnect(m_page->fillShade, SIGNAL(clicked()), this, SLOT(slotFillShade()));
 	disconnect(m_page->parentCombo, SIGNAL(currentTextChanged(QString)), this, SLOT(slotParentChanged(QString)));
 	disconnect(m_page, SIGNAL(bordersChanged(TableSides, TableBorder)), this, SLOT(slotBordersChanged(TableSides, TableBorder)));
+	disconnect(m_page->headerRowsSpinBox, SIGNAL(valueChanged(int)), this, SLOT(slotHeaderRows()));
+	disconnect(m_page->totalRowsSpinBox, SIGNAL(valueChanged(int)), this, SLOT(slotTotalRows()));
+	disconnect(m_page->bandedRowsCheckBox, SIGNAL(toggled(bool)), this, SLOT(slotBandedRows()));
+	disconnect(m_page->bandedColumnsCheckBox, SIGNAL(toggled(bool)), this, SLOT(slotBandedColumns()));
+	disconnect(m_page->firstColumnCheckBox, SIGNAL(toggled(bool)), this, SLOT(slotFirstColumn()));
+	disconnect(m_page->lastColumnCheckBox, SIGNAL(toggled(bool)), this, SLOT(slotLastColumn()));
+	disconnect(m_page, SIGNAL(conditionalAreaChanged(TableArea)), this, SLOT(slotAreaChanged(TableArea)));
+	disconnect(m_page->paragraphStyleComboBox, SIGNAL(newStyle(QString)), this, SLOT(slotParagraphStyle(QString)));
 }
 
 void SMTableStyle::slotFillColor()
 {
-	if (m_page->fillColor->useParentValue())
+	TableArea area = m_page->currentArea();
+	QString col = m_page->fillColor->currentText();
+
+	for (int i = 0; i < m_selection.count(); ++i)
 	{
-		for (int i = 0; i < m_selection.count(); ++i)
-			m_selection[i]->resetFillColor();
-	}
-	else
-	{
-		QString col(m_page->fillColor->currentText());
-		for (int i = 0; i < m_selection.count(); ++i)
+		if (area == TableArea::WholeTable)
 		{
-			m_selection[i]->setFillColor(col);
+			if (m_page->fillColor->useParentValue())
+				m_selection[i]->resetFillColor();
+			else
+				m_selection[i]->setFillColor(col);
+		}
+		else
+		{
+			CellStyle cs = m_selection[i]->conditionalStyle(area);
+			cs.setFillColor(col);
+			m_selection[i]->setConditionalStyle(area, cs);
 		}
 	}
 	if (!m_selectionIsDirty)
@@ -464,19 +489,23 @@ void SMTableStyle::slotFillColor()
 
 void SMTableStyle::slotFillShade()
 {
-	if (m_page->fillShade->useParentValue())
+	TableArea area = m_page->currentArea();
+	int fs = m_page->fillShade->getValue();
+
+	for (int i = 0; i < m_selection.count(); ++i)
 	{
-		for (int i = 0; i < m_selection.count(); ++i)
+		if (area == TableArea::WholeTable)
 		{
-			m_selection[i]->resetFillShade();
+			if (m_page->fillShade->useParentValue())
+				m_selection[i]->resetFillShade();
+			else
+				m_selection[i]->setFillShade(fs);
 		}
-	}
-	else
-	{
-		int fs = m_page->fillShade->getValue();
-		for (int i = 0; i < m_selection.count(); ++i)
+		else
 		{
-			m_selection[i]->setFillShade(fs);
+			CellStyle cs = m_selection[i]->conditionalStyle(area);
+			cs.setFillShade(fs);
+			m_selection[i]->setConditionalStyle(area, cs);
 		}
 	}
 	if (!m_selectionIsDirty)
@@ -530,16 +559,151 @@ void SMTableStyle::slotParentChanged(const QString &parent)
 
 void SMTableStyle::slotBordersChanged(TableSides sides, const TableBorder &border)
 {
+	TableArea area = m_page->currentArea();
 	for (int i = 0; i < m_selection.count(); ++i)
 	{
-		if (sides & TableSide::Left)
-			m_selection[i]->setLeftBorder(border);
-		if (sides & TableSide::Right)
-			m_selection[i]->setRightBorder(border);
-		if (sides & TableSide::Top)
-			m_selection[i]->setTopBorder(border);
-		if (sides & TableSide::Bottom)
-			m_selection[i]->setBottomBorder(border);
+		if (area == TableArea::WholeTable)
+		{
+			if (sides & TableSide::Left)
+				m_selection[i]->setLeftBorder(border);
+			if (sides & TableSide::Right)
+				m_selection[i]->setRightBorder(border);
+			if (sides & TableSide::Top)
+				m_selection[i]->setTopBorder(border);
+			if (sides & TableSide::Bottom)
+				m_selection[i]->setBottomBorder(border);
+		}
+		else
+		{
+			CellStyle cs = m_selection[i]->conditionalStyle(area);
+			if (sides & TableSide::Left)
+				cs.setLeftBorder(border);
+			if (sides & TableSide::Right)
+				cs.setRightBorder(border);
+			if (sides & TableSide::Top)
+				cs.setTopBorder(border);
+			if (sides & TableSide::Bottom)
+				cs.setBottomBorder(border);
+			m_selection[i]->setConditionalStyle(area, cs);
+		}
+	}
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+}
+
+void SMTableStyle::slotHeaderRows()
+{
+	int n = m_page->headerRowsSpinBox->value();
+	for (int i = 0; i < m_selection.count(); ++i)
+		m_selection[i]->setHeaderRows(n);
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+	if (m_selection.count() == 1)
+		m_page->rebuildAreaCombo(m_selection[0]);
+}
+
+void SMTableStyle::slotTotalRows()
+{
+	int n = m_page->totalRowsSpinBox->value();
+	for (int i = 0; i < m_selection.count(); ++i)
+		m_selection[i]->setTotalRows(n);
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+	if (m_selection.count() == 1)
+		m_page->rebuildAreaCombo(m_selection[0]);
+}
+
+void SMTableStyle::slotBandedRows()
+{
+	bool on = m_page->bandedRowsCheckBox->isChecked();
+	for (int i = 0; i < m_selection.count(); ++i)
+		m_selection[i]->setBandedRows(on);
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+	if (m_selection.count() == 1)
+		m_page->rebuildAreaCombo(m_selection[0]);
+}
+
+void SMTableStyle::slotBandedColumns()
+{
+	bool on = m_page->bandedColumnsCheckBox->isChecked();
+	for (int i = 0; i < m_selection.count(); ++i)
+		m_selection[i]->setBandedColumns(on);
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+	if (m_selection.count() == 1)
+		m_page->rebuildAreaCombo(m_selection[0]);
+}
+
+void SMTableStyle::slotFirstColumn()
+{
+	bool on = m_page->firstColumnCheckBox->isChecked();
+	for (int i = 0; i < m_selection.count(); ++i)
+		m_selection[i]->setFirstColumn(on);
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+	if (m_selection.count() == 1)
+		m_page->rebuildAreaCombo(m_selection[0]);
+}
+
+void SMTableStyle::slotLastColumn()
+{
+	bool on = m_page->lastColumnCheckBox->isChecked();
+	for (int i = 0; i < m_selection.count(); ++i)
+		m_selection[i]->setLastColumn(on);
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+	if (m_selection.count() == 1)
+		m_page->rebuildAreaCombo(m_selection[0]);
+}
+
+void SMTableStyle::slotAreaChanged(TableArea area)
+{
+	Q_UNUSED(area)
+	if (m_selection.count() == 1)
+	{
+		m_page->showFillForCurrentArea(m_selection[0]);
+		m_page->showParagraphStyleForCurrentArea(m_selection[0]);
+		m_page->showBordersForCurrentArea(m_selection[0]);
+	}
+}
+
+void SMTableStyle::slotParagraphStyle(const QString& psName)
+{
+	TableArea area = m_page->currentArea();
+	for (int i = 0; i < m_selection.count(); ++i)
+	{
+		if (area == TableArea::WholeTable)
+		{
+			m_selection[i]->setParagraphStyleName(psName);
+		}
+		else
+		{
+			CellStyle cs = m_selection[i]->conditionalStyle(area);
+			cs.setParagraphStyleName(psName);
+			m_selection[i]->setConditionalStyle(area, cs);
+		}
 	}
 	if (!m_selectionIsDirty)
 	{

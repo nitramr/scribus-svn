@@ -17,6 +17,41 @@ for which a new license (GPL+exception) is in place.
 namespace TableUtils
 {
 
+	// Area priority rank for border-collapse contests. Higher wins. Mirrors the
+	// precedence in PageItem_Table::areaAt: corners > columns > header/total >
+	// banding > body cell > whole table. A more-specific area's border wins a
+	// contested seam outright, regardless of width.
+	static int cellAreaPriority(const TableCell& cell, PageItem_Table* table)
+	{
+		if (!cell.isValid() || !table)
+			return 0;
+
+		switch (table->areaAt(cell.row(), cell.column()))
+		{
+			case TableArea::TopLeftCell:
+			case TableArea::TopRightCell:
+			case TableArea::BottomLeftCell:
+			case TableArea::BottomRightCell:
+				return 60;
+			case TableArea::FirstColumn:
+			case TableArea::LastColumn:
+				return 50;
+			case TableArea::HeaderRow:
+			case TableArea::TotalRow:
+				return 40;
+			case TableArea::BandedRowOdd:
+			case TableArea::BandedRowEven:
+			case TableArea::BandedColOdd:
+			case TableArea::BandedColEven:
+				return 30;
+			case TableArea::BodyCell:
+				return 20;
+			case TableArea::WholeTable:
+			default:
+				return 10;
+		}
+	}
+
 	/**
 	 * Collapses two cell borders, preferring the explicitly-set border over an
 	 * inherited one when the borders would otherwise tie. The border that wins
@@ -24,8 +59,8 @@ namespace TableUtils
 	 * per-cell border model.
 	 */
 	TableBorder collapseBordersBetweenCells(
-			const TableBorder& firstBorder, bool firstInh,
-			const TableBorder& secondBorder, bool secondInh)
+			const TableBorder& firstBorder, bool firstInh, int firstPriority,
+			const TableBorder& secondBorder, bool secondInh, int secondPriority)
 	{
 		// If one side has been explicitly cleared (set to null but not inherited)
 		// and the other is inherited, the explicit clear wins -- the user has
@@ -34,6 +69,12 @@ namespace TableUtils
 			return firstBorder;
 		if (!secondInh && secondBorder.isNull() && firstInh)
 			return secondBorder;
+
+		// A more-specific area's border wins a contested seam outright,
+		// regardless of width (e.g. header beats body, total beats body).
+		// Equal priority falls through to the width/explicit rules below.
+		if (firstPriority != secondPriority)
+			return (firstPriority > secondPriority) ? firstBorder : secondBorder;
 
 		// Otherwise, prefer explicitly-set over inherited when widths tie.
 		if (firstInh && !secondInh)
@@ -62,9 +103,9 @@ namespace TableUtils
 
 
 	void resolveBordersHorizontal(const TableCell& topLeftCell, const TableCell& topCell,
-								 const TableCell& topRightCell, const TableCell& bottomLeftCell, const TableCell& bottomCell,
-								 const TableCell& bottomRightCell, TableBorder* topLeft, TableBorder* left, TableBorder* bottomLeft,
-								 TableBorder* center, TableBorder* topRight, TableBorder* right, TableBorder* bottomRight, PageItem_Table* table)
+								  const TableCell& topRightCell, const TableCell& bottomLeftCell, const TableCell& bottomCell,
+								  const TableCell& bottomRightCell, TableBorder* topLeft, TableBorder* left, TableBorder* bottomLeft,
+								  TableBorder* center, TableBorder* topRight, TableBorder* right, TableBorder* bottomRight, PageItem_Table* table)
 	{
 		// Resolve top left
 		if (!topCell.isValid() && !bottomCell.isValid())
@@ -72,7 +113,7 @@ namespace TableUtils
 		if (topLeftCell.column() == topCell.column())
 			*topLeft = TableBorder();
 		else if (topLeftCell.isValid() && topCell.isValid())
-			*topLeft = collapseBordersBetweenCells( topCell.leftBorder(), topCell.style().isInhLeftBorder(), topLeftCell.rightBorder(), topLeftCell.style().isInhRightBorder());
+			*topLeft = collapseBordersBetweenCells(topCell.leftBorder(), topCell.style().isInhLeftBorder(), cellAreaPriority(topCell, table), topLeftCell.rightBorder(), topLeftCell.style().isInhRightBorder(), cellAreaPriority(topLeftCell, table));
 		else if (topLeftCell.isValid())
 			*topLeft = collapseBorderAgainstTable(topLeftCell.rightBorder(), topLeftCell.style().isInhRightBorder(), table->rightBorder());
 		else if (topCell.isValid())
@@ -84,7 +125,7 @@ namespace TableUtils
 		if (topLeftCell.row() == bottomLeftCell.row())
 			*left = TableBorder();
 		else if (topLeftCell.isValid() && bottomLeftCell.isValid())
-			*left = collapseBordersBetweenCells(bottomLeftCell.topBorder(), bottomLeftCell.style().isInhTopBorder(), topLeftCell.bottomBorder(), topLeftCell.style().isInhBottomBorder());
+			*left = collapseBordersBetweenCells(bottomLeftCell.topBorder(), bottomLeftCell.style().isInhTopBorder(), cellAreaPriority(bottomLeftCell, table), topLeftCell.bottomBorder(), topLeftCell.style().isInhBottomBorder(), cellAreaPriority(topLeftCell, table));
 		else if (topLeftCell.isValid())
 			*left = collapseBorderAgainstTable(topLeftCell.bottomBorder(), topLeftCell.style().isInhBottomBorder(), table->bottomBorder());
 		else if (bottomLeftCell.isValid())
@@ -96,7 +137,7 @@ namespace TableUtils
 		if (bottomLeftCell.column() == bottomCell.column())
 			*bottomLeft = TableBorder();
 		else if (bottomLeftCell.isValid() && bottomCell.isValid())
-			*bottomLeft = collapseBordersBetweenCells(bottomCell.leftBorder(), bottomCell.style().isInhLeftBorder(), bottomLeftCell.rightBorder(), bottomLeftCell.style().isInhRightBorder());
+			*bottomLeft = collapseBordersBetweenCells(bottomCell.leftBorder(), bottomCell.style().isInhLeftBorder(), cellAreaPriority(bottomCell, table), bottomLeftCell.rightBorder(), bottomLeftCell.style().isInhRightBorder(), cellAreaPriority(bottomLeftCell, table));
 		else if (bottomLeftCell.isValid())
 			*bottomLeft = collapseBorderAgainstTable(bottomLeftCell.rightBorder(), bottomLeftCell.style().isInhRightBorder(), table->rightBorder());
 		else if (bottomCell.isValid())
@@ -108,7 +149,7 @@ namespace TableUtils
 		if (topCell.row() == bottomCell.row())
 			*center = TableBorder();
 		else if (topCell.isValid() && bottomCell.isValid())
-			*center = collapseBordersBetweenCells(topCell.bottomBorder(), topCell.style().isInhBottomBorder(), bottomCell.topBorder(), bottomCell.style().isInhTopBorder());
+			*center = collapseBordersBetweenCells(topCell.bottomBorder(), topCell.style().isInhBottomBorder(), cellAreaPriority(topCell, table), bottomCell.topBorder(), bottomCell.style().isInhTopBorder(), cellAreaPriority(bottomCell, table));
 		else if (topCell.isValid())
 			*center = collapseBorderAgainstTable(topCell.bottomBorder(), topCell.style().isInhBottomBorder(), table->bottomBorder());
 		else if (bottomCell.isValid())
@@ -120,7 +161,7 @@ namespace TableUtils
 		if (topRightCell.column() == topCell.column())
 			*topRight = TableBorder();
 		else if (topRightCell.isValid() && topCell.isValid())
-			*topRight = collapseBordersBetweenCells(topRightCell.leftBorder(), topRightCell.style().isInhLeftBorder(), topCell.rightBorder(), topCell.style().isInhRightBorder());
+			*topRight = collapseBordersBetweenCells(topRightCell.leftBorder(), topRightCell.style().isInhLeftBorder(), cellAreaPriority(topRightCell, table), topCell.rightBorder(), topCell.style().isInhRightBorder(), cellAreaPriority(topCell, table));
 		else if (topRightCell.isValid())
 			*topRight = collapseBorderAgainstTable(topRightCell.leftBorder(), topRightCell.style().isInhLeftBorder(), table->leftBorder());
 		else if (topCell.isValid())
@@ -132,7 +173,7 @@ namespace TableUtils
 		if (topRightCell.row() == bottomRightCell.row())
 			*right = TableBorder();
 		else if (topRightCell.isValid() && bottomRightCell.isValid())
-			*right = collapseBordersBetweenCells(bottomRightCell.topBorder(), bottomRightCell.style().isInhTopBorder(), topRightCell.bottomBorder(), topRightCell.style().isInhBottomBorder());
+			*right = collapseBordersBetweenCells(bottomRightCell.topBorder(), bottomRightCell.style().isInhTopBorder(), cellAreaPriority(bottomRightCell, table), topRightCell.bottomBorder(), topRightCell.style().isInhBottomBorder(), cellAreaPriority(topRightCell, table));
 		else if (topRightCell.isValid())
 			*right = collapseBorderAgainstTable(topRightCell.bottomBorder(), topRightCell.style().isInhBottomBorder(), table->bottomBorder());
 		else if (bottomRightCell.isValid())
@@ -144,7 +185,7 @@ namespace TableUtils
 		if (bottomRightCell.column() == bottomCell.column())
 			*bottomRight = TableBorder();
 		else if (bottomRightCell.isValid() && bottomCell.isValid())
-			*bottomRight = collapseBordersBetweenCells(bottomRightCell.leftBorder(), bottomRightCell.style().isInhLeftBorder(), bottomCell.rightBorder(), bottomCell.style().isInhRightBorder());
+			*bottomRight = collapseBordersBetweenCells(bottomRightCell.leftBorder(), bottomRightCell.style().isInhLeftBorder(), cellAreaPriority(bottomRightCell, table), bottomCell.rightBorder(), bottomCell.style().isInhRightBorder(), cellAreaPriority(bottomCell, table));
 		else if (bottomRightCell.isValid())
 			*bottomRight = collapseBorderAgainstTable(bottomRightCell.leftBorder(), bottomRightCell.style().isInhLeftBorder(), table->leftBorder());
 		else if (bottomCell.isValid())
@@ -163,7 +204,7 @@ namespace TableUtils
 		if (topLeftCell.row() == leftCell.row())
 			*topLeft = TableBorder();
 		else if (topLeftCell.isValid() && leftCell.isValid())
-			*topLeft = collapseBordersBetweenCells(leftCell.topBorder(), leftCell.style().isInhTopBorder(), topLeftCell.bottomBorder(), topLeftCell.style().isInhBottomBorder());
+			*topLeft = collapseBordersBetweenCells(leftCell.topBorder(), leftCell.style().isInhTopBorder(), cellAreaPriority(leftCell, table), topLeftCell.bottomBorder(), topLeftCell.style().isInhBottomBorder(), cellAreaPriority(topLeftCell, table));
 		else if (topLeftCell.isValid())
 			*topLeft = collapseBorderAgainstTable(topLeftCell.bottomBorder(), topLeftCell.style().isInhBottomBorder(), table->bottomBorder());
 		else if (leftCell.isValid())
@@ -175,7 +216,7 @@ namespace TableUtils
 		if (topLeftCell.column() == topRightCell.column())
 			*top = TableBorder();
 		else if (topLeftCell.isValid() && topRightCell.isValid())
-			*top = collapseBordersBetweenCells(topRightCell.leftBorder(), topRightCell.style().isInhLeftBorder(), topLeftCell.rightBorder(), topLeftCell.style().isInhRightBorder());
+			*top = collapseBordersBetweenCells(topRightCell.leftBorder(), topRightCell.style().isInhLeftBorder(), cellAreaPriority(topRightCell, table), topLeftCell.rightBorder(), topLeftCell.style().isInhRightBorder(), cellAreaPriority(topLeftCell, table));
 		else if (topLeftCell.isValid())
 			*top = collapseBorderAgainstTable(topLeftCell.rightBorder(), topLeftCell.style().isInhRightBorder(), table->rightBorder());
 		else if (topRightCell.isValid())
@@ -187,7 +228,7 @@ namespace TableUtils
 		if (topRightCell.row() == rightCell.row())
 			*topRight = TableBorder();
 		else if (topRightCell.isValid() && rightCell.isValid())
-			*topRight = collapseBordersBetweenCells(rightCell.topBorder(), rightCell.style().isInhTopBorder(), topRightCell.bottomBorder(), topRightCell.style().isInhBottomBorder());
+			*topRight = collapseBordersBetweenCells(rightCell.topBorder(), rightCell.style().isInhTopBorder(), cellAreaPriority(rightCell, table), topRightCell.bottomBorder(), topRightCell.style().isInhBottomBorder(), cellAreaPriority(topRightCell, table));
 		else if (topRightCell.isValid())
 			*topRight = collapseBorderAgainstTable(topRightCell.bottomBorder(), topRightCell.style().isInhBottomBorder(), table->bottomBorder());
 		else if (rightCell.isValid())
@@ -199,7 +240,7 @@ namespace TableUtils
 		if (leftCell.column() == rightCell.column())
 			*center = TableBorder();
 		else if (leftCell.isValid() && rightCell.isValid())
-			*center = collapseBordersBetweenCells(rightCell.leftBorder(), rightCell.style().isInhLeftBorder(), leftCell.rightBorder(), leftCell.style().isInhRightBorder());
+			*center = collapseBordersBetweenCells(rightCell.leftBorder(), rightCell.style().isInhLeftBorder(), cellAreaPriority(rightCell, table), leftCell.rightBorder(), leftCell.style().isInhRightBorder(), cellAreaPriority(leftCell, table));
 		else if (leftCell.isValid())
 			*center = collapseBorderAgainstTable(leftCell.rightBorder(), leftCell.style().isInhRightBorder(), table->rightBorder());
 		else if (rightCell.isValid())
@@ -211,7 +252,7 @@ namespace TableUtils
 		if (bottomLeftCell.row() == leftCell.row())
 			*bottomLeft = TableBorder();
 		else if (bottomLeftCell.isValid() && leftCell.isValid())
-			*bottomLeft = collapseBordersBetweenCells(bottomLeftCell.topBorder(), bottomLeftCell.style().isInhTopBorder(), leftCell.bottomBorder(), leftCell.style().isInhBottomBorder());
+			*bottomLeft = collapseBordersBetweenCells(bottomLeftCell.topBorder(), bottomLeftCell.style().isInhTopBorder(), cellAreaPriority(bottomLeftCell, table), leftCell.bottomBorder(), leftCell.style().isInhBottomBorder(), cellAreaPriority(leftCell, table));
 		else if (bottomLeftCell.isValid())
 			*bottomLeft = collapseBorderAgainstTable(bottomLeftCell.topBorder(), bottomLeftCell.style().isInhTopBorder(), table->topBorder());
 		else if (leftCell.isValid())
@@ -223,7 +264,7 @@ namespace TableUtils
 		if (bottomLeftCell.column() == bottomRightCell.column())
 			*bottom = TableBorder();
 		else if (bottomLeftCell.isValid() && bottomRightCell.isValid())
-			*bottom = collapseBordersBetweenCells(bottomRightCell.leftBorder(), bottomRightCell.style().isInhLeftBorder(), bottomLeftCell.rightBorder(), bottomLeftCell.style().isInhRightBorder());
+			*bottom = collapseBordersBetweenCells(bottomRightCell.leftBorder(), bottomRightCell.style().isInhLeftBorder(), cellAreaPriority(bottomRightCell, table), bottomLeftCell.rightBorder(), bottomLeftCell.style().isInhRightBorder(), cellAreaPriority(bottomLeftCell, table));
 		else if (bottomLeftCell.isValid())
 			*bottom = collapseBorderAgainstTable(bottomLeftCell.rightBorder(), bottomLeftCell.style().isInhRightBorder(), table->rightBorder());
 		else if (bottomRightCell.isValid())
@@ -235,7 +276,7 @@ namespace TableUtils
 		if (bottomRightCell.row() == rightCell.row())
 			*bottomRight = TableBorder();
 		else if (bottomRightCell.isValid() && rightCell.isValid())
-			*bottomRight = collapseBordersBetweenCells(bottomRightCell.topBorder(), bottomRightCell.style().isInhTopBorder(), rightCell.bottomBorder(), rightCell.style().isInhBottomBorder());
+			*bottomRight = collapseBordersBetweenCells(bottomRightCell.topBorder(), bottomRightCell.style().isInhTopBorder(), cellAreaPriority(bottomRightCell, table), rightCell.bottomBorder(), rightCell.style().isInhBottomBorder(), cellAreaPriority(rightCell, table));
 		else if (bottomRightCell.isValid())
 			*bottomRight = collapseBorderAgainstTable(bottomRightCell.topBorder(), bottomRightCell.style().isInhTopBorder(), table->topBorder());
 		else if (rightCell.isValid())

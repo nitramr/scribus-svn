@@ -739,6 +739,9 @@
     <ClInclude Include="..\..\..\scribus\styles\styleset.h">
       <Filter>Source Files\styles</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\scribus\styles\tablearea.h">
+      <Filter>Source Files\styles</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\scribus\styles\tablestyle.h">
       <Filter>Source Files\styles</Filter>
     </ClInclude>

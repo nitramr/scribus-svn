@@ -18,10 +18,14 @@
 #ifndef TABLESTYLE_H
 #define TABLESTYLE_H
 
+#include <QHash>
+
 #include "style.h"
 #include "commonstrings.h"
 #include "resourcecollection.h"
+#include "styles/cellstyle.h"
 #include "styles/stylecontextproxy.h"
+#include "styles/tablearea.h"
 #include "tableborder.h"
 
 /**
@@ -107,7 +111,7 @@ public:
 	const attr_TYPE &attr_GETTER() const { validate(); return m_##attr_NAME; }
 #include "tablestyle.attrdefs.cxx"
 #undef ATTRDEF
-	
+
 	/**
 	 * Sets the value of the attribute in this style and disinherits it.
 	 *
@@ -117,7 +121,7 @@ public:
 	void set##attr_NAME(attr_TYPE v) { m_##attr_NAME = v; inh_##attr_NAME = false; }
 #include "tablestyle.attrdefs.cxx"
 #undef ATTRDEF
-	
+
 	/**
 	 * Resets the attribute to its default value in this style and makes it
 	 * inherited.
@@ -126,7 +130,7 @@ public:
 	void reset##attr_NAME() { m_##attr_NAME = attr_DEFAULT; inh_##attr_NAME = true; }
 #include "tablestyle.attrdefs.cxx"
 #undef ATTRDEF
-	
+
 	/**
 	 * Returns true if the attribute is inherited.
 	 *
@@ -136,7 +140,7 @@ public:
 	bool isInh##attr_NAME() const { return inh_##attr_NAME; }
 #include "tablestyle.attrdefs.cxx"
 #undef ATTRDEF
-	
+
 	/**
 	 * Returns true if the attribute is defined in this style or any ancestor
 	 * style.
@@ -151,7 +155,45 @@ public:
 	}
 #include "tablestyle.attrdefs.cxx"
 #undef ATTRDEF
-	
+
+	// --- Conditional (table-area) formatting -------------------------------
+	// A table style may carry conditional cell styles keyed by structural area
+	// (header row, banded rows, corners, ...) plus flags describing which
+	// areas are active. These are owned outright: they are copied with the
+	// style and compared in equiv(), but they do NOT inherit through the
+	// table-style parent chain (update() ignores them). Applying a table style
+	// replaces the previous one's conditional formatting wholesale.
+
+	/// Returns true if a conditional cell style is defined for @a area.
+	bool hasConditionalStyle(TableArea area) const { return m_conditionalStyles.contains(area); }
+
+	/// Returns the conditional cell style for @a area, or a default-constructed
+	/// CellStyle if none is defined. Check hasConditionalStyle() first.
+	CellStyle conditionalStyle(TableArea area) const { return m_conditionalStyles.value(area); }
+
+	/// Sets the conditional cell style for @a area.
+	void setConditionalStyle(TableArea area, const CellStyle& style) { m_conditionalStyles.insert(area, style); }
+
+	/// Removes any conditional cell style defined for @a area.
+	void removeConditionalStyle(TableArea area) { m_conditionalStyles.remove(area); }
+
+	/// Removes all conditional cell styles.
+	void clearConditionalStyles() { m_conditionalStyles.clear(); }
+
+	/// Read-only access to the whole conditional style map (for serialisation).
+	const QHash<TableArea, CellStyle>& conditionalStyles() const { return m_conditionalStyles; }
+
+	/// Returns true if this style or any ancestor defines a conditional style
+	/// for @a area. Unlike hasConditionalStyle(), this walks the parent chain.
+	bool hasConditionalStyleResolved(TableArea area) const;
+
+	/// Returns the conditional cell style for @a area, resolved up the parent
+	/// chain; a default-constructed CellStyle if none is found.
+	CellStyle conditionalStyleResolved(TableArea area) const;
+
+	/// Returns the union of areas defined by this style and all ancestors.
+	QList<TableArea> conditionalAreasResolved() const;
+
 private:
 	StyleContextProxy tableStyleProxy;
 
@@ -161,6 +203,9 @@ private:
 	bool inh_##attr_NAME;
 #include "tablestyle.attrdefs.cxx"
 #undef ATTRDEF
+
+	// Conditional formatting storage (hand-written, not ATTRDEF-managed).
+	QHash<TableArea, CellStyle> m_conditionalStyles;
 };
 
 inline TableStyle& TableStyle::operator=(const TableStyle& other)
@@ -171,6 +216,7 @@ inline TableStyle& TableStyle::operator=(const TableStyle& other)
 	inh_##attr_NAME = other.inh_##attr_NAME;
 #include "tablestyle.attrdefs.cxx"
 #undef ATTRDEF
+	m_conditionalStyles = other.m_conditionalStyles;
 	m_contextversion = -1;
 	return *this;
 }
@@ -182,6 +228,7 @@ inline TableStyle::TableStyle(const TableStyle& other) : BaseStyle(other), table
 	inh_##attr_NAME = other.inh_##attr_NAME;
 #include "tablestyle.attrdefs.cxx"
 #undef ATTRDEF
+	m_conditionalStyles = other.m_conditionalStyles;
 	m_contextversion = -1;
 }
 

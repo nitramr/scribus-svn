@@ -13,6 +13,7 @@ for which a new license (GPL+exception) is in place.
 #include <QWidget>
 
 #include "ui_smtablestylewidget.h"
+#include "styles/tablearea.h"
 #include "styles/tablestyle.h"
 #include "tableborder.h"
 #include "tablesideselector.h"
@@ -68,10 +69,16 @@ class SMTableStyleWidget : public QWidget, public Ui::SMTableStyleWidget
 		void fillFillColorCombo(ColorList &colors);
 		void showColors(const QList<TableStyle*> &tableStyles);
 		void setBorders(const TableBorder& left, const TableBorder& right, const TableBorder& top, const TableBorder& bottom);
+		TableArea currentArea() const { return m_currentArea; }
+		void rebuildAreaCombo(TableStyle *tableStyle);
+		void showFillForCurrentArea(TableStyle *tableStyle);
+		void showBordersForCurrentArea(TableStyle *tableStyle);
+		void showParagraphStyleForCurrentArea(TableStyle *tableStyle);
 
 	signals:
 		// Emitted when the user changes the border on one or more sides.
 		void bordersChanged(TableSides sides, const TableBorder& border);
+		void conditionalAreaChanged(TableArea area);
 
 	protected:
 		void changeEvent(QEvent *e) override;
@@ -90,11 +97,14 @@ class SMTableStyleWidget : public QWidget, public Ui::SMTableStyleWidget
 		TableBorder m_rightBorder;
 		TableBorder m_topBorder;
 		TableBorder m_bottomBorder;
+		TableArea m_currentArea { TableArea::WholeTable };
 
 		void updateBorderLineList();
 		void updateBorderLineListItem();
 		void mirrorCurrentBorderToSelectedSides();
 		QColor getColor(const QString& colorName, int shade) const;
+		void setCheck(QCheckBox* cb, bool v);
+		void setSpin(QSpinBox* sb, int v, bool enabled = true);
 
 	private slots:
 		void handleUpdateRequest(int);
@@ -107,6 +117,7 @@ class SMTableStyleWidget : public QWidget, public Ui::SMTableStyleWidget
 		void on_borderLineShade_valueChanged(double shade);
 		void on_borderLineColor_textActivated(const QString& colorName);
 		void on_borderLineStyle_activated(int style);
+		void on_conditionalAreaComboBox_currentIndexChanged(int index);
 };
 
 #endif // SMTABLESTYLEWIDGET_H

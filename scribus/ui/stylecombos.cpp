@@ -404,6 +404,8 @@ void CellStyleComboBox::updateStyleList()
 		for (int i = 0; i < m_doc->cellStyles().count(); ++i)
 		{
 			const CellStyle& cellStyle = m_doc->cellStyles()[i];
+			if (cellStyle.name().startsWith(QLatin1String("__cond_")))
+				continue;
 			if (!cellStyle.name().isEmpty() && !cellStyle.isDefaultStyle())
 				st.append(cellStyle.name());
 		}

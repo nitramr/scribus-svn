@@ -139,7 +139,6 @@ void CollapsedTablePainter::paintTable(ScPainter* p)
 void CollapsedTablePainter::paintTableFill(ScPainter* p) const
 {
 	QString colorName = table()->fillColor();
-
 	if (colorName == CommonStrings::None)
 		return;
 

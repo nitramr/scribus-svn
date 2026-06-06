@@ -864,6 +864,7 @@
     <ClInclude Include="..\..\..\scribus\tablepainter.h" />
     <moc Include="..\..\..\scribus\ui\tablerowheightsdialog.h" />
     <moc Include="..\..\..\scribus\ui\tablesideselector.h" />
+    <ClInclude Include="..\..\..\scribus\styles\tablearea.h" />
     <ClInclude Include="..\..\..\scribus\styles\tablestyle.h" />
     <ClInclude Include="..\..\..\scribus\tableutils.h" />
     <moc Include="..\..\..\scribus\ui\tabmanager.h" />

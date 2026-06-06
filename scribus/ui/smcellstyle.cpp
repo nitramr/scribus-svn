@@ -80,6 +80,8 @@ QList<StyleName> SMCellStyle::styles(bool reloadFromDoc)
 	// Return a list of names of cached styles.
 	for (int i = 0; i < m_cachedStyles.count(); ++i)
 	{
+		if (m_cachedStyles[i].name().startsWith(QLatin1String("__cond_")))
+			continue;
 		if (m_cachedStyles[i].hasName())
 		{
 			QString styleName(m_cachedStyles[i].displayName());

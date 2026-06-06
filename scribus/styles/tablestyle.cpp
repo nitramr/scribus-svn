@@ -26,14 +26,32 @@ bool TableStyle::equiv(const BaseStyle& other) const
 {
 	other.validate();
 	const TableStyle *p_other = dynamic_cast<const TableStyle*> (&other);
-	return p_other &&
-		parent() == p_other->parent() 
+	if (!p_other)
+		return false;
+	if (parent() != p_other->parent())
+		return false;
 #define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
-		&& (inh_##attr_NAME == p_other->inh_##attr_NAME) \
-		&& (inh_##attr_NAME || isequiv(m_##attr_NAME, p_other->m_##attr_NAME))
+	if (inh_##attr_NAME != p_other->inh_##attr_NAME) \
+		return false; \
+	if (!inh_##attr_NAME && !isequiv(m_##attr_NAME, p_other->m_##attr_NAME)) \
+		return false;
 #include "tablestyle.attrdefs.cxx"
 #undef ATTRDEF
-		;
+
+	// Conditional style map: same set of areas, each style equivalent.
+	// (Configuration scalars are now attrdef-managed and compared above.)
+	if (m_conditionalStyles.size() != p_other->m_conditionalStyles.size())
+		return false;
+	for (auto it = m_conditionalStyles.constBegin(); it != m_conditionalStyles.constEnd(); ++it)
+	{
+		auto otherIt = p_other->m_conditionalStyles.constFind(it.key());
+		if (otherIt == p_other->m_conditionalStyles.constEnd())
+			return false;
+		if (!it.value().equiv(otherIt.value()))
+			return false;
+	}
+
+	return true;
 }
 
 void TableStyle::erase()
@@ -43,6 +61,8 @@ void TableStyle::erase()
 		reset##attr_NAME();
 #include "tablestyle.attrdefs.cxx"
 #undef ATTRDEF
+	// Conditional map is owned, not attrdef-managed, so clear it explicitly.
+	m_conditionalStyles.clear();
 	//updateFeatures(); TODO: Investigate this.
 }
 
@@ -66,6 +86,10 @@ void TableStyle::getNamedResources(ResourceCollection& lists) const
 		lists.collectCellStyle(style->name());
 	lists.collectColor(fillColor());
 	// TODO: Collect colors of borders.
+
+	// Conditional styles may reference fill (and border) colors.
+	for (auto it = m_conditionalStyles.constBegin(); it != m_conditionalStyles.constEnd(); ++it)
+		it.value().getNamedResources(lists);
 }
 
 void TableStyle::replaceNamedResources(ResourceCollection& newNames)
@@ -76,6 +100,45 @@ void TableStyle::replaceNamedResources(ResourceCollection& newNames)
 		setFillColor(it.value());
 
 	// TODO: Do we need to do something else? E.g. CharStyle calls its updateFeatures().
+}
+
+bool TableStyle::hasConditionalStyleResolved(TableArea area) const
+{
+	for (const TableStyle* s = this; s != nullptr;
+		 s = dynamic_cast<const TableStyle*>(s->parentStyle()))
+	{
+		if (s->m_conditionalStyles.contains(area))
+			return true;
+	}
+	return false;
+}
+
+CellStyle TableStyle::conditionalStyleResolved(TableArea area) const
+{
+	for (const TableStyle* s = this; s != nullptr;
+		 s = dynamic_cast<const TableStyle*>(s->parentStyle()))
+	{
+		auto it = s->m_conditionalStyles.constFind(area);
+		if (it != s->m_conditionalStyles.constEnd())
+			return it.value();
+	}
+	return CellStyle();
+}
+
+QList<TableArea> TableStyle::conditionalAreasResolved() const
+{
+	QList<TableArea> areas;
+	for (const TableStyle* s = this; s != nullptr;
+		 s = dynamic_cast<const TableStyle*>(s->parentStyle()))
+	{
+		for (auto it = s->m_conditionalStyles.constBegin();
+			 it != s->m_conditionalStyles.constEnd(); ++it)
+		{
+			if (!areas.contains(it.key()))
+				areas.append(it.key());
+		}
+	}
+	return areas;
 }
 
 void TableStyle::saxx(SaxHandler& handler, const Xml_string& elemtag) const
@@ -114,4 +177,3 @@ void TableStyle::desaxeRules(const Xml_string& prefixPattern, Digester& ruleset,
 #undef ATTRDEF
 */
 }
-

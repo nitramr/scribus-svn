@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>364</width>
-    <height>419</height>
+    <width>574</width>
+    <height>663</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -22,6 +22,27 @@
      </item>
      <item>
       <widget class="QComboBox" name="parentCombo">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QLabel" name="editingAreaLabel">
+       <property name="text">
+        <string>Editing Area:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="conditionalAreaComboBox">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -390,6 +411,127 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="conditionalFormattingGroupBox">
+     <property name="title">
+      <string>Conditional Formatting</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Number of Header Rows:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="headerRowsSpinBox">
+          <property name="maximum">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Number of Totals Rows:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="totalRowsSpinBox">
+          <property name="maximum">
+           <number>10</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="bandedRowsCheckBox">
+        <property name="text">
+         <string>Banded Rows</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="bandedColumnsCheckBox">
+        <property name="text">
+         <string>Banded Columns</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="firstColumnCheckBox">
+        <property name="text">
+         <string>First Column</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="lastColumnCheckBox">
+        <property name="text">
+         <string>Last Column</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Text</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <widget class="ParaStyleComboBox" name="paragraphStyleComboBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="toolTip">
+         <string>Paragraph style of currently selected text or paragraph</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <spacer>
      <property name="orientation">
       <enum>Qt::Orientation::Vertical</enum>
@@ -438,6 +580,11 @@
    <class>SMShadeButton</class>
    <extends>QPushButton</extends>
    <header>ui/smshadebutton.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ParaStyleComboBox</class>
+   <extends>QComboBox</extends>
+   <header>ui/stylecombos.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -101,12 +101,15 @@ void TableSideSelector::paintEvent(QPaintEvent* event)
 	painter.setPen(QPen(Qt::gray, edgeWidth/4, Qt::DotLine));
 	painter.drawRect(QRectF(topLeft, bottomRight));
 
-	// Paint dotted inner cross. Color is muted when inner is inactive
-	// to signal that clicks won't do anything in that zone.
-	QColor crossColor = m_innerActive ? Qt::gray : QColor(220, 220, 220);
-	painter.setPen(QPen(crossColor, edgeWidth/4, Qt::DotLine));
-	painter.drawLine(m_innerHorizontal);
-	painter.drawLine(m_innerVertical);
+	// Paint dotted inner cross only when the inner zone is active. When
+	// inactive (e.g. table-style editing, which has no interior borders),
+	// drawing it would misleadingly imply an editable inner border.
+	if (m_innerActive)
+	{
+		painter.setPen(QPen(Qt::gray, edgeWidth/4, Qt::DotLine));
+		painter.drawLine(m_innerHorizontal);
+		painter.drawLine(m_innerVertical);
+	}
 
 	// Highlighting (hover indication).
 	painter.setPen(QPen(QColor(255, 255, 255, 60), edgeWidth, Qt::SolidLine, Qt::RoundCap));

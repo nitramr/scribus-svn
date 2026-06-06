@@ -150,6 +150,7 @@ class PLUGIN_API Scribus171Format : public LoadSavePlugin
 		bool readPageSets(ScribusDoc* doc, ScXmlStreamReader& reader) const;
 		void readParagraphStyle(ScribusDoc *doc, ScXmlStreamReader& reader, ParagraphStyle& newStyle) const;
 		void readTableStyle(ScribusDoc *doc, ScXmlStreamReader& reader, TableStyle& newStyle) const;
+		void readConditionalCellStyle(ScribusDoc *doc, ScXmlStreamReader& reader, const ScXmlStreamAttributes& attrs, CellStyle& newStyle) const;
 		void readTableBorderLines(ScribusDoc *doc, ScXmlStreamReader& reader, TableBorder& border) const;
 		void readCellStyle(ScribusDoc *doc, ScXmlStreamReader& reader, CellStyle& newStyle) const;
 		bool readPattern(ScribusDoc* doc, ScXmlStreamReader& reader, const QString& baseDir);
@@ -205,6 +206,7 @@ class PLUGIN_API Scribus171Format : public LoadSavePlugin
 		void putNamedCStyle(ScXmlStreamWriter& docu, const CharStyle & style) const;
 		void putTableStyle(ScXmlStreamWriter& docu, const TableStyle & style) const;
 		void putCellStyle(ScXmlStreamWriter& docu, const CellStyle & style) const;
+		void putCellStyleBody(ScXmlStreamWriter& docu, const CellStyle & style) const;
 		void writeStoryText(ScribusDoc *doc, ScXmlStreamWriter&, StoryText& story, PageItem* item = nullptr) const;
 		void writeITEXTs(ScribusDoc *doc, ScXmlStreamWriter&, StoryText& story, PageItem* item = nullptr) const;
 		void writeLayers(ScXmlStreamWriter& docu) const;
